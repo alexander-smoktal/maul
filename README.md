@@ -1,7 +1,7 @@
 # maul
 Lua interpreter implemented in Rust
 
-Copyright (c) 2015, Alexander cosm Smoktal
+Copyright (c) 2015-2016, Alexander cosm Smoktal
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
