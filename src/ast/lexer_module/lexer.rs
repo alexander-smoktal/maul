@@ -8,24 +8,27 @@ use std::str;
 // ------------ Lexer ----------------
 pub struct Lexer {
     text: String,
-    token_table: HashMap<&'static str, Keyword>
+    token_table: HashMap<&'static str, Keyword>,
 }
 
 impl Lexer {
     pub fn new(input: String) -> Lexer {
-        Lexer { text: input, token_table: get_token_table() }
+        Lexer {
+            text: input,
+            token_table: get_token_table(),
+        }
     }
 }
 
 // ---------- Token Iterator --------------
 pub struct TokenIterator<'a> {
     lexer: &'a Lexer,
-    code: &'a[u8],
+    code: &'a [u8],
     pos: usize,
 
     // Line and column
     row: usize,
-    column: usize
+    column: usize,
 }
 
 impl<'a> TokenIterator<'a> {
@@ -45,17 +48,17 @@ impl<'a> TokenIterator<'a> {
             let chr = self.code[self.pos] as char;
 
             if chr.is_alphabetic() {
-                return Some(Token::new(self.parse_identifier(), self.row, self.column))
+                return Some(Token::new(self.parse_identifier(), self.row, self.column));
             } else if chr.is_numeric() {
-                return Some(Token::new(self.parse_number(), self.row, self.column))
+                return Some(Token::new(self.parse_number(), self.row, self.column));
             } else if chr == '\n' {
                 self.newline()
             } else if chr == '"' {
-                return Some(Token::new(self.parse_string(), self.row, self.column))
+                return Some(Token::new(self.parse_string(), self.row, self.column));
             } else if chr == ' ' || chr == '\t' || chr == '\n' {
                 self.advance_pos(1);
             } else {
-                return Some(Token::new(self.parse_operator(), self.row, self.column))
+                return Some(Token::new(self.parse_operator(), self.row, self.column));
             }
         }
 
@@ -66,7 +69,7 @@ impl<'a> TokenIterator<'a> {
         let allowed_chars = |a: &u8| {
             let chr = *a as char;
 
-            return !(chr.is_alphabetic() || chr.is_numeric())
+            return !(chr.is_alphabetic() || chr.is_numeric());
         };
 
         let (_, mut slice) = self.code.split_at(self.pos);
@@ -84,11 +87,13 @@ impl<'a> TokenIterator<'a> {
         match str::from_utf8(slice) {
             // If keyword map contains the keyword, return Token::Keyword
             // Else return a Token::Identifier
-            Ok(key) => match self.lexer.token_table.get(key) {
-                Some(keyword) => return TokenType::Keyword(keyword.clone()),
-                _ => return TokenType::Id(slice)
-            },
-            Err(why) => panic!("{:?}", why)
+            Ok(key) => {
+                match self.lexer.token_table.get(key) {
+                    Some(keyword) => return TokenType::Keyword(keyword.clone()),
+                    _ => return TokenType::Id(slice),
+                }
+            }
+            Err(why) => panic!("{:?}", why),
         }
     }
 
@@ -96,7 +101,7 @@ impl<'a> TokenIterator<'a> {
         let string_chars = |a: &u8| {
             let chr = *a as char;
 
-            return chr == '"'
+            return chr == '"';
         };
 
         self.advance_pos(1);
@@ -117,7 +122,7 @@ impl<'a> TokenIterator<'a> {
         let numeric_chars = |a: &u8| {
             let chr = *a as char;
 
-            return !(chr.is_numeric() || chr == '.')
+            return !(chr.is_numeric() || chr == '.');
         };
 
         let (_, mut slice) = self.code.split_at(self.pos);
@@ -133,7 +138,7 @@ impl<'a> TokenIterator<'a> {
             self.advance_pos(slice.len())
         }
 
-        return TokenType::Number(slice)
+        return TokenType::Number(slice);
     }
 
     fn parse_operator(&mut self) -> TokenType<'a> {
@@ -146,7 +151,7 @@ impl<'a> Iterator for TokenIterator<'a> {
     type Item = Token<'a>;
 
     fn next(&mut self) -> Option<Token<'a>> {
-        return self.parse_next_token()
+        return self.parse_next_token();
     }
 }
 
@@ -155,6 +160,12 @@ impl<'a> IntoIterator for &'a Lexer {
     type IntoIter = TokenIterator<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        return TokenIterator { lexer: self, code: self.text.as_bytes(), pos: 0, row: 1, column: 1 };
+        return TokenIterator {
+            lexer: self,
+            code: self.text.as_bytes(),
+            pos: 0,
+            row: 1,
+            column: 1,
+        };
     }
 }
