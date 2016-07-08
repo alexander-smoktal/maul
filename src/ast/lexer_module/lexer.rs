@@ -1,14 +1,15 @@
 use super::tokens::{get_token_table, Token, TokenType, Keyword};
 
 use std::collections::HashMap;
-use std::iter::{Iterator, IntoIterator};
+use std::iter::{Iterator, IntoIterator, Peekable};
 use std::string::String;
-use std::str;
+use std::str::Chars;
+use utils::take_while_exclusive;
 
 // ------------ Lexer ----------------
 pub struct Lexer {
     text: String,
-    token_table: HashMap<&'static str, Keyword>,
+    token_table: HashMap<String, Keyword>,
 }
 
 impl Lexer {
@@ -23,8 +24,7 @@ impl Lexer {
 // ---------- Token Iterator --------------
 pub struct TokenIterator<'a> {
     lexer: &'a Lexer,
-    code: &'a [u8],
-    pos: usize,
+    char_iterator: Peekable<Chars<'a>>,
 
     // Line and column
     row: usize,
@@ -33,7 +33,6 @@ pub struct TokenIterator<'a> {
 
 impl<'a> TokenIterator<'a> {
     fn advance_pos(&mut self, n: usize) {
-        self.pos += n;
         self.column += n;
     }
 
@@ -42,130 +41,95 @@ impl<'a> TokenIterator<'a> {
         self.column = 0;
     }
 
-    fn parse_next_token(&mut self) -> Option<Token<'a>> {
-
-        while self.pos < self.code.len() {
-            let chr = self.code[self.pos] as char;
-
-            if chr.is_alphabetic() {
+    fn parse_next_token(&mut self) -> Option<Token> {
+        if let Some(&chr) = self.char_iterator.peek() {
+            if chr.is_alphabetic() || chr == '_' {
                 return Some(Token::new(self.parse_identifier(), self.row, self.column));
             } else if chr.is_numeric() {
                 return Some(Token::new(self.parse_number(), self.row, self.column));
-            } else if chr == '\n' {
-                self.newline()
             } else if chr == '"' {
                 return Some(Token::new(self.parse_string(), self.row, self.column));
-            } else if chr == ' ' || chr == '\t' || chr == '\n' {
+            } else if chr == '\n' {
+                self.char_iterator.next();
+                self.newline();
+                return self.parse_next_token();
+            } else if chr == ' ' || chr == '\t' {
+                println!("Spot a whitespace");
+                self.char_iterator.next();
                 self.advance_pos(1);
+                return self.parse_next_token();
             } else {
-                return Some(Token::new(self.parse_operator(), self.row, self.column));
+                panic!("Unexpected char '{}' at {}:{}", chr, self.row, self.column)
             }
         }
 
-        return None;
+        None
     }
 
-    fn parse_identifier(&mut self) -> TokenType<'a> {
-        let allowed_chars = |a: &u8| {
-            let chr = *a as char;
+    fn parse_identifier(&mut self) -> TokenType {
+        let id_chars = |chr: &char| chr.is_alphanumeric();
 
-            return !(chr.is_alphabetic() || chr.is_numeric());
-        };
+        let id: String = take_while_exclusive(&mut self.char_iterator, id_chars).collect();
+        self.advance_pos(id.len());
 
-        let (_, mut slice) = self.code.split_at(self.pos);
-
-        // Get all allowed symbols for the identifier
-        if let Some(index) = slice.iter().position(allowed_chars) {
-            self.advance_pos(index);
-
-            let (slice_tmp, _) = slice.split_at(index);
-            slice = slice_tmp;
-        } else {
-            self.advance_pos(slice.len())
-        }
-
-        match str::from_utf8(slice) {
-            // If keyword map contains the keyword, return Token::Keyword
-            // Else return a Token::Identifier
-            Ok(key) => {
-                match self.lexer.token_table.get(key) {
-                    Some(keyword) => return TokenType::Keyword(keyword.clone()),
-                    _ => return TokenType::Id(slice),
-                }
-            }
-            Err(why) => panic!("{:?}", why),
+        // If keyword map contains the keyword, return Token::Keyword
+        // Else return a Token::Identifier
+        match self.lexer.token_table.get(&id) {
+            Some(keyword) => return TokenType::Keyword(keyword.clone()),
+            _ => return TokenType::Id(id),
         }
     }
 
-    fn parse_string(&mut self) -> TokenType<'a> {
-        let string_chars = |a: &u8| {
-            let chr = *a as char;
-
-            return chr == '"';
-        };
-
-        self.advance_pos(1);
-        let (_, slice) = self.code.split_at(self.pos);
-
+    fn parse_string(&mut self) -> TokenType {
         // Looking for the closing doublequote
-        if let Some(index) = slice.iter().position(string_chars) {
-            self.advance_pos(index);
-            let (slice, _) = slice.split_at(index);
+        let string_chars = |chr: &char| chr.clone() != '"';
 
-            self.advance_pos(1);
-            return TokenType::String(slice);
+        // Skip starting doublequote
+        self.char_iterator.next();
+        self.advance_pos(1);
+
+        let string: String = take_while_exclusive(&mut self.char_iterator, string_chars).collect();
+        self.advance_pos(string.len());
+
+        // Skip ending doublequote
+        if let None = self.char_iterator.next() {
+            panic!("Unmatched double quotes at {}:{}", self.row, self.column)
         }
-        panic!("Unmatched double quotes at {}:{}", self.row, self.column)
+        self.advance_pos(1);
+
+        TokenType::String(string)
     }
 
-    fn parse_number(&mut self) -> TokenType<'a> {
-        let numeric_chars = |a: &u8| {
-            let chr = *a as char;
-
-            return !(chr.is_numeric() || chr == '.');
-        };
-
-        let (_, mut slice) = self.code.split_at(self.pos);
+    fn parse_number(&mut self) -> TokenType {
+        let numeric_chars = |chr: &char| chr.is_numeric() || chr.clone() == '.';
 
         // Looking for the end of the number
-        if let Some(index) = slice.iter().position(numeric_chars) {
-            self.advance_pos(index);
+        let number: String = take_while_exclusive(&mut self.char_iterator, numeric_chars).collect();
+        self.advance_pos(number.len());
 
-            let (slice_tmp, _) = slice.split_at(index);
-            slice = slice_tmp;
-        } else {
-            // If number is in the end of the code (impossible actually)
-            self.advance_pos(slice.len())
-        }
-
-        return TokenType::Number(slice);
-    }
-
-    fn parse_operator(&mut self) -> TokenType<'a> {
-        return TokenType::Keyword(Keyword::AND);
+        TokenType::Number(number)
     }
 }
 
 // ----- Iterator traits implementation -----
 impl<'a> Iterator for TokenIterator<'a> {
-    type Item = Token<'a>;
+    type Item = Token;
 
-    fn next(&mut self) -> Option<Token<'a>> {
-        return self.parse_next_token();
+    fn next(&mut self) -> Option<Token> {
+        self.parse_next_token()
     }
 }
 
 impl<'a> IntoIterator for &'a Lexer {
-    type Item = Token<'a>;
+    type Item = Token;
     type IntoIter = TokenIterator<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         return TokenIterator {
             lexer: self,
-            code: self.text.as_bytes(),
-            pos: 0,
+            char_iterator: self.text.chars().peekable(),
             row: 1,
-            column: 1,
+            column: 0,
         };
     }
 }
