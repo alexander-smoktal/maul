@@ -29,15 +29,16 @@ impl<'a, T: Iterator, P> Iterator for ExclusiveTakeWhile<'a, T, P>
     type Item = T::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match
+        if
             if let Some(val) = self.iter.peek() {
                 (self.pred)(val)
             } else {
                 false
             }
         {
-            true =>  self.iter.next(),
-            _ => None
+            self.iter.next()
+        } else {
+            None
         }
     }
 }

@@ -13,6 +13,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
+    /// Create new lexer, which can be used as token iteartor
     pub fn new(input: String) -> Lexer {
         Lexer {
             text: input,
