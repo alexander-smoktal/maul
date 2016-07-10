@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::iter::{Iterator, IntoIterator, Peekable};
 use std::string::String;
 use std::str::Chars;
-use utils::take_while_exclusive;
+use utils::AsExclusiveTakeWhile;
 
 // ------------ Lexer ----------------
 pub struct Lexer {
@@ -44,32 +44,31 @@ impl<'a> TokenIterator<'a> {
     fn parse_next_token(&mut self) -> Option<Token> {
         if let Some(&chr) = self.char_iterator.peek() {
             if chr.is_alphabetic() || chr == '_' {
-                return Some(Token::new(self.parse_identifier(), self.row, self.column));
+                Some(Token::new(self.parse_identifier(), self.row, self.column))
             } else if chr.is_numeric() {
-                return Some(Token::new(self.parse_number(), self.row, self.column));
+                Some(Token::new(self.parse_number(), self.row, self.column))
             } else if chr == '"' {
-                return Some(Token::new(self.parse_string(), self.row, self.column));
+                Some(Token::new(self.parse_string(), self.row, self.column))
             } else if chr == '\n' {
                 self.char_iterator.next();
                 self.newline();
-                return self.parse_next_token();
+                self.parse_next_token()
             } else if chr == ' ' || chr == '\t' {
-                println!("Spot a whitespace");
                 self.char_iterator.next();
                 self.advance_pos(1);
-                return self.parse_next_token();
+                self.parse_next_token()
             } else {
                 panic!("Unexpected char '{}' at {}:{}", chr, self.row, self.column)
             }
+        } else {
+            None
         }
-
-        None
     }
 
     fn parse_identifier(&mut self) -> TokenType {
         let id_chars = |chr: &char| chr.is_alphanumeric();
 
-        let id: String = take_while_exclusive(&mut self.char_iterator, id_chars).collect();
+        let id: String = self.char_iterator.take_while_exclusive(id_chars).collect();
         self.advance_pos(id.len());
 
         // If keyword map contains the keyword, return Token::Keyword
@@ -86,16 +85,14 @@ impl<'a> TokenIterator<'a> {
 
         // Skip starting doublequote
         self.char_iterator.next();
-        self.advance_pos(1);
 
-        let string: String = take_while_exclusive(&mut self.char_iterator, string_chars).collect();
-        self.advance_pos(string.len());
+        let string: String = self.char_iterator.take_while_exclusive(string_chars).collect();
+        self.advance_pos(string.len() + 2); // With doublequotes
 
         // Skip ending doublequote
         if let None = self.char_iterator.next() {
             panic!("Unmatched double quotes at {}:{}", self.row, self.column)
         }
-        self.advance_pos(1);
 
         TokenType::String(string)
     }
@@ -104,14 +101,14 @@ impl<'a> TokenIterator<'a> {
         let numeric_chars = |chr: &char| chr.is_numeric() || chr.clone() == '.';
 
         // Looking for the end of the number
-        let number: String = take_while_exclusive(&mut self.char_iterator, numeric_chars).collect();
+        let number: String = self.char_iterator.take_while_exclusive(numeric_chars).collect();
         self.advance_pos(number.len());
 
         TokenType::Number(number)
     }
 }
 
-// ----- Iterator traits implementation -----
+// ----- Iterator trait implementation for the scanner -----
 impl<'a> Iterator for TokenIterator<'a> {
     type Item = Token;
 

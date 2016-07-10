@@ -29,28 +29,34 @@ impl<'a, T: Iterator, P> Iterator for ExclusiveTakeWhile<'a, T, P>
     type Item = T::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut good = false;
-
-        if let Some(val) = self.iter.peek() {
-            good = (self.pred)(val);
-        }
-
-        if good {
-            self.iter.next()
-        } else {
-            None
+        match
+            if let Some(val) = self.iter.peek() {
+                (self.pred)(val)
+            } else {
+                false
+            }
+        {
+            true =>  self.iter.next(),
+            _ => None
         }
     }
 }
 
-pub fn take_while_exclusive<'a, T, P>(iter: &'a mut Peekable<T>,
-                                      predicate: P)
-                                      -> ExclusiveTakeWhile<'a, T, P>
-    where P: FnMut(&T::Item) -> bool,
-          T: Iterator
+// Add function to Peekable
+pub trait AsExclusiveTakeWhile<'a, T>
+    where T: Iterator
 {
-    ExclusiveTakeWhile::<T, P> {
-        iter: iter,
-        pred: predicate,
+    fn take_while_exclusive<P>(self, predicate: P) -> ExclusiveTakeWhile<'a, T, P>
+        where P: FnMut(&T::Item) -> bool;
+}
+
+impl<'a, T> AsExclusiveTakeWhile<'a, T> for &'a mut Peekable<T>
+    where T: Iterator
+{
+    fn take_while_exclusive<P>(self, predicate: P) -> ExclusiveTakeWhile<'a, T, P> {
+        ExclusiveTakeWhile::<T, P> {
+            iter: self,
+            pred: predicate,
+        }
     }
 }
