@@ -1,11 +1,11 @@
 #![cfg(test)]
 
-use super::lexer;
 use super::tokens::*;
+use super::*;
 
 #[test]
 fn test_empty_lexer() {
-    let lex = lexer::Lexer::new("".to_owned());
+    let lex = Lexer::new("".to_owned());
 
     for _ in &lex {
         unreachable!();
@@ -15,7 +15,7 @@ fn test_empty_lexer() {
 
 #[test]
 fn test_keywords() {
-    let lex = lexer::Lexer::new("and Hello or World while".to_owned());
+    let lex = Lexer::new("and Hello or World while".to_owned());
     let mut iter = lex.into_iter();
 
     assert_eq!(iter.next(),
@@ -34,7 +34,7 @@ fn test_keywords() {
 
 #[test]
 fn test_strings() {
-    let lex = lexer::Lexer::new(r#""Hello" "world""!""#.to_owned());
+    let lex = Lexer::new(r#""Hello" "world""!""#.to_owned());
     let mut iter = lex.into_iter();
 
     assert_eq!(iter.next(),
@@ -49,7 +49,7 @@ fn test_strings() {
 #[should_panic]
 #[test]
 fn test_invalid_strings() {
-    let lex = lexer::Lexer::new(r#""Hello"#.to_owned());
+    let lex = Lexer::new(r#""Hello"#.to_owned());
     let mut iter = lex.into_iter();
 
     assert_eq!(iter.next(),
@@ -58,7 +58,7 @@ fn test_invalid_strings() {
 
 #[test]
 fn test_numbers() {
-    let lex = lexer::Lexer::new("3 43 42.42 777".to_owned());
+    let lex = Lexer::new("3 43 42.42 777".to_owned());
     let mut iter = lex.into_iter();
 
     assert_eq!(iter.next(),

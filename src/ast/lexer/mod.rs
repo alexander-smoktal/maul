@@ -1,4 +1,7 @@
-use super::tokens::{get_token_table, Token, TokenType, Keyword};
+pub mod tokens;
+mod tests;
+
+use self::tokens::{get_token_table, Token, TokenType, Keyword};
 
 use std::collections::HashMap;
 use std::iter::{Iterator, IntoIterator, Peekable};

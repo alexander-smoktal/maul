@@ -1,8 +1,7 @@
 pub mod utils;
 pub mod ast;
 
-pub use ast::lexer_module::lexer;
-use ast::parser_module::parser;
+use ast::parser;
 
 // To avoid warnings in tests
 #[allow(dead_code, unused_variables)]

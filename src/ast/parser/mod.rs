@@ -1,5 +1,7 @@
-use lexer::Lexer;
-use super::super::AST;
+mod tests;
+
+use super::lexer::Lexer;
+use super::AST;
 
 // exp ::= prefixexp
 // exp ::= nil | false | true
