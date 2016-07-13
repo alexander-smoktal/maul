@@ -20,6 +20,7 @@ pub struct Parser {
     lexer: Lexer,
 }
 
+/// I'll try to make this recursive descendant parser, buy hey... nobody is perfect
 impl Parser {
     pub fn new(input: String) -> Parser {
         Parser { lexer: Lexer::new(input) }

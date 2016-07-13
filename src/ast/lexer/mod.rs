@@ -1,7 +1,7 @@
 pub mod tokens;
 mod tests;
 
-use self::tokens::{get_token_table, Token, TokenType, Keyword};
+use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
 
 use std::collections::HashMap;
 use std::iter::{Iterator, IntoIterator, Peekable};
@@ -13,6 +13,7 @@ use utils::AsExclusiveTakeWhile;
 pub struct Lexer {
     text: String,
     token_table: HashMap<String, Keyword>,
+    operator_table: HashMap<String, Keyword>,
 }
 
 impl Lexer {
@@ -21,6 +22,7 @@ impl Lexer {
         Lexer {
             text: input,
             token_table: get_token_table(),
+            operator_table: get_operator_table()
         }
     }
 }
@@ -62,7 +64,7 @@ impl<'a> TokenIterator<'a> {
                 self.advance_pos(1);
                 self.parse_next_token()
             } else {
-                panic!("Unexpected char '{}' at {}:{}", chr, self.row, self.column)
+                Some(Token::new(self.parse_operator(), self.row, self.column))
             }
         } else {
             None
@@ -109,6 +111,23 @@ impl<'a> TokenIterator<'a> {
         self.advance_pos(number.len());
 
         TokenType::Number(number)
+    }
+
+    fn parse_operator(&mut self) -> TokenType {
+        // First we try longer operators then shorter, to avoid returning '>' instead of '>='
+        // Lenghts are 3, 2, 1
+        for n_operator in (1..4).rev() {
+            let n_character_operator: String = self.char_iterator.clone().take(n_operator).collect();
+            if let Some(keyword) = self.lexer.operator_table.get(&n_character_operator) {
+                // Advance original iterator. Need to coolect, to power on lazy iterartor
+                let _ = self.char_iterator.by_ref().take(n_operator).count();
+                self.advance_pos(n_operator);
+
+                return TokenType::Keyword(keyword.clone());
+            }
+        }
+
+        panic!("Can't parse token at {}:{}", self.row, self.column)
     }
 }
 
