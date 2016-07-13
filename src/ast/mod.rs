@@ -1,10 +1,8 @@
 pub mod lexer;
 pub mod parser;
 
-use std::vec::Vec;
-
-use self::parser::Expression;
+use self::parser::expressions;
 
 pub struct AST {
-    expressions: Vec<Expression>
+    expressions: expressions::Expressions
 }

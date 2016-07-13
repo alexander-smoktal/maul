@@ -1,4 +1,5 @@
 mod tests;
+pub mod expressions;
 
 use super::lexer::Lexer;
 use super::AST;
@@ -13,8 +14,6 @@ use super::AST;
 // exp ::= exp binop exp
 // exp ::= unop exp
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
-
-pub struct Expression;
 
 pub struct Parser {
     lexer: Lexer,
