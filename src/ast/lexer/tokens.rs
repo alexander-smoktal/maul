@@ -126,7 +126,7 @@ pub fn get_operator_table() -> HashMap<String, Keyword> {
                      ("...", Keyword::DOT3)]
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenType {
     Keyword(Keyword),
     Id(string::String),
@@ -134,7 +134,7 @@ pub enum TokenType {
     Number(string::String),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Token {
     token: TokenType,
     row: usize,

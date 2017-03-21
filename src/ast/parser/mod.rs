@@ -20,14 +20,14 @@ pub struct Parser {
 }
 
 /// I'll try to make this recursive descendant parser, buy hey... nobody is perfect
-impl Parser {
+impl<'a> Parser {
     pub fn new(input: String) -> Parser {
         Parser { lexer: Lexer::new(input) }
     }
 
     #[allow(dead_code, non_snake_case)]
     pub fn create_AST(&self) -> AST {
-        for token in self.lexer.into_iter() {
+        for token in self.lexer.clone() {
             println!("Token {:?}", token)
         }
 

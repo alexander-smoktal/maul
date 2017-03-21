@@ -7,7 +7,7 @@ use super::*;
 fn test_empty_lexer() {
     let lex = Lexer::new("".to_owned());
 
-    for _ in &lex {
+    for _ in lex {
         unreachable!();
     }
 }

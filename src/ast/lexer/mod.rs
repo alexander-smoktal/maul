@@ -3,41 +3,68 @@ mod tests;
 
 use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
 
+use std::vec;
 use std::collections::HashMap;
-use std::iter::{Iterator, IntoIterator, Peekable};
+use std::iter::{Iterator, IntoIterator, FromIterator, Peekable};
 use std::string::String;
-use std::str::Chars;
+use std::rc::Rc;
 use utils::AsExclusiveTakeWhile;
 
 // ------------ Lexer ----------------
+#[derive(Clone)]
 pub struct Lexer {
-    text: String,
-    token_table: HashMap<String, Keyword>,
-    operator_table: HashMap<String, Keyword>,
+    tokens: Rc<Vec<Token>>,
+    position: usize,
 }
 
 impl Lexer {
     /// Create new lexer, which can be used as token iteartor
     pub fn new(input: String) -> Lexer {
         Lexer {
-            text: input,
-            token_table: get_token_table(),
-            operator_table: get_operator_table()
+            tokens: Rc::new(Vec::<Token>::from_iter(TokenIterator::new(input))),
+            position: 0,
+        }
+    }
+}
+
+impl Iterator for Lexer {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.position == self.tokens.len() {
+            None
+        } else {
+            let result = Some(self.tokens[self.position].clone());
+            self.position += 1;
+            result
         }
     }
 }
 
 // ---------- Token Iterator --------------
-pub struct TokenIterator<'a> {
-    lexer: &'a Lexer,
-    char_iterator: Peekable<Chars<'a>>,
+pub struct TokenIterator {
+    char_iterator: Peekable<vec::IntoIter<char>>,
+    token_table: HashMap<String, Keyword>,
+    operator_table: HashMap<String, Keyword>,
 
     // Line and column
     row: usize,
     column: usize,
 }
 
-impl<'a> TokenIterator<'a> {
+impl TokenIterator {
+    pub fn new(source_code: String) -> Self {
+        let chars = Vec::<char>::from_iter(source_code.chars());
+        let peekable = chars.into_iter().peekable();
+        TokenIterator {
+            char_iterator: peekable,
+            token_table: get_token_table(),
+            operator_table: get_operator_table(),
+            row: 1,
+            column: 0,
+        }
+    }
+
     fn advance_pos(&mut self, n: usize) {
         self.column += n;
     }
@@ -79,7 +106,7 @@ impl<'a> TokenIterator<'a> {
 
         // If keyword map contains the keyword, return Token::Keyword
         // Else return a Token::Identifier
-        match self.lexer.token_table.get(&id) {
+        match self.token_table.get(&id) {
             Some(keyword) => return TokenType::Keyword(keyword.clone()),
             _ => return TokenType::Id(id),
         }
@@ -117,8 +144,9 @@ impl<'a> TokenIterator<'a> {
         // First we try longer operators then shorter, to avoid returning '>' instead of '>='
         // Lenghts are 3, 2, 1
         for n_operator in (1..4).rev() {
-            let n_character_operator: String = self.char_iterator.clone().take(n_operator).collect();
-            if let Some(keyword) = self.lexer.operator_table.get(&n_character_operator) {
+            let n_character_operator: String =
+                self.char_iterator.clone().take(n_operator).collect();
+            if let Some(keyword) = self.operator_table.get(&n_character_operator).cloned() {
                 // Advance original iterator. Need to coolect, to power on lazy iterartor
                 let _ = self.char_iterator.by_ref().take(n_operator).count();
                 self.advance_pos(n_operator);
@@ -132,24 +160,10 @@ impl<'a> TokenIterator<'a> {
 }
 
 // ----- Iterator trait implementation for the scanner -----
-impl<'a> Iterator for TokenIterator<'a> {
+impl Iterator for TokenIterator {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
         self.parse_next_token()
-    }
-}
-
-impl<'a> IntoIterator for &'a Lexer {
-    type Item = Token;
-    type IntoIter = TokenIterator<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        return TokenIterator {
-            lexer: self,
-            char_iterator: self.text.chars().peekable(),
-            row: 1,
-            column: 0,
-        };
     }
 }
