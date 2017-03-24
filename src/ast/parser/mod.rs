@@ -1,6 +1,7 @@
 mod tests;
 
 use super::lexer::Lexer;
+use super::expressions;
 
 #[derive(Clone)]
 pub struct Parser {
@@ -9,15 +10,15 @@ pub struct Parser {
 
 /// I'll try to make this recursive descendant parser, buy hey... nobody is perfect
 impl Parser {
-    pub fn new(input: String) -> Parser {
-        Parser { lexer: Lexer::new(input) }
-    }
-}
+    pub fn new(input: String) -> super::AST {
+        let mut lexer = Lexer::new(input);
 
-impl Iterator for Parser {
-    type Item = <Lexer as Iterator>::Item;
+        let mut ast = super::AST { expressions: Vec::new() };
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.lexer.next()
+        if let Some(result) = expressions::Expression::from_lexer(&mut lexer) {
+            ast.add_expression(result);
+        }
+
+        ast
     }
 }

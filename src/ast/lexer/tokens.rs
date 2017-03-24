@@ -136,9 +136,9 @@ pub enum TokenType {
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Token {
-    token: TokenType,
-    row: usize,
-    column: usize,
+    pub token: TokenType,
+    pub row: usize,
+    pub column: usize,
 }
 
 impl Token {

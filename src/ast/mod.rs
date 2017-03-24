@@ -8,17 +8,10 @@ pub struct AST {
 
 impl AST {
     pub fn new(source_code: String) -> Self {
-        let parser = parser::Parser::new(source_code);
-        let mut ast = AST { expressions: Vec::new() };
-
-        if let Some(result) = expressions::Expression::from_parser(&parser) {
-            ast.add_expression(result);
-        }
-
-        ast
+        parser::Parser::new(source_code)
     }
 
-    fn add_expression(&mut self, exp: expressions::Expression) {
+    fn add_expression(&mut self, exp: Box<expressions::Expression>) {
         self.expressions.push(exp);
     }
 }

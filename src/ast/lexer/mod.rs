@@ -9,6 +9,7 @@ use std::iter::{Iterator, IntoIterator, FromIterator, Peekable};
 use std::string::String;
 use std::rc::Rc;
 use utils::AsExclusiveTakeWhile;
+use std::ops::Index;
 
 // ------------ Lexer ----------------
 #[derive(Clone)]
@@ -18,26 +19,24 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    /// Create new lexer, which can be used as token iteartor
+    /// Create new lexer, which can be used as token iterator
     pub fn new(input: String) -> Lexer {
         Lexer {
             tokens: Rc::new(Vec::<Token>::from_iter(TokenIterator::new(input))),
             position: 0,
         }
     }
+
+    pub fn skip(&mut self, num: usize) -> &mut Self {
+        self.position += num;
+        self
+    }
 }
 
-impl Iterator for Lexer {
-    type Item = Token;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.position == self.tokens.len() {
-            None
-        } else {
-            let result = Some(self.tokens[self.position].clone());
-            self.position += 1;
-            result
-        }
+impl Index<usize> for Lexer {
+    type Output = Token;
+    fn index(&self, index: usize) -> &Token {
+        self.tokens.as_ref().index(self.position + index)
     }
 }
 
