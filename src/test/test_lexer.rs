@@ -1,22 +1,21 @@
 #![cfg(test)]
 
-use super::tokens::*;
-use super::*;
+use ast::lexer::tokens::*;
+use ast::lexer::*;
 
 #[test]
 fn test_empty_lexer() {
-    let lex = Lexer::new("".to_owned());
+    let mut iter = TokenIterator::new("".to_owned());
 
-    for _ in lex {
-        unreachable!();
+    for token in iter {
+        unreachable!()
     }
 }
 
 
 #[test]
 fn test_keywords() {
-    let lex = Lexer::new("and Hello or World while".to_owned());
-    let mut iter = lex.into_iter();
+    let mut iter = TokenIterator::new("and Hello or World while".to_owned());
 
     assert_eq!(iter.next(),
                Some(Token::new(TokenType::Keyword(Keyword::AND), 1, 3)));
@@ -34,8 +33,7 @@ fn test_keywords() {
 
 #[test]
 fn test_strings() {
-    let lex = Lexer::new(r#""Hello" "world""!""#.to_owned());
-    let mut iter = lex.into_iter();
+    let mut iter = TokenIterator::new(r#""Hello" "world""!""#.to_owned());
 
     assert_eq!(iter.next(),
                Some(Token::new(TokenType::String(String::from("Hello")), 1, 7)));
@@ -49,8 +47,7 @@ fn test_strings() {
 #[should_panic]
 #[test]
 fn test_invalid_strings() {
-    let lex = Lexer::new(r#""Hello"#.to_owned());
-    let mut iter = lex.into_iter();
+    let mut iter = TokenIterator::new(r#""Hello"#.to_owned());
 
     assert_eq!(iter.next(),
                Some(Token::new(TokenType::String(String::from("Hello")), 1, 8)));
@@ -58,8 +55,7 @@ fn test_invalid_strings() {
 
 #[test]
 fn test_numbers() {
-    let lex = Lexer::new("3 43 42.42 777".to_owned());
-    let mut iter = lex.into_iter();
+    let mut iter = TokenIterator::new("3 43 42.42 777".to_owned());
 
     assert_eq!(iter.next(),
                Some(Token::new(TokenType::Number(String::from("3")), 1, 1)));

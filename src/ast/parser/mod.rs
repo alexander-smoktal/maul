@@ -1,5 +1,3 @@
-mod tests;
-
 use super::lexer::Lexer;
 use super::expressions;
 

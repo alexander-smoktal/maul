@@ -1,15 +1,19 @@
-mod function;
-mod id;
-mod variables;
-mod statements;
+pub mod function;
+pub mod variables;
+pub mod statements;
 
 use std::vec::Vec;
+use std::fmt::Debug;
 
 use ast::lexer;
 use ast::lexer::tokens;
 use self::statements::Statement;
 
-pub trait Expression {}
+pub trait Expression: Debug {
+    fn stringify(&self) -> String {
+        format!("{:?}", self)
+    }
+}
 
 pub type Expressions = Vec<Box<Expression>>;
 
@@ -35,7 +39,7 @@ pub type Expressions = Vec<Box<Expression>>;
 
 impl Expression {
     pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Box<Expression>> {
-        let expression: Box<Expression> = match lexer[0].clone().token {
+        let expression: Box<Expression> = match lexer.get(0).clone().token {
             tokens::TokenType::Keyword(ref keyword) => {
                 match keyword {
                     &tokens::Keyword::COLONS => Box::new(Statement::Break),
@@ -60,6 +64,7 @@ impl Expression {
     }
 }
 
+#[derive(Debug)]
 pub struct Stub;
 
 impl Expression for Stub {}

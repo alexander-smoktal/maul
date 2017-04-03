@@ -1,5 +1,4 @@
 pub mod tokens;
-mod tests;
 
 use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
 
@@ -31,11 +30,12 @@ impl Lexer {
         self.position += num;
         self
     }
-}
 
-impl Index<usize> for Lexer {
-    type Output = Token;
-    fn index(&self, index: usize) -> &Token {
+    pub fn get(&self, index: usize) -> &Token {
+        if self.position >= self.tokens.len() {
+            panic!("Unexpected end of file");
+        }
+
         self.tokens.as_ref().index(self.position + index)
     }
 }
