@@ -9,7 +9,7 @@ impl Error {
         Error { error_token: token.clone() }
     }
 
-    pub fn complain(&self, message: &str) {
+    pub fn complain(&self, message: String) {
         panic!("{}: {}. {} {:?}",
                self.error_token.row,
                self.error_token.column,

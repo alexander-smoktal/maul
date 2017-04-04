@@ -13,7 +13,7 @@ impl AST {
         parser::Parser::new(source_code)
     }
 
-    fn add_expression(&mut self, exp: Box<expressions::Expression>) {
+    fn add_expression(&mut self, exp: expressions::Expression) {
         self.expressions.push(exp);
     }
 }

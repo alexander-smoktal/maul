@@ -5,9 +5,9 @@ use ast::lexer::*;
 
 #[test]
 fn test_empty_lexer() {
-    let mut iter = TokenIterator::new("".to_owned());
+    let iter = TokenIterator::new("".to_owned());
 
-    for token in iter {
+    for _ in iter {
         unreachable!()
     }
 }

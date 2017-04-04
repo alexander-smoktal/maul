@@ -1,8 +1,4 @@
-use super::Expression;
-
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Statement {
     Break,
 }
-
-impl Expression for Statement {}

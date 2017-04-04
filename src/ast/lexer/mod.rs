@@ -1,6 +1,7 @@
 pub mod tokens;
 
 use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
+use error;
 
 use std::vec;
 use std::collections::HashMap;
@@ -29,6 +30,15 @@ impl Lexer {
     pub fn skip(&mut self, num: usize) -> &mut Self {
         self.position += num;
         self
+    }
+
+    pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) {
+        if self.get(0).token == tokens::TokenType::Keyword(keyword) {
+            self.skip(1);
+        } else {
+            error::Error::new(&self.get(0))
+                .complain(format!("{}. Got: {:?}", expect_message, self.get(0)));
+        }
     }
 
     pub fn get(&self, index: usize) -> &Token {

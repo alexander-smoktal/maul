@@ -1,21 +1,29 @@
 pub mod function;
-pub mod variables;
+pub mod assignment;
 pub mod statements;
 
 use std::vec::Vec;
-use std::fmt::Debug;
 
 use ast::lexer;
 use ast::lexer::tokens;
+
 use self::statements::Statement;
 
-pub trait Expression: Debug {
-    fn stringify(&self) -> String {
-        format!("{:?}", self)
-    }
+#[derive(PartialEq, Debug)]
+pub enum Expression {
+    Stub,
+    Assignment {
+        varname: assignment::Id,
+        expression: Box<Expression>,
+    },
+    Function {
+        params: assignment::Id,
+        body: Expressions,
+    },
+    St(statements::Statement),
 }
 
-pub type Expressions = Vec<Box<Expression>>;
+pub type Expressions = Vec<Expression>;
 
 // chunk ::= block
 
@@ -38,14 +46,12 @@ pub type Expressions = Vec<Box<Expression>>;
 //     local namelist [‘=’ explist]
 
 impl Expression {
-    pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Box<Expression>> {
-        let expression: Box<Expression> = match lexer.get(0).clone().token {
+    pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Expression> {
+        let expression: Expression = match lexer.get(0).clone().token {
             tokens::TokenType::Keyword(ref keyword) => {
                 match keyword {
-                    &tokens::Keyword::COLONS => Box::new(Statement::Break),
-                    &tokens::Keyword::FUNCTION => {
-                        Box::new(function::Function::from_lexer(lexer.skip(1)))
-                    }
+                    &tokens::Keyword::COLONS => Expression::St(Statement::Break),
+                    &tokens::Keyword::FUNCTION => function::from_lexer(lexer.skip(1)),
                     _ => panic!("Unexpected keyword: {:?}", keyword),
                 }
             }
@@ -63,8 +69,3 @@ impl Expression {
         return Some(expression);
     }
 }
-
-#[derive(Debug)]
-pub struct Stub;
-
-impl Expression for Stub {}

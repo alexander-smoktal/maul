@@ -11,9 +11,9 @@ impl Parser {
     pub fn new(input: String) -> super::AST {
         let mut lexer = Lexer::new(input);
 
-        let mut ast = super::AST { expressions: Vec::new() };
+        let mut ast = super::AST { expressions: vec![] };
 
-        if let Some(result) = expressions::Expression::from_lexer(&mut lexer) {
+        while let Some(result) = expressions::Expression::from_lexer(&mut lexer) {
             ast.add_expression(result);
         }
 
