@@ -67,7 +67,7 @@ impl Expression {
             tokens::TokenType::Keyword(ref keyword) => {
                 match keyword {
                     &tokens::Keyword::COLONS => Expression::St(Statement::Break),
-                    &tokens::Keyword::FUNCTION => function::from_lexer(lexer.skip(1)),
+                    &tokens::Keyword::FUNCTION => function::parse_funcdef(lexer.skip(1)).unwrap(),
                     _ => panic!("Unexpected keyword: {:?}", keyword),
                 }
             }

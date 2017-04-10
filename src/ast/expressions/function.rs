@@ -3,11 +3,11 @@ use ast::lexer;
 use ast::lexer::tokens;
 use error;
 
-fn parse_func_args(lexer: &mut lexer::Lexer) -> assignment::Id {
+fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Error> {
     let mut result = vec![];
 
     lexer.skip_expected_keyword(tokens::Keyword::LBRACE,
-                                "Expected function parameters start");
+                                "Expected function parameters start")?;
 
     while let tokens::TokenType::Id(name) = lexer.get(0).token.clone() {
         result.push(name);
@@ -19,46 +19,46 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> assignment::Id {
     }
 
     lexer.skip_expected_keyword(tokens::Keyword::RBRACE,
-                                "Expected ')' at the end of parameters");
+                                "Expected ')' at the end of parameters")?;
 
-    result
+    Ok(result)
 }
 
-fn parse_method_name(lexer: &mut lexer::Lexer) -> Option<assignment::Id> {
+fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Error> {
     if lexer.get(0).token == tokens::TokenType::Keyword(tokens::Keyword::SEMICOLONS) {
         lexer.skip(1);
 
         if let tokens::TokenType::Id(name) = lexer.get(0).token.clone() {
             lexer.skip(1);
-            Some(vec![name])
+            Ok(vec![name])
         } else {
-            error::Error::new(&lexer.get(0)).complain("Expected method name, got:".to_owned());
-            unreachable!()
+            Err(error::Error::new(&lexer.get(0), "Failed to parse method name"))
         }
     } else {
-        None
+        Ok(vec![])
     }
 }
 
-pub fn from_lexer(lexer: &mut lexer::Lexer) -> Expression {
+// functiondef ::= function funcbody
+// funcbody ::= ‘(’ [parlist] ‘)’ block end
+// parlist ::= namelist [‘,’ ‘...’] | ‘...’
+pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     // First parse function name as variable
-    let mut function_name = match assignment::parse_varname(lexer) {
-        Ok(varname) => varname,
-        Err(e) => {
-            e.complain("Failed to parse function name, expected id, got:".to_owned());
-            unreachable!()
-        }
-    };
+    let mut function_name = assignment::parse_varname(lexer).
+        map_err(|e| e.add("Failed to parse function name"))?;
 
     // Then parse method name if method
     let mut params = vec![];
-    if let Some(mut method_name) = parse_method_name(lexer) {
+
+    let mut method_name = parse_method_name(lexer)?;
+
+    if !method_name.is_empty() {
         function_name.append(&mut method_name);
         params.push("self".to_owned())
     }
 
     // Parse function arguments
-    params.append(&mut parse_func_args(lexer));
+    params.append(&mut parse_func_args(lexer)?);
 
     let func = Expression::Function {
         params: params,
@@ -66,7 +66,7 @@ pub fn from_lexer(lexer: &mut lexer::Lexer) -> Expression {
     };
 
     // Return assignment, because of function is a sugar for var
-    assignment::new(function_name, func)
+    Ok(assignment::new(function_name, func))
 }
 
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {

@@ -7,7 +7,7 @@ use ast::expressions::*;
 fn test_empty_function() {
     let mut lexer = Lexer::new("".to_owned());
 
-    function::from_lexer(&mut lexer);
+    function::parse_funcdef(&mut lexer);
 }
 
 

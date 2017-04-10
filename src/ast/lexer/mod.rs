@@ -48,12 +48,17 @@ impl Lexer {
         self
     }
 
-    pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) {
+    pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) ->
+        Result<(), error::Error> {
         if self.get(0).token == tokens::TokenType::Keyword(keyword) {
             self.skip(1);
+
+            Ok(())
         } else {
-            error::Error::new(&self.get(0))
-                .complain(format!("{}. Got: {:?}", expect_message, self.get(0)));
+            Err(error::Error {
+                error_token: self.get(0).clone(),
+                message: format!("{}. Got: {:?}", expect_message, self.get(0))
+            })
         }
     }
 

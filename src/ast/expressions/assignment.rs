@@ -20,7 +20,7 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
             result.push(name);
             lexer.skip(1);
         } else {
-            return Result::Err(error::Error::new(&lexer.get(0)));
+            return Err(error::Error::new(&lexer.get(0), "Expected variable id"));
         }
 
         if lexer.get(0).token != tokens::TokenType::Keyword(tokens::Keyword::DOT) {
@@ -30,7 +30,7 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
         }
     }
 
-    Result::Ok(result)
+    Ok(result)
 }
 
 // varlist ‘=’ explist
@@ -55,7 +55,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
                             index: Box::new(index)
                         })
                     } else {
-                        error::Error::new(&lexer.get(0)).complain("Expected indexing expression".to_owned());
+                        error::Error::new(&lexer.get(0), "Expected indexing expression").complain();
 
                         unreachable!()
                     }
@@ -69,7 +69,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
                             index: Box::new(Expression::Id(fieldname))
                         })
                     } else {
-                        error::Error::new(&lexer.get(0)).complain("Expected field id, got:".to_owned());
+                        error::Error::new(&lexer.get(0),"Expected field id, got:").complain();
                         unreachable!()
                     }
                 },
