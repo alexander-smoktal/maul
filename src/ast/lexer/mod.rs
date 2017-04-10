@@ -1,7 +1,9 @@
 pub mod tokens;
 
 use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
+
 use error;
+use ast::expressions;
 
 use std::vec;
 use std::collections::HashMap;
@@ -25,6 +27,20 @@ impl Lexer {
             tokens: Rc::new(Vec::<Token>::from_iter(TokenIterator::new(input))),
             position: 0,
         }
+    }
+
+    /// Tries to run parse function. If failed, rollback itself to previous position
+    pub fn try_parser(&mut self,
+                      function: fn(&mut Lexer) -> Result<expressions::Expression, error::Error>)
+        -> Result<expressions::Expression, error::Error> {
+        let self_copy = self.clone();
+
+        let result = function(self);
+        if result.is_err() {
+            *self = self_copy
+        }
+
+        result
     }
 
     pub fn skip(&mut self, num: usize) -> &mut Self {

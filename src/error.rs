@@ -1,5 +1,6 @@
 use ast::lexer::tokens;
 
+#[derive(Debug)]
 pub struct Error {
     pub error_token: tokens::Token,
 }

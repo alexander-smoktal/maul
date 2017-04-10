@@ -68,3 +68,7 @@ pub fn from_lexer(lexer: &mut lexer::Lexer) -> Expression {
     // Return assignment, because of function is a sugar for var
     assignment::new(function_name, func)
 }
+
+pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    Result::Ok(Expression::Stub)
+}

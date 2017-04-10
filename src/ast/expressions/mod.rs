@@ -4,6 +4,7 @@ pub mod statements;
 
 use std::vec::Vec;
 
+use error;
 use ast::lexer;
 use ast::lexer::tokens;
 
@@ -12,6 +13,7 @@ use self::statements::Statement;
 #[derive(PartialEq, Debug)]
 pub enum Expression {
     Stub,
+    Id(String),
     Assignment {
         varname: assignment::Id,
         expression: Box<Expression>,
@@ -19,6 +21,10 @@ pub enum Expression {
     Function {
         params: assignment::Id,
         body: Expressions,
+    },
+    Indexing {
+        object: Box<Expression>,
+        index: Box<Expression>,
     },
     St(statements::Statement),
 }
@@ -45,6 +51,16 @@ pub type Expressions = Vec<Expression>;
 //     local function Name funcbody |
 //     local namelist [‘=’ explist]
 
+
+// prefixexp ::= var | functioncall | ‘(’ exp ‘)’
+pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    Result::Ok(Expression::Stub)
+}
+
+pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    Result::Ok(Expression::Stub)
+}
+
 impl Expression {
     pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Expression> {
         let expression: Expression = match lexer.get(0).clone().token {
@@ -56,7 +72,7 @@ impl Expression {
                 }
             }
             tokens::TokenType::Id(ref string) => {
-                panic!("Unexpected Id: {}", string);
+                assignment::parse_var(lexer).unwrap()
             }
             tokens::TokenType::String(ref string) => {
                 panic!("Unexpected Id: {}", string);
