@@ -79,7 +79,7 @@ impl Expression {
                     _ => panic!("Unexpected keyword: {:?}", keyword),
                 }
             },
-            Some(tokens::TokenType::Id(ref string)) => {
+            Some(tokens::TokenType::Id(_)) => {
                 assignment::parse_var(lexer).ok()
             },
             Some(tokens::TokenType::String(ref string)) => {

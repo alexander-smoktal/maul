@@ -17,7 +17,7 @@ fn test_simple_indexing() {
     assert_eq!(assignment::parse_var(&mut lexer),
                Ok(Expression::Indexing {
                    object: Box::new(Expression::Id("Hello".to_owned())),
-                   index: Box::new(Expression::Id("world".to_owned())),
+                   index: Box::new(Expression::StringConstant("world".to_owned())),
                })
     )
 }

@@ -63,7 +63,6 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
     // prefixexp ‘.’ Name
     if let Some(mut sublexer) = lexer.get_until(tokens::TokenType::Keyword(tokens::Keyword::DOT)) {
-
         if let Ok(object) = parse_prefixexp(&mut sublexer) {
             lexer.skip(sublexer.pos() + 1);
 
@@ -80,7 +79,9 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     }
 
     // Name
-    if let Some(tokens::Token { token: tokens::TokenType::Id(id), .. }) = lexer.get(0).cloned() {
+    if let Some(tokens::Token { token: tokens::TokenType::Id(id), .. }) = lexer.head().cloned() {
+        lexer.skip(1);
+
         return Ok(Expression::Id(id))
     }
 

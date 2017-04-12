@@ -14,7 +14,7 @@ use utils::AsExclusiveTakeWhile;
 use std::ops::Index;
 
 // ------------ Lexer ----------------
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Lexer {
     tokens: Rc<Vec<Token>>,
     position: usize,
@@ -48,7 +48,7 @@ impl Lexer {
             Some(Lexer {
                 tokens: Rc::new(self.tokens.iter()
                                 .cloned()
-                                .take_while(|x| x.token == token)
+                                .take_while(|x| x.token != token)
                                 .collect()),
                 position: 0
             })
