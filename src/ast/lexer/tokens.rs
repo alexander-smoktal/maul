@@ -149,4 +149,8 @@ impl Token {
             column: column,
         };
     }
+
+    pub fn eof() -> Token {
+        Token::new(TokenType::Id("EOF".to_owned()), 0, 0)
+    }
 }

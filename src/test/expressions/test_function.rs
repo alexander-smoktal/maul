@@ -1,13 +1,15 @@
+use ast::lexer::*;
 use ast::lexer::Lexer;
-
 use ast::expressions::*;
+use error;
 
 #[test]
-#[should_panic]
 fn test_empty_function() {
     let mut lexer = Lexer::new("".to_owned());
 
-    function::parse_funcdef(&mut lexer);
+    assert_eq!(function::parse_funcdef(&mut lexer),
+               Err(error::Error::new(tokens::Token::eof(),
+                                     "Expected variable id. Failed to parse function name")))
 }
 
 

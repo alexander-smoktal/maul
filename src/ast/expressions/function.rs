@@ -9,11 +9,12 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Er
     lexer.skip_expected_keyword(tokens::Keyword::LBRACE,
                                 "Expected function parameters start")?;
 
-    while let tokens::TokenType::Id(name) = lexer.get(0).token.clone() {
+    while let Some(tokens::Token{ token: tokens::TokenType::Id(name), .. })
+              = lexer.head().cloned() {
         result.push(name);
         lexer.skip(1);
 
-        if lexer.get(0).token == tokens::TokenType::Keyword(tokens::Keyword::COMMA) {
+        if lexer.head_token_is_keyword(tokens::Keyword::COMMA) {
             lexer.skip(1);
         }
     }
@@ -25,14 +26,14 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Er
 }
 
 fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Error> {
-    if lexer.get(0).token == tokens::TokenType::Keyword(tokens::Keyword::SEMICOLONS) {
+    if lexer.head_token_is_keyword(tokens::Keyword::SEMICOLONS) {
         lexer.skip(1);
 
-        if let tokens::TokenType::Id(name) = lexer.get(0).token.clone() {
+        if let Some(tokens::Token { token: tokens::TokenType::Id(name), .. }) = lexer.head().cloned() {
             lexer.skip(1);
             Ok(vec![name])
         } else {
-            Err(error::Error::new(&lexer.get(0), "Failed to parse method name"))
+            Err(error::Error::new(lexer.head_or_eof(), "Failed to parse method name"))
         }
     } else {
         Ok(vec![])
@@ -44,8 +45,8 @@ fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::
 // parlist ::= namelist [‘,’ ‘...’] | ‘...’
 pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     // First parse function name as variable
-    let mut function_name = assignment::parse_varname(lexer).
-        map_err(|e| e.add("Failed to parse function name"))?;
+    let mut function_name = assignment::parse_varname(lexer)
+        .map_err(|e| e.add("Failed to parse function name"))?;
 
     // Then parse method name if method
     let mut params = vec![];
@@ -70,5 +71,5 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
 }
 
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    Result::Ok(Expression::Stub)
+    Err(error::Error::new(lexer.head_or_eof(), "Stub"))
 }

@@ -27,6 +27,9 @@ pub enum Expression {
         index: Box<Expression>,
     },
     St(statements::Statement),
+    StringConstant(String),
+    NumberConstant(f32),
+    BooleanConstant(bool)
 }
 
 pub type Expressions = Vec<Expression>;
@@ -54,7 +57,9 @@ pub type Expressions = Vec<Expression>;
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
 pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    Result::Ok(Expression::Stub)
+    lexer.try_to_parse(assignment::parse_var)
+        .or_else(|_| lexer.try_to_parse(function::parse_funcall))
+        .or(Err(error::Error::new(lexer.head_or_eof(), "Failed to parse prefix expression")))
 }
 
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
@@ -63,25 +68,27 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
 impl Expression {
     pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Expression> {
-        let expression: Expression = match lexer.get(0).clone().token {
-            tokens::TokenType::Keyword(ref keyword) => {
+        match lexer.head().cloned().map(|x: tokens::Token| x.token) {
+            Some(tokens::TokenType::Keyword(ref keyword)) => {
+
                 match keyword {
-                    &tokens::Keyword::COLONS => Expression::St(Statement::Break),
-                    &tokens::Keyword::FUNCTION => function::parse_funcdef(lexer.skip(1)).unwrap(),
+                    &tokens::Keyword::COLONS => Some(Expression::St(Statement::Break)),
+                    &tokens::Keyword::FUNCTION => {
+                        function::parse_funcdef(lexer.skip(1)).ok()
+                    }
                     _ => panic!("Unexpected keyword: {:?}", keyword),
                 }
-            }
-            tokens::TokenType::Id(ref string) => {
-                assignment::parse_var(lexer).unwrap()
-            }
-            tokens::TokenType::String(ref string) => {
+            },
+            Some(tokens::TokenType::Id(ref string)) => {
+                assignment::parse_var(lexer).ok()
+            },
+            Some(tokens::TokenType::String(ref string)) => {
                 panic!("Unexpected Id: {}", string);
-            }
-            tokens::TokenType::Number(ref string) => {
+            },
+            Some(tokens::TokenType::Number(ref string)) => {
                 panic!("Unexpected Id: {}", string);
-            }
-        };
-
-        return Some(expression);
+            },
+            _ => panic!("Unexpected Id")
+        }
     }
 }

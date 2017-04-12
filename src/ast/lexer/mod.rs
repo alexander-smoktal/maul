@@ -30,7 +30,7 @@ impl Lexer {
     }
 
     /// Tries to run parse function. If failed, rollback itself to previous position
-    pub fn try_parser(&mut self,
+    pub fn try_to_parse(&mut self,
                       function: fn(&mut Lexer) -> Result<expressions::Expression, error::Error>)
         -> Result<expressions::Expression, error::Error> {
         let self_copy = self.clone();
@@ -43,31 +43,62 @@ impl Lexer {
         result
     }
 
+    pub fn get_until(&self, token: tokens::TokenType) -> Option<Lexer> {
+        if self.tokens.iter().find(|x| x.token == token).is_some() {
+            Some(Lexer {
+                tokens: Rc::new(self.tokens.iter()
+                                .cloned()
+                                .take_while(|x| x.token == token)
+                                .collect()),
+                position: 0
+            })
+        } else {
+            None
+        }
+    }
+
+    pub fn pos(&self) -> usize {
+        self.position
+    }
+
     pub fn skip(&mut self, num: usize) -> &mut Self {
         self.position += num;
         self
     }
 
-    pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) ->
-        Result<(), error::Error> {
-        if self.get(0).token == tokens::TokenType::Keyword(keyword) {
-            self.skip(1);
-
-            Ok(())
+    pub fn get(&self, index: usize) -> Option<&Token> {
+        if self.position >= self.tokens.len() {
+            None
         } else {
-            Err(error::Error {
-                error_token: self.get(0).clone(),
-                message: format!("{}. Got: {:?}", expect_message, self.get(0))
-            })
+            Some(self.tokens.as_ref().index(self.position + index))
         }
     }
 
-    pub fn get(&self, index: usize) -> &Token {
-        if self.position >= self.tokens.len() {
-            panic!("Unexpected end of file");
-        }
+    pub fn head(&self) -> Option<&Token> {
+        self.get(0)
+    }
 
-        self.tokens.as_ref().index(self.position + index)
+    pub fn head_or_eof(&self) -> Token {
+        self.head().cloned().unwrap_or(tokens::Token::eof())
+    }
+
+    pub fn head_token_is_keyword(&self, keyword: tokens::Keyword) -> bool {
+        self.head().and_then(|x: &tokens::Token| {
+            if x.token == tokens::TokenType::Keyword(keyword) { Some(true) } else { None }
+        }).is_some()
+    }
+
+    pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) ->
+        Result<(), error::Error> {
+        if self.head_token_is_keyword(keyword) {
+            self.skip(1);
+            Ok(())
+        } else {
+            Err(error::Error {
+                error_token: self.head_or_eof(),
+                message: format!("{}. Got: {:?}", expect_message, self.get(0))
+            })
+        }
     }
 }
 

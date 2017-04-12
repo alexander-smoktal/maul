@@ -16,14 +16,14 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
     let mut result = vec![];
 
     loop {
-        if let tokens::TokenType::Id(name) = lexer.get(0).token.clone() {
+        if let Some(tokens::Token { token: tokens::TokenType::Id(name), .. }) = lexer.head().cloned() {
             result.push(name);
             lexer.skip(1);
         } else {
-            return Err(error::Error::new(&lexer.get(0), "Expected variable id"));
+            return Err(error::Error::new(lexer.head_or_eof(), "Expected variable id. "));
         }
 
-        if lexer.get(0).token != tokens::TokenType::Keyword(tokens::Keyword::DOT) {
+        if !lexer.head_token_is_keyword(tokens::Keyword::DOT) {
             break;
         } else {
             lexer.skip(1);
@@ -40,44 +40,49 @@ pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::E
 
 // var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    match parse_prefixexp(lexer) {
-        Result::Ok(expression) => {
-            match lexer.get(0).token.clone() {
-                tokens::TokenType::Keyword(tokens::Keyword::LSBRACKET) => {
-                    lexer.skip(1);
+    // prefixexp ‘[’ exp ‘]’
+    if let Some(mut sublexer) = lexer.get_until(tokens::TokenType::Keyword(tokens::Keyword::LSBRACKET)) {
 
-                    if let Result::Ok(index) = parse_exp(lexer) {
+        if let Ok(object) = parse_prefixexp(&mut sublexer) {
+            lexer.skip(sublexer.pos() + 1);
 
+            if let Some(mut sublexer) = lexer.get_until(
+                tokens::TokenType::Keyword(tokens::Keyword::RSBRACKET)) {
+                let index = parse_prefixexp(&mut sublexer)?;
+                lexer.skip(sublexer.pos() + 1);
 
-                        lexer.skip_expected_keyword(tokens::Keyword::RSBRACKET, "Expected ']'");
-                        Result::Ok(Expression::Indexing {
-                            object: Box::new(expression),
-                            index: Box::new(index)
-                        })
-                    } else {
-                        error::Error::new(&lexer.get(0), "Expected indexing expression").complain();
-
-                        unreachable!()
-                    }
-                },
-                tokens::TokenType::Keyword(tokens::Keyword::DOT) => {
-                    lexer.skip(1);
-                    if let tokens::TokenType::String(fieldname) = lexer.get(0).token.clone() {
-                        lexer.skip(1);
-                        Result::Ok(Expression::Indexing {
-                            object: Box::new(expression),
-                            index: Box::new(Expression::Id(fieldname))
-                        })
-                    } else {
-                        error::Error::new(&lexer.get(0),"Expected field id, got:").complain();
-                        unreachable!()
-                    }
-                },
-                _ => Result::Ok(expression)
+                return Ok(Expression::Indexing {
+                    object: Box::new(object),
+                    index: Box::new(index)
+                })
+            } else {
+                return Err(error::Error::new(lexer.head_or_eof(), "Expected ']' at the end of index expression"))
             }
-        },
-        error => {
-            error
         }
     }
+
+    // prefixexp ‘.’ Name
+    if let Some(mut sublexer) = lexer.get_until(tokens::TokenType::Keyword(tokens::Keyword::DOT)) {
+
+        if let Ok(object) = parse_prefixexp(&mut sublexer) {
+            lexer.skip(sublexer.pos() + 1);
+
+            print!("Next token: {:?}", lexer.get(0));
+            if let Some(&tokens::Token { token: tokens::TokenType::Id(ref id), .. }) = lexer.head() {
+                return Ok(Expression::Indexing {
+                    object: Box::new(object),
+                    index: Box::new(Expression::StringConstant(id.clone()))
+                })
+            } else {
+                return Err(error::Error::new(lexer.head_or_eof(), "Expected 'Id' after addressing operator '.'"))
+            }
+        }
+    }
+
+    // Name
+    if let Some(tokens::Token { token: tokens::TokenType::Id(id), .. }) = lexer.get(0).cloned() {
+        return Ok(Expression::Id(id))
+    }
+
+    Err(error::Error::new(lexer.head_or_eof(), "Expected variable expression"))
 }

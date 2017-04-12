@@ -1,15 +1,15 @@
 use ast::lexer::tokens;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Error {
     pub error_token: tokens::Token,
     pub message: String
 }
 
 impl Error {
-    pub fn new(token: &tokens::Token, message: &str) -> Self {
+    pub fn new(token: tokens::Token, message: &str) -> Self {
         Error {
-            error_token: token.clone(),
+            error_token: token,
             message: message.to_owned()
         }
     }
