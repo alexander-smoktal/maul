@@ -34,9 +34,9 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
 }
 
 // varlist ‘=’ explist
-pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    Result::Ok(Expression::Stub)
-}
+// pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+//    Result::Ok(Expression::Stub)
+// }
 
 // var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
@@ -70,7 +70,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             if let Some(&tokens::Token { token: tokens::TokenType::Id(ref id), .. }) = lexer.head() {
                 return Ok(Expression::Indexing {
                     object: Box::new(object),
-                    index: Box::new(Expression::StringConstant(id.clone()))
+                    index: Box::new(Expression::String(id.clone()))
                 })
             } else {
                 return Err(error::Error::new(lexer.head_or_eof(), "Expected 'Id' after addressing operator '.'"))

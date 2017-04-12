@@ -1,5 +1,5 @@
 pub mod function;
-pub mod assignment;
+pub mod variables;
 pub mod statements;
 
 use std::vec::Vec;
@@ -15,11 +15,11 @@ pub enum Expression {
     Stub,
     Id(String),
     Assignment {
-        varname: assignment::Id,
+        varname: variables::Id,
         expression: Box<Expression>,
     },
     Function {
-        params: assignment::Id,
+        params: variables::Id,
         body: Expressions,
     },
     Indexing {
@@ -27,9 +27,10 @@ pub enum Expression {
         index: Box<Expression>,
     },
     St(statements::Statement),
-    StringConstant(String),
-    NumberConstant(f32),
-    BooleanConstant(bool)
+    String(String),
+    Number(f32),
+    Boolean(bool),
+    Nil
 }
 
 pub type Expressions = Vec<Expression>;
@@ -57,13 +58,26 @@ pub type Expressions = Vec<Expression>;
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
 pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    lexer.try_to_parse(assignment::parse_var)
+    lexer.try_to_parse(variables::parse_var)
         .or_else(|_| lexer.try_to_parse(function::parse_funcall))
         .or(Err(error::Error::new(lexer.head_or_eof(), "Failed to parse prefix expression")))
 }
-
+// exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
+//          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    Result::Ok(Expression::Stub)
+    if let Some(token) = lexer.head().cloned() {
+        match token.token {
+            tokens::TokenType::Keyword(tokens::Keyword::NIL) => Ok(Expression::Nil),
+            tokens::TokenType::Keyword(tokens::Keyword::FALSE) => Ok(Expression::Boolean(false)),
+            tokens::TokenType::Keyword(tokens::Keyword::TRUE) => Ok(Expression::Boolean(true)),
+            tokens::TokenType::Keyword(tokens::Keyword::DOT3) => Ok(Expression::St(statements::Statement::Ellipsis)),
+            tokens::TokenType::Number(number) => Ok(Expression::Number(number.parse::<f32>().unwrap())),
+            tokens::TokenType::String(string) => Ok(Expression::String(string)),
+            _ => Err(error::Error::new(lexer.head_or_eof(), "Invalid expression"))
+        }
+    } else {
+        return Err(error::Error::new(lexer.head_or_eof(), "Expected expression"))
+    }
 }
 
 impl Expression {
@@ -80,7 +94,7 @@ impl Expression {
                 }
             },
             Some(tokens::TokenType::Id(_)) => {
-                assignment::parse_var(lexer).ok()
+                variables::parse_var(lexer).ok()
             },
             Some(tokens::TokenType::String(ref string)) => {
                 panic!("Unexpected Id: {}", string);

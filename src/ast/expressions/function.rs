@@ -3,7 +3,7 @@ use ast::lexer;
 use ast::lexer::tokens;
 use error;
 
-fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Error> {
+fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Error> {
     let mut result = vec![];
 
     lexer.skip_expected_keyword(tokens::Keyword::LBRACE,
@@ -25,7 +25,7 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Er
     Ok(result)
 }
 
-fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::Error> {
+fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Error> {
     if lexer.head_token_is_keyword(tokens::Keyword::SEMICOLONS) {
         lexer.skip(1);
 
@@ -45,7 +45,7 @@ fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<assignment::Id, error::
 // parlist ::= namelist [‘,’ ‘...’] | ‘...’
 pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     // First parse function name as variable
-    let mut function_name = assignment::parse_varname(lexer)
+    let mut function_name = variables::parse_varname(lexer)
         .map_err(|e| e.add("Failed to parse function name"))?;
 
     // Then parse method name if method
@@ -66,8 +66,8 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
         body: vec![],
     };
 
-    // Return assignment, because of function is a sugar for var
-    Ok(assignment::new(function_name, func))
+    // Return variables, because of function is a sugar for var
+    Ok(variables::new(function_name, func))
 }
 
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
