@@ -41,13 +41,11 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
 // var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     // prefixexp ‘[’ exp ‘]’
-    if let Some(mut sublexer) = lexer.get_until(tokens::Keyword::LSBRACKET.into()) {
-
+    if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::LSBRACKET) {
         if let Ok(object) = parse_prefixexp(&mut sublexer) {
             lexer.skip(sublexer.pos() + 1);
 
-            if let Some(mut sublexer) = lexer.get_until(
-                tokens::TokenType::Keyword(tokens::Keyword::RSBRACKET)) {
+            if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::RSBRACKET) {
                 let index = parse_prefixexp(&mut sublexer)?;
                 lexer.skip(sublexer.pos() + 1);
 
@@ -62,12 +60,12 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     }
 
     // prefixexp ‘.’ Name
-    if let Some(mut sublexer) = lexer.get_until(tokens::Keyword::DOT.into()) {
+    if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::DOT) {
         if let Ok(object) = parse_prefixexp(&mut sublexer) {
             lexer.skip(sublexer.pos() + 1);
 
-            print!("Next token: {:?}", lexer.get(0));
             if let Some(id) = lexer.head().id() {
+                print!("INDEX ID {:?}", id);
                 return Ok(Expression::Indexing {
                     object: Box::new(object),
                     index: Box::new(Expression::String(id))
@@ -80,6 +78,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
     // Name
     if let Some(id) = lexer.head().id() {
+        print!("JUST ID {:?}", id);
         lexer.skip(1);
 
         return Ok(Expression::Id(id))

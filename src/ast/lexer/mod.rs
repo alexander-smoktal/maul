@@ -42,18 +42,22 @@ impl Lexer {
         result
     }
 
-    pub fn get_until(&self, token: tokens::TokenType) -> Option<Lexer> {
-        if self.tokens.iter().find(|x| x.token == token).is_some() {
-            Some(Lexer {
-                tokens: Rc::new(self.tokens.iter()
-                                .cloned()
-                                .take_while(|x| x.token != token)
-                                .collect()),
-                position: 0
-            })
-        } else {
-            None
-        }
+    pub fn take_while<P>(&self, predicate: P) -> Option<Lexer> where P: Fn(&Token) -> bool
+    {
+        self.tokens.iter()
+            .find(|x| predicate(x))
+            .map(|_| {
+                 Lexer {
+                     tokens: Rc::new(self.tokens.iter()
+                                     .cloned()
+                                     .take_while(|x| !predicate(x))
+                                     .collect()),
+                     position: 0
+                 }})
+    }
+
+    pub fn take_while_keyword(&self, keyword: tokens::Keyword) -> Option<Lexer> {
+        self.take_while(move |x| x.token == TokenType::from(keyword.clone()))
     }
 
     pub fn pos(&self) -> usize {
@@ -187,7 +191,7 @@ impl TokenIterator {
         let number: String = self.char_iterator.take_while_exclusive(numeric_chars).collect();
         self.advance_pos(number.len());
 
-        TokenType::Number(number)
+        TokenType::Number(number.parse::<f64>().unwrap())
     }
 
     fn parse_operator(&mut self) -> TokenType {

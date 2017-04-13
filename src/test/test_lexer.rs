@@ -58,12 +58,12 @@ fn test_numbers() {
     let mut iter = TokenIterator::new("3 43 42.42 777".to_owned());
 
     assert_eq!(iter.next(),
-               Some(Token::new(TokenType::Number(String::from("3")), 1, 1)));
+               Some(Token::new(TokenType::Number(3f64), 1, 1)));
     assert_eq!(iter.next(),
-               Some(Token::new(TokenType::Number(String::from("43")), 1, 4)));
+               Some(Token::new(TokenType::Number(43f64), 1, 4)));
     assert_eq!(iter.next(),
-               Some(Token::new(TokenType::Number(String::from("42.42")), 1, 10)));
+               Some(Token::new(TokenType::Number(42.42f64), 1, 10)));
     assert_eq!(iter.next(),
-               Some(Token::new(TokenType::Number(String::from("777")), 1, 14)));
+               Some(Token::new(TokenType::Number(777f64), 1, 14)));
     assert_eq!(iter.next(), None);
 }

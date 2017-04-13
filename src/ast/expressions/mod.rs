@@ -28,7 +28,7 @@ pub enum Expression {
     },
     St(statements::Statement),
     String(String),
-    Number(f32),
+    Number(f64),
     Boolean(bool),
     Nil
 }
@@ -65,14 +65,21 @@ pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Er
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    match lexer.head().token {
+    match lexer.head().token.clone() {
         tokens::TokenType::Keyword(tokens::Keyword::NIL) => Ok(Expression::Nil),
         tokens::TokenType::Keyword(tokens::Keyword::FALSE) => Ok(Expression::Boolean(false)),
         tokens::TokenType::Keyword(tokens::Keyword::TRUE) => Ok(Expression::Boolean(true)),
         tokens::TokenType::Keyword(tokens::Keyword::DOT3) => Ok(Expression::St(statements::Statement::Ellipsis)),
-        tokens::TokenType::Number(number) => Ok(Expression::Number(number.parse::<f32>().unwrap())),
+        tokens::TokenType::Number(number) => Ok(Expression::Number(number)),
         tokens::TokenType::String(string) => Ok(Expression::String(string)),
-        _ => Err(error::Error::new(lexer.head(), "Invalid expression"))
+        _ => {
+            if let Ok(prefixexp) = lexer.try_to_parse(parse_prefixexp) {
+                return Ok(prefixexp)
+            }
+
+            Err(error::Error::new(lexer.head(), "Unexpected token"))
+            //if let Ok()
+        }
     }
 }
 

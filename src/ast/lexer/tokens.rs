@@ -65,6 +65,49 @@ pub enum Keyword {
     DOT3,
 }
 
+impl Keyword {
+    // unop ::= ‘-’ | not | ‘#’ | ‘~’
+    pub fn is_unop(&self) -> bool {
+        match self.clone() {
+            Keyword::MINUS
+                | Keyword::NOT
+                | Keyword::HASH
+                | Keyword::TILDA => true,
+            _ => false
+        }
+    }
+
+    // binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
+    //            ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
+    //            ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |
+    //            and | or
+    pub fn is_binop(&self) -> bool {
+        match self.clone() {
+            Keyword::PLUS
+                | Keyword::MINUS
+                | Keyword::MUL
+                | Keyword::DIV
+                | Keyword::POW
+                | Keyword::MOD
+                | Keyword::SAND
+                | Keyword::TILDA
+                | Keyword::SOR
+                | Keyword::SHRIGHT
+                | Keyword::SHLEFT
+                | Keyword::DOT2
+                | Keyword::LESS
+                | Keyword::LEQ
+                | Keyword::GREATER
+                | Keyword::GEQ
+                | Keyword::EQ
+                | Keyword::NEQ
+                | Keyword::AND
+                | Keyword::OR => true,
+            _ => false
+        }
+    }
+}
+
 impl PartialEq<Token> for Keyword {
     fn eq(&self, token: &Token) -> bool {
         token.token == TokenType::from(self.clone())
@@ -136,7 +179,7 @@ pub enum TokenType {
     Keyword(Keyword),
     Id(String),
     String(String),
-    Number(String),
+    Number(f64),
     None
 }
 
