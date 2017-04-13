@@ -11,7 +11,6 @@ use std::iter::{Iterator, IntoIterator, FromIterator, Peekable};
 use std::string::String;
 use std::rc::Rc;
 use utils::AsExclusiveTakeWhile;
-use std::ops::Index;
 
 // ------------ Lexer ----------------
 #[derive(Clone, Debug)]
@@ -66,36 +65,26 @@ impl Lexer {
         self
     }
 
-    pub fn get(&self, index: usize) -> Option<&Token> {
+    pub fn get(&self, index: usize) -> Token {
         if self.position >= self.tokens.len() {
-            None
+            Token::eof()
         } else {
-            Some(self.tokens.as_ref().index(self.position + index))
+            self.tokens[self.position + index].clone()
         }
     }
 
-    pub fn head(&self) -> Option<&Token> {
+    pub fn head(&self) -> Token {
         self.get(0)
-    }
-
-    pub fn head_or_eof(&self) -> Token {
-        self.head().cloned().unwrap_or(tokens::Token::eof())
-    }
-
-    pub fn head_token_is_keyword(&self, keyword: tokens::Keyword) -> bool {
-        self.head().and_then(|x: &tokens::Token| {
-            if x.token == tokens::TokenType::Keyword(keyword) { Some(true) } else { None }
-        }).is_some()
     }
 
     pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) ->
         Result<(), error::Error> {
-        if self.head_token_is_keyword(keyword) {
+        if keyword == self.head() {
             self.skip(1);
             Ok(())
         } else {
             Err(error::Error {
-                error_token: self.head_or_eof(),
+                error_token: self.head(),
                 message: format!("{}. Got: {:?}", expect_message, self.get(0))
             })
         }

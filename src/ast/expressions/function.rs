@@ -9,12 +9,11 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Err
     lexer.skip_expected_keyword(tokens::Keyword::LBRACE,
                                 "Expected function parameters start")?;
 
-    while let Some(tokens::Token{ token: tokens::TokenType::Id(name), .. })
-              = lexer.head().cloned() {
+    while let Some(name) = lexer.head().id() {
         result.push(name);
         lexer.skip(1);
 
-        if lexer.head_token_is_keyword(tokens::Keyword::COMMA) {
+        if tokens::Keyword::COMMA == lexer.head() {
             lexer.skip(1);
         }
     }
@@ -26,14 +25,14 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Err
 }
 
 fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Error> {
-    if lexer.head_token_is_keyword(tokens::Keyword::SEMICOLONS) {
+    if tokens::Keyword::SEMICOLONS == lexer.head() {
         lexer.skip(1);
 
-        if let Some(tokens::Token { token: tokens::TokenType::Id(name), .. }) = lexer.head().cloned() {
+        if let Some(name) = lexer.head().id() {
             lexer.skip(1);
             Ok(vec![name])
         } else {
-            Err(error::Error::new(lexer.head_or_eof(), "Failed to parse method name"))
+            Err(error::Error::new(lexer.head(), "Failed to parse method name"))
         }
     } else {
         Ok(vec![])
@@ -71,5 +70,5 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
 }
 
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    Err(error::Error::new(lexer.head_or_eof(), "Stub"))
+    Err(error::Error::new(lexer.head(), "Stub"))
 }

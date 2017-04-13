@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::string;
 
 #[allow(dead_code)]
 #[derive(PartialEq, Debug, Clone)]
@@ -66,6 +65,12 @@ pub enum Keyword {
     DOT3,
 }
 
+impl PartialEq<Token> for Keyword {
+    fn eq(&self, token: &Token) -> bool {
+        token.token == TokenType::from(self.clone())
+    }
+}
+
 pub fn get_token_table() -> HashMap<String, Keyword> {
     string_hash_map![("and", Keyword::AND),
                      ("break", Keyword::BREAK),
@@ -129,9 +134,22 @@ pub fn get_operator_table() -> HashMap<String, Keyword> {
 #[derive(PartialEq, Debug, Clone)]
 pub enum TokenType {
     Keyword(Keyword),
-    Id(string::String),
-    String(string::String),
-    Number(string::String),
+    Id(String),
+    String(String),
+    Number(String),
+    None
+}
+
+impl PartialEq<Token> for TokenType {
+    fn eq(&self, token: &Token) -> bool {
+        token.token == *self
+    }
+}
+
+impl From<Keyword> for TokenType {
+    fn from(keyword: Keyword) -> Self {
+        TokenType::Keyword(keyword)
+    }
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -151,6 +169,14 @@ impl Token {
     }
 
     pub fn eof() -> Token {
-        Token::new(TokenType::Id("EOF".to_owned()), 0, 0)
+        Token::new(TokenType::None, 0, 0)
+    }
+
+    pub fn id(&self) -> Option<String> {
+        match self.token {
+            TokenType::Id(ref id) => Some(id.clone()),
+            _ => None
+        }
     }
 }
+
