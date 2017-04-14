@@ -66,9 +66,6 @@ pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Er
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    println!("NEW PARSE {:?}", lexer);
-
-    println!("0");
     // exp binop exp
     if let Some(mut sublexer) = lexer.take_while(|t| t.keyword().map_or(false, |k| k.is_binop())) {
         if let Ok(left) = parse_exp(&mut sublexer) {
@@ -77,17 +74,13 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             if let tokens::TokenType::Keyword(binop) = lexer.head().token {
                 lexer.skip(1);
 
-                println!("PARSING EXP AFTER BINOP {:?} {:?} {:?}", left, binop, lexer.head());
-
                 if let Ok(right) = lexer.try_to_parse(parse_exp) {
-                    println!("FOUND RIGHT {:?}", right);
                     return Ok(Expression::Binop(binop, Box::new(left), Box::new(right)))
                 }
             }
         }
     }
 
-    println!("1");
     // unop exp
     if let tokens::TokenType::Keyword(keyword) = lexer.head().into() {
         if keyword.is_unop() {
@@ -99,25 +92,21 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
         }
     }
 
-    println!("2");
     // funcdef
     if let Ok(funcdef) = lexer.try_to_parse(function::parse_funcdef) {
         return Ok(funcdef)
     }
 
-    println!("3");
     // prefixexp
     if let Ok(prefixexp) = lexer.try_to_parse(parse_prefixexp) {
         return Ok(prefixexp)
     }
 
-    println!("4");
     // tableconstructor
     if let Ok(table) = lexer.try_to_parse(tables::parse_table_constructor) {
         return Ok(table)
     }
 
-    println!("5");
     match lexer.head().token.clone() {
         tokens::TokenType::Keyword(tokens::Keyword::NIL) => Ok(Expression::Nil),
         tokens::TokenType::Keyword(tokens::Keyword::FALSE) => Ok(Expression::Boolean(false)),
