@@ -43,6 +43,8 @@ fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::E
 // funcbody ::= ‘(’ [parlist] ‘)’ block end
 // parlist ::= namelist [‘,’ ‘...’] | ‘...’
 pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    lexer.skip_expected_keyword(tokens::Keyword::FUNCTION, "Expected 'function' keyword at the function start")?;
+
     // First parse function name as variable
     let mut function_name = variables::parse_varname(lexer)
         .map_err(|e| e.add("Failed to parse function name"))?;

@@ -44,15 +44,16 @@ impl Lexer {
     pub fn take_while<P>(&self, predicate: P) -> Option<Lexer> where P: Fn(&Token) -> bool
     {
         self.tokens.iter()
+            .skip(self.position)
             .find(|x| predicate(x))
             .map(|_| {
-                 Lexer {
-                     tokens: Rc::new(self.tokens.iter()
-                                     .cloned()
-                                     .take_while(|x| !predicate(x))
-                                     .collect()),
-                     position: 0
-                 }})
+                Lexer {
+                    tokens: Rc::new(self.tokens.iter()
+                                    .cloned()
+                                    .take_while(|x| !predicate(x))
+                                    .collect()),
+                    position: 0
+                }})
     }
 
     pub fn take_while_keyword(&self, keyword: tokens::Keyword) -> Option<Lexer> {
