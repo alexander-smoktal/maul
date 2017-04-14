@@ -39,7 +39,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             lexer.skip(sublexer.pos() + 1);
 
             if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::RSBRACKET) {
-                let index = parse_prefixexp(&mut sublexer)?;
+                let index = parse_exp(&mut sublexer)?;
                 lexer.skip(sublexer.pos() + 1);
 
                 return Ok(Expression::Indexing {

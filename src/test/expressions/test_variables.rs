@@ -1,23 +1,29 @@
-use ast::lexer::Lexer;
-
 use ast::expressions::*;
+
+use super::utils::*;
 
 #[test]
 fn test_var_id() {
-    let mut lexer = Lexer::new("Hello".to_owned());
-
-    assert_eq!(variables::parse_var(&mut lexer),
+    assert_eq!(variables::parse_var(&mut make_lexer("Hello")),
                Ok(Expression::Id(vec!["Hello".to_owned()])))
 }
 
 #[test]
-fn test_simple_indexing() {
-    let mut lexer = Lexer::new("Hello.world".to_owned());
-
-    assert_eq!(variables::parse_var(&mut lexer),
+fn test_var_name_resolution() {
+    assert_eq!(variables::parse_var(&mut make_lexer("Hello.world")),
                Ok(Expression::Indexing {
                    object: Box::new(Expression::Id(vec!["Hello".to_owned()])),
                    index: Box::new(Expression::String("world".to_owned())),
+               })
+    )
+}
+
+#[test]
+fn test_var_indexing() {
+    assert_eq!(variables::parse_var(&mut make_lexer("(7)[...]")),
+               Ok(Expression::Indexing {
+                   object: Box::new(Expression::Number(7f64)),
+                   index: Box::new(Expression::St(statements::Statement::Ellipsis)),
                })
     )
 }

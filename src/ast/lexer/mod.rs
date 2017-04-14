@@ -11,9 +11,10 @@ use std::iter::{Iterator, IntoIterator, FromIterator, Peekable};
 use std::string::String;
 use std::rc::Rc;
 use utils::AsExclusiveTakeWhile;
+use std::fmt;
 
 // ------------ Lexer ----------------
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Lexer {
     tokens: Rc<Vec<Token>>,
     position: usize,
@@ -49,6 +50,7 @@ impl Lexer {
             .map(|_| {
                 Lexer {
                     tokens: Rc::new(self.tokens.iter()
+                                    .skip(self.position)
                                     .cloned()
                                     .take_while(|x| !predicate(x))
                                     .collect()),
@@ -92,6 +94,16 @@ impl Lexer {
                 message: format!("{}. Got: {:?}", expect_message, self.get(0))
             })
         }
+    }
+}
+
+impl fmt::Debug for Lexer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Lexer -> {:?}",
+               self.tokens.iter()
+               .skip(self.position)
+               .map(|t| t.token.clone())
+               .collect::<Vec<TokenType>>())
     }
 }
 

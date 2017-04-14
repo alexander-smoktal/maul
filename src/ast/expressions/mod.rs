@@ -36,30 +36,15 @@ pub enum Expression {
 
 pub type Expressions = Vec<Expression>;
 
-// chunk ::= block
-
-// block ::= {stat} [retstat]
-
-// stat ::=  ‘;’ |
-//     varlist ‘=’ explist |
-//     functioncall |
-//     label |
-//     break |
-//     goto Name |
-//     do block end |
-//     while exp do block end |
-//     repeat block until exp |
-//     if exp then block {elseif exp then block} [else block] end |
-//     for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
-//     for namelist in explist do block end |
-//     function funcname funcbody |
-//     local function Name funcbody |
-//     local namelist [‘=’ explist]
-
-
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
 pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    lexer.try_to_parse(variables::parse_var)
+    lexer.try_to_parse(|lexer| {
+        lexer.skip_expected_keyword(tokens::Keyword::LBRACE, "")
+            .and_then(|_| parse_exp(lexer))
+            .and_then(|exp| lexer.skip_expected_keyword(tokens::Keyword::RBRACE, "Unclosed brace '('").map(|_| exp))
+
+    })
+        .or_else(|_| lexer.try_to_parse(variables::parse_var))
         .or_else(|_| lexer.try_to_parse(function::parse_funcall))
         .or(Err(error::Error::new(lexer.head(), "Failed to parse prefix expression")))
 }
@@ -117,6 +102,27 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
         _ => Err(error::Error::new(lexer.head(), "Unexpected token"))
     }.and_then(|x| { lexer.skip(1); Ok(x) })
 }
+
+// chunk ::= block
+
+// block ::= {stat} [retstat]
+
+
+// stat ::=  ‘;’ |
+// varlist ‘=’ explist |
+// functioncall |
+// label |
+// break |
+// goto Name |
+// do block end |
+// while exp do block end |
+// repeat block until exp |
+// if exp then block {elseif exp then block} [else block] end |
+// for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
+// for namelist in explist do block end |
+// function funcname funcbody |
+// local function Name funcbody |
+// local namelist [‘=’ explist]
 
 impl Expression {
     pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Expression> {

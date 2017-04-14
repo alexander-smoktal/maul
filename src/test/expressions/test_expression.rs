@@ -4,7 +4,7 @@ use ast::expressions::*;
 use super::utils::*;
 
 #[test]
-fn test_terminals() {
+fn test_exp_terminals() {
     assert_eq!(parse_exp(&mut make_lexer("nil")), Ok(Expression::Nil));
     assert_eq!(parse_exp(&mut make_lexer("false")), Ok(Expression::Boolean(false)));
     assert_eq!(parse_exp(&mut make_lexer("true")), Ok(Expression::Boolean(true)));
@@ -14,7 +14,7 @@ fn test_terminals() {
 }
 
 #[test]
-fn test_binop() {
+fn test_exp_binop() {
     assert_eq!(parse_exp(&mut make_lexer("1 + 3")), Ok(Expression::Binop(tokens::Keyword::PLUS
                                                                          , Box::new(Expression::Number(1f64))
                                                                          , Box::new(Expression::Number(3f64)))));
@@ -25,7 +25,7 @@ fn test_binop() {
 }
 
 #[test]
-fn test_unop() {
+fn test_exp_unop() {
     assert_eq!(parse_exp(&mut make_lexer("-3")), Ok(Expression::Unop(tokens::Keyword::MINUS
                                                                      , Box::new(Expression::Number(3f64)))));
 
