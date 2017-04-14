@@ -66,7 +66,7 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
     };
 
     // Return variables, because of function is a sugar for var
-    Ok(variables::new(function_name, func))
+    Ok(Expression::Assignment(Box::new(Expression::Id(function_name)), Box::new(func)))
 }
 
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {

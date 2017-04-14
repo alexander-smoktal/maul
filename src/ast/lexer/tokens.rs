@@ -183,12 +183,6 @@ pub enum TokenType {
     None
 }
 
-impl PartialEq<Token> for TokenType {
-    fn eq(&self, token: &Token) -> bool {
-        token.token == *self
-    }
-}
-
 impl From<Keyword> for TokenType {
     fn from(keyword: Keyword) -> Self {
         TokenType::Keyword(keyword)
@@ -221,5 +215,19 @@ impl Token {
             _ => None
         }
     }
+
+    pub fn keyword(&self) -> Option<Keyword> {
+        match self.token {
+            TokenType::Keyword(ref keyword) => Some(keyword.clone()),
+            _ => None
+        }
+    }
 }
+
+impl Into<TokenType> for Token {
+    fn into(self) -> TokenType {
+        self.token.clone()
+    }
+}
+
 

@@ -5,13 +5,6 @@ use error;
 
 pub type Id = Vec<String>;
 
-pub fn new(varname: Id, expression: Expression) -> Expression {
-    Expression::Assignment {
-        varname: varname,
-        expression: Box::new(expression),
-    }
-}
-
 pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
     let mut result = vec![];
 
@@ -81,7 +74,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
         print!("JUST ID {:?}", id);
         lexer.skip(1);
 
-        return Ok(Expression::Id(id))
+        return Ok(Expression::Id(vec![id]))
     }
 
     Err(error::Error::new(lexer.head(), "Expected variable expression"))

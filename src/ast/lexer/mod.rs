@@ -29,9 +29,8 @@ impl Lexer {
     }
 
     /// Tries to run parse function. If failed, rollback itself to previous position
-    pub fn try_to_parse(&mut self,
-                      function: fn(&mut Lexer) -> Result<expressions::Expression, error::Error>)
-        -> Result<expressions::Expression, error::Error> {
+    pub fn try_to_parse<F>(&mut self, function: F) -> Result<expressions::Expression, error::Error>
+        where F: Fn(&mut Lexer) -> Result<expressions::Expression, error::Error> {
         let self_copy = self.clone();
 
         let result = function(self);

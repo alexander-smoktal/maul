@@ -1,5 +1,6 @@
 pub mod function;
 pub mod variables;
+pub mod tables;
 pub mod statements;
 
 use std::vec::Vec;
@@ -13,11 +14,8 @@ use self::statements::Statement;
 #[derive(PartialEq, Debug)]
 pub enum Expression {
     Stub,
-    Id(String),
-    Assignment {
-        varname: variables::Id,
-        expression: Box<Expression>,
-    },
+    Id(variables::Id),
+    Assignment(Box<Expression>, Box<Expression>),
     Function {
         params: variables::Id,
         body: Expressions,
@@ -26,6 +24,9 @@ pub enum Expression {
         object: Box<Expression>,
         index: Box<Expression>,
     },
+    TableConstructor(Vec<Box<Expression>>),
+    Binop(tokens::Keyword, Box<Expression>, Box<Expression>),
+    Unop(tokens::Keyword, Box<Expression>),
     St(statements::Statement),
     String(String),
     Number(f64),
@@ -65,6 +66,45 @@ pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Er
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    // exp binop exp
+    if let Some(mut sublexer) = lexer.take_while(|t| t.keyword().map_or(false, |k| k.is_binop())) {
+        if let Ok(left) = parse_exp(&mut sublexer) {
+            lexer.skip(sublexer.pos());
+
+            if let tokens::TokenType::Keyword(binop) = lexer.head().token {
+                lexer.skip(1);
+
+                if let Ok(right) = lexer.try_to_parse(parse_exp) {
+                    return Ok(Expression::Binop(binop, Box::new(left), Box::new(right)))
+                }
+            }
+        }
+    }
+
+    // unop exp
+    if let tokens::TokenType::Keyword(keyword) = lexer.head().into() {
+        if keyword.is_unop() {
+            if let Ok(exp) = lexer.try_to_parse(parse_exp) {
+                return Ok(Expression::Unop(keyword, Box::new(exp)))
+            }
+        }
+    }
+
+    // funcdef
+    if let Ok(funcdef) = lexer.try_to_parse(function::parse_funcdef) {
+        return Ok(funcdef)
+    }
+
+    // prefixexp
+    if let Ok(prefixexp) = lexer.try_to_parse(parse_prefixexp) {
+        return Ok(prefixexp)
+    }
+
+    // tableconstructor
+    if let Ok(table) = lexer.try_to_parse(tables::parse_table_constructor) {
+        return Ok(table)
+    }
+
     match lexer.head().token.clone() {
         tokens::TokenType::Keyword(tokens::Keyword::NIL) => Ok(Expression::Nil),
         tokens::TokenType::Keyword(tokens::Keyword::FALSE) => Ok(Expression::Boolean(false)),
@@ -78,7 +118,6 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             }
 
             Err(error::Error::new(lexer.head(), "Unexpected token"))
-            //if let Ok()
         }
     }
 }
