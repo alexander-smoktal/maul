@@ -1,5 +1,6 @@
 use ast::lexer::tokens;
 use ast::expressions::*;
+use ast::expressions::statements::*;
 
 use super::utils::*;
 
@@ -43,10 +44,10 @@ fn test_exp_prefix() {
 
 #[test]
 fn test_exp_functiondef() {
-    assert_eq!(parse_exp(&mut make_lexer("function f () body end")), Ok(make_assignment(vec!["f"],
+    assert_eq!(parse_exp(&mut make_lexer("function f () break end")), Ok(make_assignment(vec!["f"],
                                                                                           Expression::Function {
                                                                                               params: vec![],
-                                                                                              body: vec![],
+                                                                                              body: Box::new(Expression::Expressions(vec![Box::new(Expression::St(Statement::Break))]))
                                                                                           })))
 }
 

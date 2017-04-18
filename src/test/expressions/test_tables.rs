@@ -6,7 +6,7 @@ use super::utils::*;
 #[test]
 #[should_panic]
 fn test_table_invalid() {
-    assert_eq!(tables::parse_table_constructor(&mut make_lexer("1 + 3")), Ok(Expression::Stub))
+    assert_eq!(tables::parse_table_constructor(&mut make_lexer("1 + 3")), Ok(Expression::Noop))
 }
 
 #[test]

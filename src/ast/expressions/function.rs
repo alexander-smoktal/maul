@@ -62,13 +62,21 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
     // Parse function arguments
     params.append(&mut parse_func_args(lexer)?);
 
-    let func = Expression::Function {
-        params: params,
-        body: vec![],
-    };
+    lexer.try_to_parse(blocks::parse_block).and_then(|body| {
+        lexer.skip_expected_keyword(tokens::Keyword::END, "Expected 'end' to close function body")?;
 
-    // Return variables, because of function is a sugar for var
-    Ok(Expression::Assignment(Box::new(Expression::Id(function_name)), Box::new(func)))
+        let func = Expression::Function {
+            params: params,
+            body: Box::new(body),
+        };
+
+        println!("FUNC {:?}", func);
+
+        // Return assignment, because function definition is and assignment
+        Ok(Expression::Assignment(Box::new(Expression::Id(function_name)), Box::new(func)))
+    })
+
+
 }
 
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {

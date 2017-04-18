@@ -27,3 +27,14 @@ fn test_var_indexing() {
                })
     )
 }
+
+#[test]
+fn test_assignment() {
+    assert_eq!(variables::parse_assignment(&mut make_lexer("one, two, three = 1, true, false")),
+               Ok(Expression::Expressions(vec![
+                   Box::new(Expression::Assignment(Box::new(Expression::Id(vec!["one".to_string()])), Box::new(Expression::Number(1f64)))),
+                   Box::new(Expression::Assignment(Box::new(Expression::Id(vec!["two".to_string()])), Box::new(Expression::Boolean(true)))),
+                   Box::new(Expression::Assignment(Box::new(Expression::Id(vec!["three".to_string()])), Box::new(Expression::Boolean(false))))
+               ]))
+    )
+}

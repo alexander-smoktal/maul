@@ -26,10 +26,38 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
     Ok(result)
 }
 
+// varlist ::= var {‘,’ var}
+fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
+    let mut result = vec![];
+
+    while let Ok(var) = lexer.try_to_parse(parse_var) {
+        result.push(Box::new(var));
+
+        if lexer.skip_expected_keyword(tokens::Keyword::COMMA, "").is_err() {
+            break
+        }
+    }
+
+    result
+}
+
 // varlist ‘=’ explist
-// pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-//    Result::Ok(Expression::Stub)
-// }
+pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    let vars = parse_varlist(lexer);
+
+    lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment")?;
+
+    let exps = parse_explist(lexer);
+
+    if vars.len() == exps.len() {
+        Ok(Expression::Expressions(vars.into_iter()
+                                   .zip(exps.into_iter())
+                                   .map(|(var, exp)| Box::new(Expression::Assignment(var, exp)))
+                                   .collect()))
+    } else {
+        Err(error::Error::new(lexer.head(), "Mismatched variables and expression count"))
+    }
+}
 
 // var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
@@ -58,7 +86,6 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             lexer.skip(sublexer.pos() + 1);
 
             if let Some(id) = lexer.head().id() {
-                print!("INDEX ID {:?}", id);
                 return Ok(Expression::Indexing {
                     object: Box::new(object),
                     index: Box::new(Expression::String(id))
@@ -71,7 +98,6 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
     // Name
     if let Some(id) = lexer.head().id() {
-        print!("JUST ID {:?}", id);
         lexer.skip(1);
 
         return Ok(Expression::Id(vec![id]))

@@ -2,6 +2,7 @@ pub mod function;
 pub mod variables;
 pub mod tables;
 pub mod statements;
+pub mod blocks;
 
 use std::vec::Vec;
 
@@ -9,22 +10,21 @@ use error;
 use ast::lexer;
 use ast::lexer::tokens;
 
-use self::statements::Statement;
-
 #[derive(PartialEq, Debug)]
 pub enum Expression {
-    Stub,
+    Noop,
     Id(variables::Id),
     Assignment(Box<Expression>, Box<Expression>),
     Function {
         params: variables::Id,
-        body: Expressions,
+        body: Box<Expression>,
     },
     Indexing {
         object: Box<Expression>,
         index: Box<Expression>,
     },
     TableConstructor(Vec<Box<Expression>>),
+    Expressions(Vec<Box<Expression>>),
     Binop(tokens::Keyword, Box<Expression>, Box<Expression>),
     Unop(tokens::Keyword, Box<Expression>),
     St(statements::Statement),
@@ -33,8 +33,6 @@ pub enum Expression {
     Boolean(bool),
     Nil
 }
-
-pub type Expressions = Vec<Expression>;
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
 pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
@@ -103,50 +101,23 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     }.and_then(|x| { lexer.skip(1); Ok(x) })
 }
 
-// chunk ::= block
+// explist ::= exp {‘,’ exp}
+fn parse_explist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
+    let mut result = vec![];
 
-// block ::= {stat} [retstat]
+    while let Ok(var) = lexer.try_to_parse(parse_exp) {
+        result.push(Box::new(var));
 
+        if lexer.skip_expected_keyword(tokens::Keyword::COMMA, "").is_err() {
+            break
+        }
+    }
 
-// stat ::=  ‘;’ |
-// varlist ‘=’ explist |
-// functioncall |
-// label |
-// break |
-// goto Name |
-// do block end |
-// while exp do block end |
-// repeat block until exp |
-// if exp then block {elseif exp then block} [else block] end |
-// for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
-// for namelist in explist do block end |
-// function funcname funcbody |
-// local function Name funcbody |
-// local namelist [‘=’ explist]
+    result
+}
 
 impl Expression {
     pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Expression> {
-        match lexer.head().token {
-            tokens::TokenType::Keyword(ref keyword) => {
-
-                match keyword {
-                    &tokens::Keyword::COLONS => Some(Expression::St(Statement::Break)),
-                    &tokens::Keyword::FUNCTION => {
-                        function::parse_funcdef(lexer).ok()
-                    }
-                    _ => panic!("Unexpected keyword: {:?}", keyword),
-                }
-            },
-            tokens::TokenType::Id(_) => {
-                variables::parse_var(lexer).ok()
-            },
-            tokens::TokenType::String(ref string) => {
-                panic!("Unexpected Id: {}", string);
-            },
-            tokens::TokenType::Number(ref string) => {
-                panic!("Unexpected Id: {}", string);
-            },
-            _ => panic!("Unexpected End of File")
-        }
+        blocks::parse_block(lexer).ok()
     }
 }

@@ -5,7 +5,7 @@ pub mod expressions;
 use std::fmt::{Debug, Formatter, Error};
 
 pub struct AST {
-    expressions: expressions::Expressions,
+    expressions: expressions::Expression,
 }
 
 impl AST {
@@ -14,7 +14,7 @@ impl AST {
     }
 
     fn add_expression(&mut self, exp: expressions::Expression) {
-        self.expressions.push(exp);
+        self.expressions = exp;
     }
 }
 

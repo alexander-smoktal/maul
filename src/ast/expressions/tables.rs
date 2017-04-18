@@ -57,7 +57,7 @@ pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> Result<Expression, e
             } else {
                 match lexer.skip_expected_keyword(tokens::Keyword::RCBRACKET, "Expected table constructor closing brace '}'") {
                     Ok(_) => return Ok(Expression::TableConstructor(fields)),
-                    err => return err.and(Ok(Expression::Stub))
+                    err => return err.and(Ok(Expression::Noop))
                 }
             }
         }
