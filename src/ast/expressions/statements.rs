@@ -12,8 +12,6 @@ pub enum Statement {
 
 // retstat ::= return [explist] [‘;’]
 pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- RETURN STATEMENT: {:?}", lexer);
-
     lexer.skip_expected_keyword(tokens::Keyword::RETURN, "")?;
 
     let exps = parse_explist(lexer);
@@ -24,8 +22,6 @@ pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, er
 }
 
 fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- KEYWORD: {:?}", lexer);
-
     match lexer.head().keyword().unwrap() {
         tokens::Keyword::COLONS => Ok(Expression::Noop),
         tokens::Keyword::BREAK => Ok(Expression::St(Statement::Break)),
@@ -52,8 +48,6 @@ fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 // local function Name funcbody |
 // local namelist [‘=’ explist]
 pub fn parse_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- STATEMENT: {:?}", lexer);
-
     match lexer.head().token.clone() {
         tokens::TokenType::Keyword(tokens::Keyword::FUNCTION) => function::parse_funcdef(lexer),
         tokens::TokenType::Keyword(_) => parse_keyword(lexer),

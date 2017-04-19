@@ -39,8 +39,6 @@ fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 // fieldsep ::= ‘,’ | ‘;’
 pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- TABLE CONSTRUCTOR: {:?}", lexer);
-
     lexer.skip_expected_keyword(tokens::Keyword::LCBRACKET, "Expected '{' at the beginning of table constructor")?;
 
     let mut fields: Vec<Box<Expression>> = vec![];

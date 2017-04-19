@@ -28,13 +28,9 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
 
 // varlist ::= var {‘,’ var}
 fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
-    log_debug!("-|- VARLIST: {:?}", lexer);
-
     let mut result = vec![];
 
     while let Ok(var) = lexer.parse_or_rollback(parse_var) {
-        log_debug!("VARIABLE INSIDE VARLIST: {:?}", var);
-
         result.push(Box::new(var));
 
         if lexer.skip_expected_keyword(tokens::Keyword::COMMA, "").is_err() {
@@ -47,8 +43,6 @@ fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
 
 // varlist ‘=’ explist
 pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- ASSIGNMENT: {:?}", lexer);
-
     let vars = parse_varlist(lexer);
 
     lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment")?;
@@ -67,13 +61,9 @@ pub fn parse_assignment(lexer: &mut lexer::Lexer) -> Result<Expression, error::E
 
 // var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- VARIABLE: {:?}", lexer);
-
     // prefixexp ‘[’ exp ‘]’
     if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::LSBRACKET) {
         if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
-            log_debug!("SBRACKETS INDEXING: {:?}", sublexer);
-
             lexer.skip(sublexer.pos() + 1);
 
             if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::RSBRACKET) {
@@ -95,9 +85,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
     // prefixexp ‘.’ Name
     if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::DOT) {
-        log_debug!("DOT INDEXING 0: {:?}", sublexer);
         if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
-            log_debug!("DOT INDEXING 1: {:?}", sublexer);
 
             lexer.skip(sublexer.pos() + 1);
 
@@ -114,8 +102,6 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
     // Name
     if let Some(id) = lexer.head().id() {
-        log_debug!("SINGLE VAR: {:?}", id);
-
         lexer.skip(1);
 
         return Ok(Expression::Id(vec![id]))

@@ -36,8 +36,6 @@ pub enum Expression {
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
 pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- PREFIXEXP: {:?}", lexer);
-
     lexer.parse_or_rollback(|lexer| {
         lexer.skip_expected_keyword(tokens::Keyword::LBRACE, "")
             .and_then(|_| parse_exp(lexer))
@@ -51,8 +49,6 @@ pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Er
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    log_debug!("-|- EXPRESSION: {:?}", lexer);
-
     // exp binop exp
     if let Some(mut sublexer) = lexer.take_while(|t| t.keyword().map_or(false, |k| k.is_binop())) {
         if let Ok(left) = sublexer.parse_all_or_rollback(parse_exp) {
@@ -107,8 +103,6 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
 // explist ::= exp {‘,’ exp}
 fn parse_explist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
-    log_debug!("-|- EXPRESSION LIST: {:?}", lexer);
-
     let mut result = vec![];
 
     while let Ok(var) = lexer.parse_or_rollback(parse_exp) {
