@@ -57,3 +57,21 @@ fn test_method() {
                                       body: Box::new(Expression::Expressions(vec![Box::new(Expression::St(Statement::Break))]))
                                   })))
 }
+
+
+#[test]
+fn test_fib() {
+    match function::parse_funcdef(&mut make_lexer("
+      function a.b:fib(n)
+        N=N+1
+        if n<2 then
+          return n
+        else
+          return a.b.fib(n-1) + a.b.fib(n-2)
+        end
+      end"
+    )) {
+        Ok(yoba) => assert_eq!(yoba, Expression::Noop),
+        Err(err) => err.complain()
+    }
+}

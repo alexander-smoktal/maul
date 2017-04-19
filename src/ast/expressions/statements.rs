@@ -12,6 +12,8 @@ pub enum Statement {
 
 // retstat ::= return [explist] [‘;’]
 pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    log_debug!("-|- RETURN STATEMENT: {:?}", lexer);
+
     lexer.skip_expected_keyword(tokens::Keyword::RETURN, "")?;
 
     let exps = parse_explist(lexer);
@@ -19,6 +21,19 @@ pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, er
     let _ = lexer.skip_expected_keyword(tokens::Keyword::COLONS, "");
 
     Ok(Expression::St(Statement::Return(Box::new(Expression::Expressions(exps)))))
+}
+
+fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    log_debug!("-|- KEYWORD: {:?}", lexer);
+
+    match lexer.head().keyword().unwrap() {
+        tokens::Keyword::COLONS => Ok(Expression::Noop),
+        tokens::Keyword::BREAK => Ok(Expression::St(Statement::Break)),
+        _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}"))
+    }.map(|exp| {
+        lexer.skip(1);
+        exp
+    })
 }
 
 // stat ::=  ‘;’ |
@@ -37,24 +52,12 @@ pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, er
 // local function Name funcbody |
 // local namelist [‘=’ explist]
 pub fn parse_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    match lexer.head().token {
-        tokens::TokenType::Keyword(ref keyword) => {
-            match keyword {
-                &tokens::Keyword::COLONS => {
-                    lexer.skip(1);
-                    Ok(Expression::Noop)
-                }
-                &tokens::Keyword::BREAK => {
-                    lexer.skip(1);
-                    Ok(Expression::St(Statement::Break))
-                }
-                &tokens::Keyword::FUNCTION => function::parse_funcdef(lexer),
-                _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}")),
-            }
-        }
-        tokens::TokenType::Id(_) => {
-            variables::parse_assignment(lexer)
-        }
+    log_debug!("-|- STATEMENT: {:?}", lexer);
+
+    match lexer.head().token.clone() {
+        tokens::TokenType::Keyword(tokens::Keyword::FUNCTION) => function::parse_funcdef(lexer),
+        tokens::TokenType::Keyword(_) => parse_keyword(lexer),
+        tokens::TokenType::Id(_) => variables::parse_assignment(lexer),
         _ => Err(error::Error::new(lexer.head(), "Unexpected token"))
     }
 }

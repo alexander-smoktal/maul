@@ -5,29 +5,29 @@ use super::*;
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     // ‘[’ exp ‘]’ ‘=’ exp
-    if let Ok(expression) = lexer.try_to_parse(
+    if let Ok(expression) = lexer.parse_or_rollback(
         |lexer: &mut lexer::Lexer| {
             lexer.skip_expected_keyword(tokens::Keyword::LSBRACKET, "")
-                .and_then(|_| lexer.try_to_parse(parse_exp))
+                .and_then(|_| lexer.parse_or_rollback(parse_exp))
                 .and_then(|index| lexer.skip_expected_keyword(tokens::Keyword::RSBRACKET, "Expected ']' at the end of indexing").map(|_| index))
                 .and_then(|index| lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment after table indexing expression").map(|_| index))
-                .and_then(|index| lexer.try_to_parse(parse_exp).map(|value| Expression::Assignment(Box::new(index), Box::new(value))))
+                .and_then(|index| lexer.parse_or_rollback(parse_exp).map(|value| Expression::Assignment(Box::new(index), Box::new(value))))
         }) {
         return Ok(expression)
     }
 
     if let Some(id) = lexer.head().id() {
-        if let Ok(expression) = lexer.try_to_parse(
+        if let Ok(expression) = lexer.parse_or_rollback(
             |lexer| {
                 lexer.skip(1);
                 lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment after table key expression")
-                    .and_then(|_| lexer.try_to_parse(parse_exp).map(|value| Expression::Assignment(Box::new(Expression::Id(vec![id.clone()])), Box::new(value))))
+                    .and_then(|_| lexer.parse_or_rollback(parse_exp).map(|value| Expression::Assignment(Box::new(Expression::Id(vec![id.clone()])), Box::new(value))))
             }) {
             return Ok(expression)
         }
     }
 
-    if let Ok(expression) = lexer.try_to_parse(parse_exp) {
+    if let Ok(expression) = lexer.parse_or_rollback(parse_exp) {
         return Ok(expression)
     }
 
@@ -39,6 +39,8 @@ fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 // fieldsep ::= ‘,’ | ‘;’
 pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    log_debug!("-|- TABLE CONSTRUCTOR: {:?}", lexer);
+
     lexer.skip_expected_keyword(tokens::Keyword::LCBRACKET, "Expected '{' at the beginning of table constructor")?;
 
     let mut fields: Vec<Box<Expression>> = vec![];

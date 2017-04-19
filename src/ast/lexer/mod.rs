@@ -30,7 +30,7 @@ impl Lexer {
     }
 
     /// Tries to run parse function. If failed, rollback itself to previous position
-    pub fn try_to_parse<F>(&mut self, function: F) -> Result<expressions::Expression, error::Error>
+    pub fn parse_or_rollback<F>(&mut self, function: F) -> Result<expressions::Expression, error::Error>
         where F: Fn(&mut Lexer) -> Result<expressions::Expression, error::Error> {
         let self_copy = self.clone();
 
@@ -40,6 +40,26 @@ impl Lexer {
         }
 
         result
+    }
+
+    /// Tries to run parse function, which would consume all tokens in lexer. If failed, rollback itself to previous position
+    pub fn parse_all_or_rollback<F>(&mut self, function: F) -> Result<expressions::Expression, error::Error>
+        where F: Fn(&mut Lexer) -> Result<expressions::Expression, error::Error> {
+        let self_copy = self.clone();
+
+        let result = function(self);
+        if result.is_ok() && self.pos() >= self.tokens.len() {
+            result
+        } else {
+            let err = if result.is_ok() {
+                Err(error::Error::new(self.head(), "Unexpected token"))
+            } else {
+                result
+            };
+
+            *self = self_copy;
+            err
+        }
     }
 
     pub fn take_while<P>(&self, predicate: P) -> Option<Lexer> where P: Fn(&Token) -> bool

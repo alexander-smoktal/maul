@@ -43,6 +43,8 @@ fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::E
 // funcbody ::= ‘(’ [parlist] ‘)’ block end
 // parlist ::= namelist [‘,’ ‘...’] | ‘...’
 pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    log_debug!("-|- FUNDEF: {:?}", lexer);
+
     lexer.skip_expected_keyword(tokens::Keyword::FUNCTION, "Expected 'function' keyword at the function start")?;
 
     // First parse function name as variable
@@ -62,7 +64,9 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
     // Parse function arguments
     params.append(&mut parse_func_args(lexer)?);
 
-    lexer.try_to_parse(blocks::parse_block).and_then(|body| {
+    lexer.parse_or_rollback(blocks::parse_block).and_then(|body| {
+        log_debug!("PARSED FUNC BODY: {:?}. LEXER: {:?}", body, lexer);
+
         lexer.skip_expected_keyword(tokens::Keyword::END, "Expected 'end' to close function body")?;
 
         let func = Expression::Function {

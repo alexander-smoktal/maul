@@ -36,28 +36,32 @@ pub enum Expression {
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
 pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    lexer.try_to_parse(|lexer| {
+    log_debug!("-|- PREFIXEXP: {:?}", lexer);
+
+    lexer.parse_or_rollback(|lexer| {
         lexer.skip_expected_keyword(tokens::Keyword::LBRACE, "")
             .and_then(|_| parse_exp(lexer))
             .and_then(|exp| lexer.skip_expected_keyword(tokens::Keyword::RBRACE, "Unclosed brace '('").map(|_| exp))
 
     })
-        .or_else(|_| lexer.try_to_parse(variables::parse_var))
-        .or_else(|_| lexer.try_to_parse(function::parse_funcall))
+        .or_else(|_| lexer.parse_or_rollback(variables::parse_var))
+        .or_else(|_| lexer.parse_or_rollback(function::parse_funcall))
         .or(Err(error::Error::new(lexer.head(), "Failed to parse prefix expression")))
 }
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    log_debug!("-|- EXPRESSION: {:?}", lexer);
+
     // exp binop exp
     if let Some(mut sublexer) = lexer.take_while(|t| t.keyword().map_or(false, |k| k.is_binop())) {
-        if let Ok(left) = parse_exp(&mut sublexer) {
+        if let Ok(left) = sublexer.parse_all_or_rollback(parse_exp) {
             lexer.skip(sublexer.pos());
 
             if let tokens::TokenType::Keyword(binop) = lexer.head().token {
                 lexer.skip(1);
 
-                if let Ok(right) = lexer.try_to_parse(parse_exp) {
+                if let Ok(right) = lexer.parse_or_rollback(parse_exp) {
                     return Ok(Expression::Binop(binop, Box::new(left), Box::new(right)))
                 }
             }
@@ -69,24 +73,24 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
         if keyword.is_unop() {
             lexer.skip(1);
 
-            if let Ok(exp) = lexer.try_to_parse(parse_exp) {
+            if let Ok(exp) = lexer.parse_or_rollback(parse_exp) {
                 return Ok(Expression::Unop(keyword, Box::new(exp)))
             }
         }
     }
 
     // funcdef
-    if let Ok(funcdef) = lexer.try_to_parse(function::parse_funcdef) {
+    if let Ok(funcdef) = lexer.parse_or_rollback(function::parse_funcdef) {
         return Ok(funcdef)
     }
 
     // prefixexp
-    if let Ok(prefixexp) = lexer.try_to_parse(parse_prefixexp) {
+    if let Ok(prefixexp) = lexer.parse_or_rollback(parse_prefixexp) {
         return Ok(prefixexp)
     }
 
     // tableconstructor
-    if let Ok(table) = lexer.try_to_parse(tables::parse_table_constructor) {
+    if let Ok(table) = lexer.parse_or_rollback(tables::parse_table_constructor) {
         return Ok(table)
     }
 
@@ -103,9 +107,11 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 
 // explist ::= exp {‘,’ exp}
 fn parse_explist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
+    log_debug!("-|- EXPRESSION LIST: {:?}", lexer);
+
     let mut result = vec![];
 
-    while let Ok(var) = lexer.try_to_parse(parse_exp) {
+    while let Ok(var) = lexer.parse_or_rollback(parse_exp) {
         result.push(Box::new(var));
 
         if lexer.skip_expected_keyword(tokens::Keyword::COMMA, "").is_err() {

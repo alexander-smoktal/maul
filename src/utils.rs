@@ -2,6 +2,17 @@
 
 use std::iter::Peekable;
 
+
+macro_rules! log_debug {
+    ($fmt:expr) => (
+        #[cfg(test)]
+        println!($fmt));
+    ($fmt:expr, $($arg:tt)*) => (
+        #[cfg(test)]
+        println!($fmt, $($arg)*));
+}
+
+
 /// Macro to create String -> T hash map from list of static string and values
 macro_rules! string_hash_map {
     [$(($key: expr, $value: expr)), *] => ({
