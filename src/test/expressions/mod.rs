@@ -4,4 +4,5 @@ mod test_tables;
 mod test_expression;
 mod test_statement;
 mod test_block;
+mod test_labels;
 pub mod utils;

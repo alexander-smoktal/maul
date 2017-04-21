@@ -3,6 +3,7 @@ pub mod variables;
 pub mod tables;
 pub mod statements;
 pub mod blocks;
+pub mod labels;
 
 use std::vec::Vec;
 
@@ -32,6 +33,8 @@ pub enum Expression {
     Binop(tokens::Keyword, Box<Expression>, Box<Expression>),
     Unop(tokens::Keyword, Box<Expression>),
     St(statements::Statement),
+    Label(String),
+    Goto(String),
     String(String),
     Number(f64),
     Boolean(bool),

@@ -50,6 +50,8 @@ fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 pub fn parse_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     match lexer.head().token.clone() {
         tokens::TokenType::Keyword(tokens::Keyword::FUNCTION) => function::parse_funcdef(lexer),
+        tokens::TokenType::Keyword(tokens::Keyword::PATH) => labels::parse_label(lexer),
+        tokens::TokenType::Keyword(tokens::Keyword::GOTO) => labels::parse_goto(lexer),
         tokens::TokenType::Keyword(_) => parse_keyword(lexer),
         tokens::TokenType::Id(_) => variables::parse_assignment(lexer),
         _ => Err(error::Error::new(lexer.head(), "Unexpected token"))
