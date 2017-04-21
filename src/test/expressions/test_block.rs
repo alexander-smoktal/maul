@@ -19,3 +19,15 @@ fn test_block() {
                                    , Box::new(Expression::Boolean(true))])))))])))
 }
 
+#[test]
+fn test_do_block() {
+    assert_eq!(blocks::parse_do_block(&mut make_lexer("do one = 8 end"))
+               , Ok(Expression::DoBlock(
+                   Box::new(
+                       Expression::Expressions(
+                        vec![
+                            Box::new(Expression::Expressions(vec![Box::new(Expression::Assignment(
+                                Box::new(Expression::Id(vec!["one".to_string()])),
+                                Box::new(Expression::Number(8f64))))]))])))))
+}
+

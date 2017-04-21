@@ -35,6 +35,7 @@ pub enum Expression {
     St(statements::Statement),
     Label(String),
     Goto(String),
+    DoBlock(Box<Expression>),
     String(String),
     Number(f64),
     Boolean(bool),
