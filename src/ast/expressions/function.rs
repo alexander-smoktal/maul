@@ -25,7 +25,7 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Err
 }
 
 fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Error> {
-    if tokens::Keyword::SEMICOLONS == lexer.head() {
+    if tokens::Keyword::COLONS == lexer.head() {
         lexer.skip(1);
 
         if let Some(name) = lexer.head().id() {
@@ -81,6 +81,91 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> Result<Expression, error::Erro
 
 }
 
+// args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
+fn parse_args(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    // ‘(’ [explist] ‘)’
+    if lexer.skip_expected_keyword(tokens::Keyword::LBRACE, "").is_ok() {
+        let explist = parse_explist(lexer);
+
+        return lexer.skip_expected_keyword(tokens::Keyword::RBRACE, "Expected ')' at the end of arguments")
+            .and(Ok(Expression::Expressions(explist)))
+    }
+
+    // tableconstructor
+    if let Ok(table) = lexer.parse_or_rollback(tables::parse_table_constructor) {
+        return Ok(table)
+    }
+
+    // LiteralString
+    if let tokens::TokenType::String(string) = lexer.head().token {
+        return Ok(Expression::String(string))
+    }
+
+    Err(error::Error::new(lexer.head(), "Expected function parameters"))
+}
+
+// Special prefixext without cyclic funcall parser :|
+fn parse_special_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+    lexer.parse_or_rollback(|lexer| {
+        lexer.skip_expected_keyword(tokens::Keyword::LBRACE, "")
+            .and_then(|_| parse_exp(lexer))
+            .and_then(|exp| lexer.skip_expected_keyword(tokens::Keyword::RBRACE, "Unclosed brace '('").map(|_| exp))
+
+    })
+        .or_else(|_| lexer.parse_or_rollback(variables::parse_var))
+        .or(Err(error::Error::new(lexer.head(), "Failed to parse prefix expression")))
+}
+
+// functioncall ::=  prefixexp args | prefixexp ‘:’ Name args
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    Err(error::Error::new(lexer.head(), "Stub"))
+    // prefixexp ‘:’ Name args
+    if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::COLONS) {
+        if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
+
+            lexer.skip(sublexer.pos() + 1);
+
+            // It's sugared function call wit 'self'. Need a bit complex logic
+            return if let Some(id) = lexer.head().id() {
+                lexer.skip(1); // Id
+
+                lexer.parse_or_rollback(parse_args)
+                    .map(|args| {
+                        let function = Expression::Indexing {
+                            object: Box::new(object.clone()),
+                            index: Box::new(Expression::String(id))
+                        };
+
+                        let self_args = match args {
+                            Expression::Expressions(mut input_args) => {
+                                let mut tmp_arg = vec![Box::new(object)];
+                                // Append doesn't return vector :|
+                                tmp_arg.append(&mut input_args);
+                                Expression::Expressions(tmp_arg)
+                            }
+                            exp => Expression::Expressions(vec![Box::new(object), Box::new(exp)]),
+                        };
+
+                        Expression::Funcall {
+                            function: Box::new(function),
+                            args: Box::new(self_args)
+                        }
+                    })
+            } else {
+                Err(error::Error::new(lexer.head(), "Expected 'Id' after ':'"))
+            }
+        }
+    }
+
+    // prefixexp args
+    if let Ok(func) = lexer.parse_or_rollback(parse_special_prefixexp) {
+        lexer.parse_or_rollback(parse_args)
+            .map(|args| {
+                Expression::Funcall {
+                    function: Box::new(func),
+                    args: Box::new(args)
+                }
+            })
+    } else {
+        Err(error::Error::new(lexer.head(), "Exprected function call"))
+    }
 }

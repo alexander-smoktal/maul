@@ -10,7 +10,7 @@ use error;
 use ast::lexer;
 use ast::lexer::tokens;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Expression {
     Noop,
     Id(variables::Id),
@@ -18,6 +18,10 @@ pub enum Expression {
     Function {
         params: variables::Id,
         body: Box<Expression>,
+    },
+    Funcall {
+        function: Box<Expression>,
+            args: Box<Expression>
     },
     Indexing {
         object: Box<Expression>,
@@ -46,6 +50,7 @@ pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Er
         .or_else(|_| lexer.parse_or_rollback(function::parse_funcall))
         .or(Err(error::Error::new(lexer.head(), "Failed to parse prefix expression")))
 }
+
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
 pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {

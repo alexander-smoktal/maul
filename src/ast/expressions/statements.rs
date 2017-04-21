@@ -3,7 +3,7 @@ use ast::lexer;
 use ast::lexer::tokens;
 use error;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Statement {
     Break,
     Ellipsis,
@@ -23,7 +23,7 @@ pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, er
 
 fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     match lexer.head().keyword().unwrap() {
-        tokens::Keyword::COLONS => Ok(Expression::Noop),
+        tokens::Keyword::SEMICOLONS => Ok(Expression::Noop),
         tokens::Keyword::BREAK => Ok(Expression::St(Statement::Break)),
         _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}"))
     }.map(|exp| {

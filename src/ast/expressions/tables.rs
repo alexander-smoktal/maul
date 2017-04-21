@@ -48,7 +48,7 @@ pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> Result<Expression, e
 
         loop {
             if lexer.head().keyword() == Some(tokens::Keyword::COMMA)
-                || lexer.head().keyword() == Some(tokens::Keyword::COLONS) {
+                || lexer.head().keyword() == Some(tokens::Keyword::SEMICOLONS) {
                 lexer.skip(1);
             }
 

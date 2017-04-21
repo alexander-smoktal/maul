@@ -86,10 +86,12 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
     // prefixexp ‘.’ Name
     if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::DOT) {
         if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
-
             lexer.skip(sublexer.pos() + 1);
 
             if let Some(id) = lexer.head().id() {
+                // Skipping id
+                lexer.skip(1);
+
                 return Ok(Expression::Indexing {
                     object: Box::new(object),
                     index: Box::new(Expression::String(id))

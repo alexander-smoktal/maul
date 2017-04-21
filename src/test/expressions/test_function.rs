@@ -60,6 +60,35 @@ fn test_method() {
 
 
 #[test]
+fn test_funcall_sample() {
+    assert_eq!(function::parse_funcall(&mut make_lexer("Account.withdraw(100.00)")),
+               Ok(Expression::Funcall {
+                   function: Box::new(Expression::Indexing {
+                       object: Box::new(Expression::Id(vec!["Account".to_string()])),
+                       index: Box::new(Expression::String("withdraw".to_string())),
+                   }),
+                   args: Box::new(Expression::Expressions(vec![Box::new(Expression::Number(100f64))]))
+               })
+    )
+}
+
+#[test]
+fn test_funcall_complex() {
+    assert_eq!(function::parse_funcall(&mut make_lexer("Account:withdraw(100.00)")),
+               Ok(Expression::Funcall {
+                   function: Box::new(Expression::Indexing {
+                       object: Box::new(Expression::Id(vec!["Account".to_string()])),
+                       index: Box::new(Expression::String("withdraw".to_string())),
+                   }),
+                   args: Box::new(Expression::Expressions(vec![
+                       Box::new(Expression::Id(vec!["Account".to_string()])),
+                       Box::new(Expression::Number(100f64))]))
+               })
+    )
+}
+
+
+#[test]
 fn test_fib() {
     match function::parse_funcdef(&mut make_lexer("
       function a.b:fib(n)
