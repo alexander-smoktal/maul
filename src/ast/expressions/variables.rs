@@ -43,8 +43,11 @@ fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<expression::Expression>> {
     while let Ok(var) = lexer.parse_or_rollback(parse_var) {
         result.push(var);
 
-        if lexer.skip_expected_keyword(tokens::Keyword::COMMA, "").is_err() {
-            break
+        if lexer
+            .skip_expected_keyword(tokens::Keyword::COMMA, "")
+            .is_err()
+        {
+            break;
         }
     }
 
@@ -55,18 +58,27 @@ fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<expression::Expression>> {
 pub fn parse_assignment(lexer: &mut lexer::Lexer) -> ParseResult {
     let vars = parse_varlist(lexer);
 
-    lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment")?;
+    lexer.skip_expected_keyword(
+        tokens::Keyword::ASSIGN,
+        "Expected assignment",
+    )?;
 
     let exps = parse_explist(lexer);
 
     if vars.len() == exps.len() {
-        Ok(Box::new(util::Expressions(vars.into_iter()
-                                   .zip(exps.into_iter())
-                                   .map(|(var, exp)|
-                                       Box::new(variables::Assignment(var, exp)) as Box<expression::Expression>)
-                                   .collect())) as Box<expression::Expression>)
+        Ok(Box::new(util::Expressions(
+            vars.into_iter()
+                .zip(exps.into_iter())
+                .map(|(var, exp)| {
+                    Box::new(variables::Assignment(var, exp)) as Box<expression::Expression>
+                })
+                .collect(),
+        )) as Box<expression::Expression>)
     } else {
-        Err(error::Error::new(lexer.head(), "Mismatched variables and expression count"))
+        Err(error::Error::new(
+            lexer.head(),
+            "Mismatched variables and expression count",
+        ))
     }
 }
 
@@ -81,15 +93,18 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
                 if let Ok(index) = sublexer.parse_all_or_rollback(parse_exp) {
                     lexer.skip(sublexer.pos() + 1);
 
-                    return Ok(Box::new(tables::Indexing {
-                        object,
-                        index
-                    }))
+                    return Ok(Box::new(tables::Indexing { object, index }));
                 } else {
-                    return Err(error::Error::new(lexer.head(), "Expected valid expression inside indexing statement"))
+                    return Err(error::Error::new(
+                        lexer.head(),
+                        "Expected valid expression inside indexing statement",
+                    ));
                 }
             } else {
-                return Err(error::Error::new(lexer.head(), "Expected ']' at the end of index expression"))
+                return Err(error::Error::new(
+                    lexer.head(),
+                    "Expected ']' at the end of index expression",
+                ));
             }
         }
     }
@@ -105,10 +120,13 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
 
                 return Ok(Box::new(tables::Indexing {
                     object,
-                    index: Box::new(primitives::String(id))
-                }))
+                    index: Box::new(primitives::String(id)),
+                }));
             } else {
-                return Err(error::Error::new(lexer.head(), "Expected 'Id' after addressing operator '.'"))
+                return Err(error::Error::new(
+                    lexer.head(),
+                    "Expected 'Id' after addressing operator '.'",
+                ));
             }
         }
     }
@@ -117,8 +135,11 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
     if let Some(id) = lexer.head().id() {
         lexer.skip(1);
 
-        return Ok(Box::new(variables::Id(vec![id])))
+        return Ok(Box::new(variables::Id(vec![id])));
     }
 
-    Err(error::Error::new(lexer.head(), "Expected variable expression"))
+    Err(error::Error::new(
+        lexer.head(),
+        "Expected variable expression",
+    ))
 }

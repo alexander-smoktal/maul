@@ -22,8 +22,12 @@ pub fn parse_block(lexer: &mut lexer::Lexer) -> ParseResult {
 
 // do block end
 pub fn parse_do_block(lexer: &mut lexer::Lexer) -> ParseResult {
-    lexer.skip_expected_keyword(tokens::Keyword::DO, "Expected 'do' keyword")
-         .and_then(|_| parse_block(lexer))
-         .and_then(|block| lexer.skip_expected_keyword(tokens::Keyword::END, "Expected 'end' to close a block")
-                                .map(|_| Box::new(DoBlock(block)) as Box<expression::Expression>))
+    lexer
+        .skip_expected_keyword(tokens::Keyword::DO, "Expected 'do' keyword")
+        .and_then(|_| parse_block(lexer))
+        .and_then(|block| {
+            lexer
+                .skip_expected_keyword(tokens::Keyword::END, "Expected 'end' to close a block")
+                .map(|_| Box::new(DoBlock(block)) as Box<expression::Expression>)
+        })
 }

@@ -31,7 +31,9 @@ impl Lexer {
 
     /// Tries to run parse function. If failed, rollback itself to previous position
     pub fn parse_or_rollback<F>(&mut self, function: F) -> expressions::ParseResult
-        where F: Fn(&mut Lexer) -> expressions::ParseResult {
+    where
+        F: Fn(&mut Lexer) -> expressions::ParseResult,
+    {
         let self_copy = self.clone();
 
         let result = function(self);
@@ -42,9 +44,12 @@ impl Lexer {
         result
     }
 
-    /// Tries to run parse function, which would consume all tokens in lexer. If failed, rollback itself to previous position
+    /// Tries to run parse function, which would consume all tokens in lexer.
+    /// If failed, rollback itself to previous position
     pub fn parse_all_or_rollback<F>(&mut self, function: F) -> expressions::ParseResult
-        where F: Fn(&mut Lexer) -> expressions::ParseResult {
+    where
+        F: Fn(&mut Lexer) -> expressions::ParseResult,
+    {
         let self_copy = self.clone();
 
         let result = function(self);
@@ -62,20 +67,27 @@ impl Lexer {
         }
     }
 
-    pub fn take_while<P>(&self, predicate: P) -> Option<Lexer> where P: Fn(&Token) -> bool
+    pub fn take_while<P>(&self, predicate: P) -> Option<Lexer>
+    where
+        P: Fn(&Token) -> bool,
     {
-        self.tokens.iter()
+        self.tokens
+            .iter()
             .skip(self.position)
             .find(|x| predicate(x))
             .map(|_| {
                 Lexer {
-                    tokens: Rc::new(self.tokens.iter()
-                                    .skip(self.position)
-                                    .cloned()
-                                    .take_while(|x| !predicate(x))
-                                    .collect()),
-                    position: 0
-                }})
+                    tokens: Rc::new(
+                        self.tokens
+                            .iter()
+                            .skip(self.position)
+                            .cloned()
+                            .take_while(|x| !predicate(x))
+                            .collect(),
+                    ),
+                    position: 0,
+                }
+            })
     }
 
     pub fn take_while_keyword(&self, keyword: tokens::Keyword) -> Option<Lexer> {
@@ -103,15 +115,18 @@ impl Lexer {
         self.get(0)
     }
 
-    pub fn skip_expected_keyword(&mut self, keyword: Keyword, expect_message: &str) ->
-        Result<(), error::Error> {
+    pub fn skip_expected_keyword(
+        &mut self,
+        keyword: Keyword,
+        expect_message: &str,
+    ) -> Result<(), error::Error> {
         if keyword == self.head() {
             self.skip(1);
             Ok(())
         } else {
             Err(error::Error {
                 error_token: self.head(),
-                message: format!("{}. Got: {:?}", expect_message, self.get(0))
+                message: format!("{}. Got: {:?}", expect_message, self.get(0)),
             })
         }
     }
@@ -119,11 +134,15 @@ impl Lexer {
 
 impl fmt::Debug for Lexer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Lexer -> {:?}",
-               self.tokens.iter()
-               .skip(self.position)
-               .map(|t| t.token.clone())
-               .collect::<Vec<TokenType>>())
+        write!(
+            f,
+            "Lexer -> {:?}",
+            self.tokens
+                .iter()
+                .skip(self.position)
+                .map(|t| t.token.clone())
+                .collect::<Vec<TokenType>>()
+        )
     }
 }
 
@@ -205,7 +224,9 @@ impl TokenIterator {
         // Skip starting doublequote
         self.char_iterator.next();
 
-        let string: String = self.char_iterator.take_while_exclusive(string_chars).collect();
+        let string: String = self.char_iterator
+            .take_while_exclusive(string_chars)
+            .collect();
         self.advance_pos(string.len() + 2); // With doublequotes
 
         // Skip ending doublequote
@@ -220,7 +241,9 @@ impl TokenIterator {
         let numeric_chars = |chr: &char| chr.is_numeric() || chr.clone() == '.';
 
         // Looking for the end of the number
-        let number: String = self.char_iterator.take_while_exclusive(numeric_chars).collect();
+        let number: String = self.char_iterator
+            .take_while_exclusive(numeric_chars)
+            .collect();
         self.advance_pos(number.len());
 
         TokenType::Number(number.parse::<f64>().unwrap())

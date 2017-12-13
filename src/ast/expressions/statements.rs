@@ -7,7 +7,7 @@ use error;
 pub enum Statement {
     Break,
     Ellipsis,
-    Return(Box<expression::Expression>)
+    Return(Box<expression::Expression>),
 }
 impl expression::Expression for Statement {}
 
@@ -19,14 +19,16 @@ pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> ParseResult {
 
     let _ = lexer.skip_expected_keyword(tokens::Keyword::COLONS, "");
 
-    Ok(Box::new(Statement::Return(Box::new(util::Expressions(exps)))))
+    Ok(Box::new(
+        Statement::Return(Box::new(util::Expressions(exps))),
+    ))
 }
 
 fn parse_keyword(lexer: &mut lexer::Lexer) -> ParseResult {
     let exp: ParseResult = match lexer.head().keyword().unwrap() {
         tokens::Keyword::SEMICOLONS => Ok(Box::new(util::Noop)),
         tokens::Keyword::BREAK => Ok(Box::new(Statement::Break)),
-        _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}"))
+        _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}")),
     };
 
     exp.map(|exp| {
@@ -58,6 +60,6 @@ pub fn parse_statement(lexer: &mut lexer::Lexer) -> ParseResult {
         tokens::TokenType::Keyword(tokens::Keyword::DO) => blocks::parse_do_block(lexer),
         tokens::TokenType::Keyword(_) => parse_keyword(lexer),
         tokens::TokenType::Id(_) => variables::parse_assignment(lexer),
-        _ => Err(error::Error::new(lexer.head(), "Unexpected token"))
+        _ => Err(error::Error::new(lexer.head(), "Unexpected token")),
     }
 }

@@ -12,7 +12,8 @@ use std::time::Instant;
 fn main() {
     let start = Instant::now();
 
-    let ast = ast::AST::new("
+    let ast = ast::AST::new(
+        "
       function a.b:fib(n)
         N=N+1
         if n<2 then
@@ -21,12 +22,15 @@ fn main() {
           return a.b.fib(n-1) + a.b.fib(n-2)
         end
       end"
-        .to_owned());
+            .to_owned(),
+    );
 
     print!("AST {:?}", ast);
 
     let elapsed = Instant::now() - start;
-    println!("Parsed input in {}.{:09} seconds",
-             elapsed.as_secs(),
-             elapsed.subsec_nanos());
+    println!(
+        "Parsed input in {}.{:09} seconds",
+        elapsed.as_secs(),
+        elapsed.subsec_nanos()
+    );
 }

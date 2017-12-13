@@ -69,11 +69,8 @@ impl Keyword {
     // unop ::= ‘-’ | not | ‘#’ | ‘~’
     pub fn is_unop(&self) -> bool {
         match self.clone() {
-            Keyword::MINUS
-                | Keyword::NOT
-                | Keyword::HASH
-                | Keyword::TILDA => true,
-            _ => false
+            Keyword::MINUS | Keyword::NOT | Keyword::HASH | Keyword::TILDA => true,
+            _ => false,
         }
     }
 
@@ -83,27 +80,11 @@ impl Keyword {
     //            and | or
     pub fn is_binop(&self) -> bool {
         match self.clone() {
-            Keyword::PLUS
-                | Keyword::MINUS
-                | Keyword::MUL
-                | Keyword::DIV
-                | Keyword::POW
-                | Keyword::MOD
-                | Keyword::SAND
-                | Keyword::TILDA
-                | Keyword::SOR
-                | Keyword::SHRIGHT
-                | Keyword::SHLEFT
-                | Keyword::DOT2
-                | Keyword::LESS
-                | Keyword::LEQ
-                | Keyword::GREATER
-                | Keyword::GEQ
-                | Keyword::EQ
-                | Keyword::NEQ
-                | Keyword::AND
-                | Keyword::OR => true,
-            _ => false
+            Keyword::PLUS | Keyword::MINUS | Keyword::MUL | Keyword::DIV | Keyword::POW |
+            Keyword::MOD | Keyword::SAND | Keyword::TILDA | Keyword::SOR | Keyword::SHRIGHT |
+            Keyword::SHLEFT | Keyword::DOT2 | Keyword::LESS | Keyword::LEQ | Keyword::GREATER |
+            Keyword::GEQ | Keyword::EQ | Keyword::NEQ | Keyword::AND | Keyword::OR => true,
+            _ => false,
         }
     }
 }
@@ -115,63 +96,67 @@ impl PartialEq<Token> for Keyword {
 }
 
 pub fn get_token_table() -> HashMap<String, Keyword> {
-    string_hash_map![("and", Keyword::AND),
-                     ("break", Keyword::BREAK),
-                     ("do", Keyword::DO),
-                     ("else", Keyword::ELSE),
-                     ("elseif", Keyword::ELSEIF),
-                     ("end", Keyword::END),
-                     ("false", Keyword::FALSE),
-                     ("for", Keyword::FOR),
-                     ("function", Keyword::FUNCTION),
-                     ("goto", Keyword::GOTO),
-                     ("if", Keyword::IF),
-                     ("in", Keyword::IN),
-                     ("local", Keyword::LOCAL),
-                     ("nil", Keyword::NIL),
-                     ("not", Keyword::NOT),
-                     ("or", Keyword::OR),
-                     ("repeat", Keyword::REPEAT),
-                     ("return", Keyword::RETURN),
-                     ("then", Keyword::THEN),
-                     ("true", Keyword::TRUE),
-                     ("until", Keyword::UNTIL),
-                     ("while", Keyword::WHILE)]
+    string_hash_map![
+        ("and", Keyword::AND),
+        ("break", Keyword::BREAK),
+        ("do", Keyword::DO),
+        ("else", Keyword::ELSE),
+        ("elseif", Keyword::ELSEIF),
+        ("end", Keyword::END),
+        ("false", Keyword::FALSE),
+        ("for", Keyword::FOR),
+        ("function", Keyword::FUNCTION),
+        ("goto", Keyword::GOTO),
+        ("if", Keyword::IF),
+        ("in", Keyword::IN),
+        ("local", Keyword::LOCAL),
+        ("nil", Keyword::NIL),
+        ("not", Keyword::NOT),
+        ("or", Keyword::OR),
+        ("repeat", Keyword::REPEAT),
+        ("return", Keyword::RETURN),
+        ("then", Keyword::THEN),
+        ("true", Keyword::TRUE),
+        ("until", Keyword::UNTIL),
+        ("while", Keyword::WHILE),
+    ]
 }
 
 pub fn get_operator_table() -> HashMap<String, Keyword> {
-    string_hash_map![("+", Keyword::PLUS),
-                     ("-", Keyword::MINUS),
-                     ("*", Keyword::MUL),
-                     ("/", Keyword::DIV),
-                     ("%", Keyword::MOD),
-                     ("^", Keyword::POW),
-                     ("#", Keyword::HASH),
-                     ("&", Keyword::SAND),
-                     ("~", Keyword::TILDA),
-                     ("|", Keyword::SOR),
-                     ("<<", Keyword::SHLEFT),
-                     (">>", Keyword::SHRIGHT),
-                     ("==", Keyword::EQ),
-                     ("~=", Keyword::NEQ),
-                     ("<=", Keyword::LEQ),
-                     (">=", Keyword::GEQ),
-                     ("<", Keyword::LESS),
-                     (">", Keyword::GREATER),
-                     ("=", Keyword::ASSIGN),
-                     ("(", Keyword::LBRACE),
-                     (")", Keyword::RBRACE),
-                     ("[", Keyword::LSBRACKET),
-                     ("]", Keyword::RSBRACKET),
-                     ("{", Keyword::LCBRACKET),
-                     ("}", Keyword::RCBRACKET),
-                     ("::", Keyword::PATH),
-                     (";", Keyword::SEMICOLONS),
-                     (":", Keyword::COLONS),
-                     (",", Keyword::COMMA),
-                     (".", Keyword::DOT),
-                     ("..", Keyword::DOT2),
-                     ("...", Keyword::DOT3)]
+    string_hash_map![
+        ("+", Keyword::PLUS),
+        ("-", Keyword::MINUS),
+        ("*", Keyword::MUL),
+        ("/", Keyword::DIV),
+        ("%", Keyword::MOD),
+        ("^", Keyword::POW),
+        ("#", Keyword::HASH),
+        ("&", Keyword::SAND),
+        ("~", Keyword::TILDA),
+        ("|", Keyword::SOR),
+        ("<<", Keyword::SHLEFT),
+        (">>", Keyword::SHRIGHT),
+        ("==", Keyword::EQ),
+        ("~=", Keyword::NEQ),
+        ("<=", Keyword::LEQ),
+        (">=", Keyword::GEQ),
+        ("<", Keyword::LESS),
+        (">", Keyword::GREATER),
+        ("=", Keyword::ASSIGN),
+        ("(", Keyword::LBRACE),
+        (")", Keyword::RBRACE),
+        ("[", Keyword::LSBRACKET),
+        ("]", Keyword::RSBRACKET),
+        ("{", Keyword::LCBRACKET),
+        ("}", Keyword::RCBRACKET),
+        ("::", Keyword::PATH),
+        (";", Keyword::SEMICOLONS),
+        (":", Keyword::COLONS),
+        (",", Keyword::COMMA),
+        (".", Keyword::DOT),
+        ("..", Keyword::DOT2),
+        ("...", Keyword::DOT3),
+    ]
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -180,7 +165,7 @@ pub enum TokenType {
     Id(String),
     String(String),
     Number(f64),
-    None
+    None,
 }
 
 impl From<Keyword> for TokenType {
@@ -212,14 +197,14 @@ impl Token {
     pub fn id(&self) -> Option<String> {
         match self.token {
             TokenType::Id(ref id) => Some(id.clone()),
-            _ => None
+            _ => None,
         }
     }
 
     pub fn keyword(&self) -> Option<Keyword> {
         match self.token {
             TokenType::Keyword(ref keyword) => Some(keyword.clone()),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -229,5 +214,3 @@ impl Into<TokenType> for Token {
         self.token.clone()
     }
 }
-
-

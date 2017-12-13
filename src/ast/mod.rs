@@ -5,7 +5,7 @@ pub mod expressions;
 use std::fmt::{Debug, Formatter, Error};
 
 pub struct AST {
-    expressions: Box<expressions::expression::Expression>
+    expressions: Box<expressions::expression::Expression>,
 }
 
 impl AST {
