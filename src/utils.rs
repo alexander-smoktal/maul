@@ -15,7 +15,7 @@ macro_rules! log_debug {
 
 /// Macro to create String -> T hash map from list of static string and values
 macro_rules! string_hash_map {
-    [$(($key: expr, $value: expr)), *] => ({
+    [$(($key: expr, $value: expr)), *,] => ({
         let mut result = HashMap::new();
         $(
             result.insert($key.to_string(), $value)
