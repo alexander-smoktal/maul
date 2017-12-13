@@ -1,6 +1,11 @@
 use ast::lexer::Lexer;
 use ast::expressions::*;
 
+#[macro_export]
+macro_rules! exp {
+    ($e: expr) => (Box::new($e) as Box<expression::Expression>);
+}
+
 pub fn make_lexer(code: &str) -> Lexer {
     Lexer::new(code.to_owned())
 }
