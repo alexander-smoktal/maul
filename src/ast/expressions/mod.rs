@@ -25,7 +25,25 @@ pub mod util {
 
     #[derive(Debug)]
     pub struct Expressions(pub Vec<Box<expression::Expression>>);
-    impl expression::Expression for Expressions {}
+
+    impl Expressions {
+        pub fn prepend(&mut self, exp: Box<expression::Expression>) {
+            let mut new_expressions = vec![exp];
+            new_expressions.append(&mut self.0);
+
+            self.0 = new_expressions
+        }
+
+        pub fn append(&mut self, exp: Box<expression::Expression>) {
+            self.0.push(exp)
+        }
+    }
+
+    impl expression::Expression for Expressions {
+        fn into_expressions(self: Box<Self>) -> Box<Expressions> {
+            self as Box<Expressions>
+        }
+    }
 }
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’

@@ -107,12 +107,14 @@ fn parse_args(lexer: &mut lexer::Lexer) -> ParseResult {
 
     // tableconstructor
     if let Ok(table) = lexer.parse_or_rollback(tables::parse_table_constructor) {
-        return Ok(table)
+        return Ok(Box::new(util::Expressions(vec![table])))
     }
 
     // LiteralString
     if let tokens::TokenType::String(string) = lexer.head().token {
-        return Ok(Box::new(primitives::String(string)))
+        let string_arg = Box::new(primitives::String(string));
+
+        return Ok(Box::new(util::Expressions(vec![string_arg])))
     }
 
     Err(error::Error::new(lexer.head(), "Expected function parameters"))
@@ -145,24 +147,17 @@ pub fn parse_funcall(lexer: &mut lexer::Lexer) -> ParseResult {
                 lexer.parse_or_rollback(parse_args)
                     .map(|args| {
                         let function = Box::new(tables::Indexing {
-                            object,
+                            object: object.clone(),
                             index: Box::new(primitives::String(id))
                         });
 
-                        // TODO: Take a look a this logic in eval
-                        /*let self_args = match *args {
-                            util::Expressions(mut input_args) => {
-                                let mut tmp_arg = vec![Box::new(object)];
-                                // Append doesn't return vector :|
-                                tmp_arg.append(&mut input_args);
-                                util::Expressions(tmp_arg)
-                            }
-                            exp => util::Expressions(vec![Box::new(object), Box::new(exp)]),
-                        };*/
+                        let mut expressions = args.into_expressions();
+                        // Add `self` argument
+                        expressions.prepend(object);
 
                         Box::new(Funcall {
                             function,
-                            args
+                            args: expressions
                         }) as Box<expression::Expression>
                     })
             } else {

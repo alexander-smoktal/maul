@@ -3,9 +3,13 @@ use ast::lexer;
 use ast::lexer::tokens;
 use error;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Id(pub Vec<String>);
-impl expression::Expression for Id {}
+impl expression::Expression for Id {
+    fn clone(&self) -> Box<expression::Expression> {
+        Box::new(Id(self.0.clone()))
+    }
+}
 
 #[derive(Debug)]
 pub struct Assignment(pub Box<expression::Expression>, pub Box<expression::Expression>);

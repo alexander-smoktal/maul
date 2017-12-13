@@ -10,7 +10,7 @@ pub struct Indexing {
 impl expression::Expression for Indexing {}
 
 #[derive(Debug)]
-pub struct TableConstructor(Vec<Box<expression::Expression>>);
+pub struct TableConstructor(pub Vec<Box<expression::Expression>>);
 impl expression::Expression for TableConstructor {}
 
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp

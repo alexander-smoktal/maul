@@ -44,8 +44,8 @@ fn test_strings() {
     assert_eq!(iter.next(), None);
 }
 
-#[should_panic]
 #[test]
+#[should_panic]
 fn test_invalid_strings() {
     let mut iter = TokenIterator::new(r#""Hello"#.to_owned());
 
