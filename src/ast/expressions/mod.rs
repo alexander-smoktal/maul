@@ -4,6 +4,9 @@ pub mod tables;
 pub mod statements;
 pub mod blocks;
 pub mod labels;
+pub mod primitives;
+pub mod expression;
+pub mod operators;
 
 use std::vec::Vec;
 
@@ -11,39 +14,22 @@ use error;
 use ast::lexer;
 use ast::lexer::tokens;
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum Expression {
-    Noop,
-    Id(variables::Id),
-    Assignment(Box<Expression>, Box<Expression>),
-    Function {
-        params: variables::Id,
-        body: Box<Expression>,
-    },
-    Funcall {
-        function: Box<Expression>,
-            args: Box<Expression>
-    },
-    Indexing {
-        object: Box<Expression>,
-        index: Box<Expression>,
-    },
-    TableConstructor(Vec<Box<Expression>>),
-    Expressions(Vec<Box<Expression>>),
-    Binop(tokens::Keyword, Box<Expression>, Box<Expression>),
-    Unop(tokens::Keyword, Box<Expression>),
-    St(statements::Statement),
-    Label(String),
-    Goto(String),
-    DoBlock(Box<Expression>),
-    String(String),
-    Number(f64),
-    Boolean(bool),
-    Nil
+pub type ParseResult =  Result<Box<expression::Expression>, error::Error>;
+
+pub mod util {
+    use super::expression;
+
+    #[derive(Debug)]
+    pub struct Noop;
+    impl expression::Expression for Noop {}
+
+    #[derive(Debug)]
+    pub struct Expressions(pub Vec<Box<expression::Expression>>);
+    impl expression::Expression for Expressions {}
 }
 
 // prefixexp ::= var | functioncall | ‘(’ exp ‘)’
-pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> ParseResult {
     lexer.parse_or_rollback(|lexer| {
         lexer.skip_expected_keyword(tokens::Keyword::LBRACE, "")
             .and_then(|_| parse_exp(lexer))
@@ -57,7 +43,7 @@ pub fn parse_prefixexp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Er
 
 // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //          prefixexp | tableconstructor | exp binop exp | unop exp
-pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+pub fn parse_exp(lexer: &mut lexer::Lexer) -> ParseResult {
     // exp binop exp
     if let Some(mut sublexer) = lexer.take_while(|t| t.keyword().map_or(false, |k| k.is_binop())) {
         if let Ok(left) = sublexer.parse_all_or_rollback(parse_exp) {
@@ -67,7 +53,7 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
                 lexer.skip(1);
 
                 if let Ok(right) = lexer.parse_or_rollback(parse_exp) {
-                    return Ok(Expression::Binop(binop, Box::new(left), Box::new(right)))
+                    return Ok(Box::new(operators::Binop(binop, left, right)))
                 }
             }
         }
@@ -79,7 +65,7 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             lexer.skip(1);
 
             if let Ok(exp) = lexer.parse_or_rollback(parse_exp) {
-                return Ok(Expression::Unop(keyword, Box::new(exp)))
+                return Ok(Box::new(operators::Unop(keyword, exp)))
             }
         }
     }
@@ -99,23 +85,25 @@ pub fn parse_exp(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
         return Ok(table)
     }
 
-    match lexer.head().token.clone() {
-        tokens::TokenType::Keyword(tokens::Keyword::NIL) => Ok(Expression::Nil),
-        tokens::TokenType::Keyword(tokens::Keyword::FALSE) => Ok(Expression::Boolean(false)),
-        tokens::TokenType::Keyword(tokens::Keyword::TRUE) => Ok(Expression::Boolean(true)),
-        tokens::TokenType::Keyword(tokens::Keyword::DOT3) => Ok(Expression::St(statements::Statement::Ellipsis)),
-        tokens::TokenType::Number(number) => Ok(Expression::Number(number)),
-        tokens::TokenType::String(string) => Ok(Expression::String(string)),
+    let exp: ParseResult = match lexer.head().token.clone() {
+        tokens::TokenType::Keyword(tokens::Keyword::NIL) => Ok(Box::new(primitives::Nil)),
+        tokens::TokenType::Keyword(tokens::Keyword::FALSE) => Ok(Box::new(primitives::Boolean(false))),
+        tokens::TokenType::Keyword(tokens::Keyword::TRUE) => Ok(Box::new(primitives::Boolean(true))),
+        tokens::TokenType::Keyword(tokens::Keyword::DOT3) => Ok(Box::new(statements::Statement::Ellipsis)),
+        tokens::TokenType::Number(number) => Ok(Box::new(primitives::Number(number))),
+        tokens::TokenType::String(string) => Ok(Box::new(primitives::String(string))),
         _ => Err(error::Error::new(lexer.head(), "Unexpected token"))
-    }.and_then(|x| { lexer.skip(1); Ok(x) })
+    };
+
+    exp.and_then(|x| { lexer.skip(1); Ok(x) })
 }
 
 // explist ::= exp {‘,’ exp}
-fn parse_explist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
+fn parse_explist(lexer: &mut lexer::Lexer) -> Vec<Box<expression::Expression>> {
     let mut result = vec![];
 
     while let Ok(var) = lexer.parse_or_rollback(parse_exp) {
-        result.push(Box::new(var));
+        result.push(var);
 
         if lexer.skip_expected_keyword(tokens::Keyword::COMMA, "").is_err() {
             break
@@ -123,10 +111,4 @@ fn parse_explist(lexer: &mut lexer::Lexer) -> Vec<Box<Expression>> {
     }
 
     result
-}
-
-impl Expression {
-    pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Expression> {
-        blocks::parse_block(lexer).ok()
-    }
 }

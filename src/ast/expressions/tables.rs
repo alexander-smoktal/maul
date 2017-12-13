@@ -2,8 +2,19 @@ use error;
 use ast::lexer;
 use super::*;
 
+#[derive(Debug)]
+pub struct Indexing {
+    pub object: Box<expression::Expression>,
+    pub index: Box<expression::Expression>,
+}
+impl expression::Expression for Indexing {}
+
+#[derive(Debug)]
+pub struct TableConstructor(Vec<Box<expression::Expression>>);
+impl expression::Expression for TableConstructor {}
+
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
-fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+fn parse_field(lexer: &mut lexer::Lexer) -> ParseResult {
     // ‘[’ exp ‘]’ ‘=’ exp
     if let Ok(expression) = lexer.parse_or_rollback(
         |lexer: &mut lexer::Lexer| {
@@ -11,7 +22,8 @@ fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
                 .and_then(|_| lexer.parse_or_rollback(parse_exp))
                 .and_then(|index| lexer.skip_expected_keyword(tokens::Keyword::RSBRACKET, "Expected ']' at the end of indexing").map(|_| index))
                 .and_then(|index| lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment after table indexing expression").map(|_| index))
-                .and_then(|index| lexer.parse_or_rollback(parse_exp).map(|value| Expression::Assignment(Box::new(index), Box::new(value))))
+                .and_then(|index| lexer.parse_or_rollback(parse_exp).map(|value| Box::new(variables::Assignment(index, value)) as Box<expression::Expression>))
+
         }) {
         return Ok(expression)
     }
@@ -21,7 +33,8 @@ fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
             |lexer| {
                 lexer.skip(1);
                 lexer.skip_expected_keyword(tokens::Keyword::ASSIGN, "Expected assignment after table key expression")
-                    .and_then(|_| lexer.parse_or_rollback(parse_exp).map(|value| Expression::Assignment(Box::new(Expression::Id(vec![id.clone()])), Box::new(value))))
+                    .and_then(|_| lexer.parse_or_rollback(parse_exp).map(|value|
+                        Box::new(variables::Assignment(Box::new(variables::Id(vec![id.clone()])), value)) as Box<expression::Expression>))
             }) {
             return Ok(expression)
         }
@@ -38,13 +51,13 @@ fn parse_field(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 // fieldlist ::= field {fieldsep field} [fieldsep]
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 // fieldsep ::= ‘,’ | ‘;’
-pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> ParseResult {
     lexer.skip_expected_keyword(tokens::Keyword::LCBRACKET, "Expected '{' at the beginning of table constructor")?;
 
-    let mut fields: Vec<Box<Expression>> = vec![];
+    let mut fields: Vec<Box<expression::Expression>> = vec![];
 
     if let Ok(field) = parse_field(lexer) {
-        fields.push(Box::new(field));
+        fields.push(field);
 
         loop {
             if lexer.head().keyword() == Some(tokens::Keyword::COMMA)
@@ -53,11 +66,11 @@ pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> Result<Expression, e
             }
 
             if let Ok(field) = parse_field(lexer) {
-                fields.push(Box::new(field));
+                fields.push(field);
             } else {
                 match lexer.skip_expected_keyword(tokens::Keyword::RCBRACKET, "Expected table constructor closing brace '}'") {
-                    Ok(_) => return Ok(Expression::TableConstructor(fields)),
-                    err => return err.and(Ok(Expression::Noop))
+                    Ok(_) => return Ok(Box::new(TableConstructor(fields))),
+                    err => return err.and(Ok(Box::new(util::Noop)))
                 }
             }
         }

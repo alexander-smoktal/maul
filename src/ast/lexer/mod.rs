@@ -30,8 +30,8 @@ impl Lexer {
     }
 
     /// Tries to run parse function. If failed, rollback itself to previous position
-    pub fn parse_or_rollback<F>(&mut self, function: F) -> Result<expressions::Expression, error::Error>
-        where F: Fn(&mut Lexer) -> Result<expressions::Expression, error::Error> {
+    pub fn parse_or_rollback<F>(&mut self, function: F) -> expressions::ParseResult
+        where F: Fn(&mut Lexer) -> expressions::ParseResult {
         let self_copy = self.clone();
 
         let result = function(self);
@@ -43,8 +43,8 @@ impl Lexer {
     }
 
     /// Tries to run parse function, which would consume all tokens in lexer. If failed, rollback itself to previous position
-    pub fn parse_all_or_rollback<F>(&mut self, function: F) -> Result<expressions::Expression, error::Error>
-        where F: Fn(&mut Lexer) -> Result<expressions::Expression, error::Error> {
+    pub fn parse_all_or_rollback<F>(&mut self, function: F) -> expressions::ParseResult
+        where F: Fn(&mut Lexer) -> expressions::ParseResult {
         let self_copy = self.clone();
 
         let result = function(self);

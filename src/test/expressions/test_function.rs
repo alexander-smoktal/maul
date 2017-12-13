@@ -88,7 +88,7 @@ fn test_funcall_complex() {
 }
 
 
-#[test]
+/*#[test]
 fn test_fib() {
     match function::parse_funcdef(&mut make_lexer("
       function a.b:fib(n)
@@ -103,4 +103,4 @@ fn test_fib() {
         Ok(yoba) => assert_eq!(yoba, Expression::Noop),
         Err(err) => err.complain()
     }
-}
+}*/

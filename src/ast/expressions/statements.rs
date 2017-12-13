@@ -3,30 +3,33 @@ use ast::lexer;
 use ast::lexer::tokens;
 use error;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug)]
 pub enum Statement {
     Break,
     Ellipsis,
-    Return(Box<Expression>)
+    Return(Box<expression::Expression>)
 }
+impl expression::Expression for Statement {}
 
 // retstat ::= return [explist] [‘;’]
-pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> ParseResult {
     lexer.skip_expected_keyword(tokens::Keyword::RETURN, "")?;
 
     let exps = parse_explist(lexer);
 
     let _ = lexer.skip_expected_keyword(tokens::Keyword::COLONS, "");
 
-    Ok(Expression::St(Statement::Return(Box::new(Expression::Expressions(exps)))))
+    Ok(Box::new(Statement::Return(Box::new(util::Expressions(exps)))))
 }
 
-fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
-    match lexer.head().keyword().unwrap() {
-        tokens::Keyword::SEMICOLONS => Ok(Expression::Noop),
-        tokens::Keyword::BREAK => Ok(Expression::St(Statement::Break)),
+fn parse_keyword(lexer: &mut lexer::Lexer) -> ParseResult {
+    let exp: ParseResult = match lexer.head().keyword().unwrap() {
+        tokens::Keyword::SEMICOLONS => Ok(Box::new(util::Noop)),
+        tokens::Keyword::BREAK => Ok(Box::new(Statement::Break)),
         _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}"))
-    }.map(|exp| {
+    };
+
+    exp.map(|exp| {
         lexer.skip(1);
         exp
     })
@@ -47,7 +50,7 @@ fn parse_keyword(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
 // function funcname funcbody |
 // local function Name funcbody |
 // local namelist [‘=’ explist]
-pub fn parse_statement(lexer: &mut lexer::Lexer) -> Result<Expression, error::Error> {
+pub fn parse_statement(lexer: &mut lexer::Lexer) -> ParseResult {
     match lexer.head().token.clone() {
         tokens::TokenType::Keyword(tokens::Keyword::FUNCTION) => function::parse_funcdef(lexer),
         tokens::TokenType::Keyword(tokens::Keyword::PATH) => labels::parse_label(lexer),
