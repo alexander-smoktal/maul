@@ -74,7 +74,7 @@ impl Lexer {
         self.tokens
             .iter()
             .skip(self.position)
-            .find(|x| predicate(x))
+            .find(|x| !predicate(x))
             .map(|_| {
                 Lexer {
                     tokens: Rc::new(
@@ -82,7 +82,7 @@ impl Lexer {
                             .iter()
                             .skip(self.position)
                             .cloned()
-                            .take_while(|x| !predicate(x))
+                            .take_while(|x| predicate(x))
                             .collect(),
                     ),
                     position: 0,
@@ -91,7 +91,7 @@ impl Lexer {
     }
 
     pub fn take_while_keyword(&self, keyword: tokens::Keyword) -> Option<Lexer> {
-        self.take_while(move |x| x.token == TokenType::from(keyword.clone()))
+        self.take_while(|ref x| x.token != TokenType::from(keyword.clone()))
     }
 
     pub fn pos(&self) -> usize {

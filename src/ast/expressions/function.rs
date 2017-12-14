@@ -18,6 +18,8 @@ pub struct Funcall {
 impl expression::Expression for Funcall {}
 
 fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Error> {
+    log_debug!("Func args {:?}", lexer);
+
     let mut result = vec![];
 
     lexer.skip_expected_keyword(
@@ -43,6 +45,8 @@ fn parse_func_args(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Err
 }
 
 fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::Error> {
+    log_debug!("Method name {:?}", lexer);
+
     if tokens::Keyword::COLONS == lexer.head() {
         lexer.skip(1);
 
@@ -64,6 +68,8 @@ fn parse_method_name(lexer: &mut lexer::Lexer) -> Result<variables::Id, error::E
 // funcbody ::= ‘(’ [parlist] ‘)’ block end
 // parlist ::= namelist [‘,’ ‘...’] | ‘...’
 pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Funcdef {:?}", lexer);
+
     lexer.skip_expected_keyword(
         tokens::Keyword::FUNCTION,
         "Expected 'function' keyword at the function start",
@@ -87,32 +93,32 @@ pub fn parse_funcdef(lexer: &mut lexer::Lexer) -> ParseResult {
     // Parse function arguments
     params.append(&mut parse_func_args(lexer)?.0);
 
-    lexer.parse_or_rollback(blocks::parse_block).and_then(
-        |body| {
-            log_debug!("PARSED FUNC BODY: {:?}. LEXER: {:?}", body, lexer);
+    blocks::parse_block(lexer).and_then(|body| {
+        println!("PARSED FUNC BODY: {:?}. LEXER: {:?}", body, lexer);
 
-            lexer.skip_expected_keyword(
-                tokens::Keyword::END,
-                "Expected 'end' to close function body",
-            )?;
+        lexer.skip_expected_keyword(
+            tokens::Keyword::END,
+            "Expected 'end' to close function body",
+        )?;
 
-            let func = Function { params, body };
+        let func = Function { params, body };
 
-            println!("FUNC {:?}", func);
+        log_debug!("FUNC {:?}", func);
 
-            // Return assignment, because function definition is and assignment
-            Ok(Box::new(variables::Assignment(
-                Box::new(function_name),
-                Box::new(func),
-            )) as Box<expression::Expression>)
-        },
-    )
+        // Return assignment, because function definition is and assignment
+        Ok(utils::exp_box(variables::Assignment(
+            Box::new(function_name),
+            Box::new(func),
+        )))
+    })
 
 
 }
 
 // args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
 fn parse_args(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Args {:?}", lexer);
+
     // ‘(’ [explist] ‘)’
     if lexer
         .skip_expected_keyword(tokens::Keyword::LBRACE, "")
@@ -125,19 +131,19 @@ fn parse_args(lexer: &mut lexer::Lexer) -> ParseResult {
                 tokens::Keyword::RBRACE,
                 "Expected ')' at the end of arguments",
             )
-            .and(Ok(Box::new(util::Expressions(explist))));
+            .and(Ok(utils::exp_box(common::Expressions(explist))));
     }
 
     // tableconstructor
     if let Ok(table) = lexer.parse_or_rollback(tables::parse_table_constructor) {
-        return Ok(Box::new(util::Expressions(vec![table])));
+        return Ok(utils::exp_box(common::Expressions(vec![table])));
     }
 
     // LiteralString
     if let tokens::TokenType::String(string) = lexer.head().token {
         let string_arg = Box::new(primitives::String(string));
 
-        return Ok(Box::new(util::Expressions(vec![string_arg])));
+        return Ok(utils::exp_box(common::Expressions(vec![string_arg])));
     }
 
     Err(error::Error::new(
@@ -147,7 +153,11 @@ fn parse_args(lexer: &mut lexer::Lexer) -> ParseResult {
 }
 
 // Special prefixext without cyclic funcall parser :|
+// prefixexp ::= var | ‘(’ exp ‘)’
+// var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 fn parse_special_prefixexp(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("S prefixexp {:?}", lexer);
+
     lexer
         .parse_or_rollback(|lexer| {
             lexer
@@ -169,6 +179,8 @@ fn parse_special_prefixexp(lexer: &mut lexer::Lexer) -> ParseResult {
 
 // functioncall ::=  prefixexp args | prefixexp ‘:’ Name args
 pub fn parse_funcall(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Funcall {:?}", lexer);
+
     // prefixexp ‘:’ Name args
     if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::COLONS) {
         if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
@@ -189,10 +201,10 @@ pub fn parse_funcall(lexer: &mut lexer::Lexer) -> ParseResult {
                     // Add `self` argument
                     expressions.prepend(object);
 
-                    Box::new(Funcall {
+                    utils::exp_box(Funcall {
                         function,
                         args: expressions,
-                    }) as Box<expression::Expression>
+                    })
                 })
             } else {
                 Err(error::Error::new(lexer.head(), "Expected 'Id' after ':'"))
@@ -203,7 +215,7 @@ pub fn parse_funcall(lexer: &mut lexer::Lexer) -> ParseResult {
     // prefixexp args
     if let Ok(function) = lexer.parse_or_rollback(parse_special_prefixexp) {
         lexer.parse_or_rollback(parse_args).map(|args| {
-            Box::new(Funcall { function, args }) as Box<expression::Expression>
+            utils::exp_box(Funcall { function, args })
         })
     } else {
         Err(error::Error::new(lexer.head(), "Exprected function call"))

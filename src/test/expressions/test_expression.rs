@@ -88,7 +88,7 @@ fn test_exp_functiondef() {
             vec!["f"],
             exp!(function::Function {
                 params: vec![],
-                body: exp!(util::Expressions(vec![exp!(Statement::Break)])),
+                body: exp!(common::Expressions(vec![exp!(Statement::Break)])),
             }),
         ))
     )

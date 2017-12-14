@@ -11,7 +11,7 @@ impl Parser {
     pub fn new(input: String) -> super::AST {
         let mut lexer = Lexer::new(input);
 
-        let mut ast = super::AST { expressions: Box::new(expressions::util::Noop) };
+        let mut ast = super::AST { expressions: Box::new(expressions::common::Noop) };
 
         for expression in expressions::expression::from_lexer(&mut lexer) {
             ast.add_expression(expression);

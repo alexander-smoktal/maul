@@ -16,6 +16,8 @@ pub struct Assignment(pub Box<expression::Expression>, pub Box<expression::Expre
 impl expression::Expression for Assignment {}
 
 pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
+    log_debug!("Varname {:?}", lexer);
+
     let mut result = vec![];
 
     loop {
@@ -38,6 +40,8 @@ pub fn parse_varname(lexer: &mut lexer::Lexer) -> Result<Id, error::Error> {
 
 // varlist ::= var {‘,’ var}
 fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<expression::Expression>> {
+    log_debug!("Varlist {:?}", lexer);
+
     let mut result = vec![];
 
     while let Ok(var) = lexer.parse_or_rollback(parse_var) {
@@ -56,6 +60,8 @@ fn parse_varlist(lexer: &mut lexer::Lexer) -> Vec<Box<expression::Expression>> {
 
 // varlist ‘=’ explist
 pub fn parse_assignment(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Assignment {:?}", lexer);
+
     let vars = parse_varlist(lexer);
 
     lexer.skip_expected_keyword(
@@ -66,14 +72,12 @@ pub fn parse_assignment(lexer: &mut lexer::Lexer) -> ParseResult {
     let exps = parse_explist(lexer);
 
     if vars.len() == exps.len() {
-        Ok(Box::new(util::Expressions(
+        Ok(utils::exp_box(common::Expressions(
             vars.into_iter()
                 .zip(exps.into_iter())
-                .map(|(var, exp)| {
-                    Box::new(variables::Assignment(var, exp)) as Box<expression::Expression>
-                })
+                .map(|(var, exp)| utils::exp_box(variables::Assignment(var, exp)))
                 .collect(),
-        )) as Box<expression::Expression>)
+        )))
     } else {
         Err(error::Error::new(
             lexer.head(),
@@ -84,6 +88,8 @@ pub fn parse_assignment(lexer: &mut lexer::Lexer) -> ParseResult {
 
 // var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Variable {:?}", lexer);
+
     // prefixexp ‘[’ exp ‘]’
     if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::LSBRACKET) {
         if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
@@ -93,7 +99,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
                 if let Ok(index) = sublexer.parse_all_or_rollback(parse_exp) {
                     lexer.skip(sublexer.pos() + 1);
 
-                    return Ok(Box::new(tables::Indexing { object, index }));
+                    return Ok(utils::exp_box(tables::Indexing { object, index }));
                 } else {
                     return Err(error::Error::new(
                         lexer.head(),
@@ -109,8 +115,18 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
         }
     }
 
+    println!("STARTING TOKTYPE: {:?}", lexer);
     // prefixexp ‘.’ Name
-    if let Some(mut sublexer) = lexer.take_while_keyword(tokens::Keyword::DOT) {
+    if let Some(mut sublexer) =
+        lexer
+        // Get all var prefix
+        .take_while(|tok|
+            match tok.token {
+                tokens::TokenType::Keyword(ref kv) if kv == &tokens::Keyword::DOT => true,
+                //tokens::TokenType::Id(_) => true,
+                _ => false
+            })
+    {
         if let Ok(object) = sublexer.parse_all_or_rollback(parse_prefixexp) {
             lexer.skip(sublexer.pos() + 1);
 
@@ -118,7 +134,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
                 // Skipping id
                 lexer.skip(1);
 
-                return Ok(Box::new(tables::Indexing {
+                return Ok(utils::exp_box(tables::Indexing {
                     object,
                     index: Box::new(primitives::String(id)),
                 }));
@@ -135,7 +151,7 @@ pub fn parse_var(lexer: &mut lexer::Lexer) -> ParseResult {
     if let Some(id) = lexer.head().id() {
         lexer.skip(1);
 
-        return Ok(Box::new(variables::Id(vec![id])));
+        return Ok(utils::exp_box(variables::Id(vec![id])));
     }
 
     Err(error::Error::new(

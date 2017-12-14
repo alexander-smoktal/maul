@@ -8,7 +8,7 @@ use super::utils::*;
 fn test_table_invalid() {
     assert_eq!(
         tables::parse_table_constructor(&mut make_lexer("1 + 3")),
-        Ok(exp!(util::Noop))
+        Ok(exp!(common::Noop))
     )
 }
 

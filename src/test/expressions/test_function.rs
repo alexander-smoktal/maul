@@ -26,8 +26,8 @@ fn test_sample_function() {
             vec!["f"],
             exp!(function::Function {
                 params: vec![],
-                body: exp!(util::Expressions(
-                    vec![exp!(Statement::Break), exp!(util::Noop)],
+                body: exp!(common::Expressions(
+                    vec![exp!(Statement::Break), exp!(common::Noop)],
                 )),
             }),
         ))
@@ -42,8 +42,8 @@ fn test_complex_function() {
             vec!["t", "a", "b", "c", "f"],
             exp!(function::Function {
                 params: vec![],
-                body: exp!(util::Expressions(
-                    vec![exp!(Statement::Break), exp!(util::Noop)],
+                body: exp!(common::Expressions(
+                    vec![exp!(Statement::Break), exp!(common::Noop)],
                 )),
             }),
         ))
@@ -63,8 +63,8 @@ fn test_param_function() {
                     "b".to_owned(),
                     "c".to_owned(),
                 ],
-                body: exp!(util::Expressions(
-                    vec![exp!(Statement::Break), exp!(util::Noop)],
+                body: exp!(common::Expressions(
+                    vec![exp!(Statement::Break), exp!(common::Noop)],
                 )),
             }),
         ))
@@ -79,8 +79,8 @@ fn test_method() {
             vec!["t", "a", "f"],
             exp!(function::Function {
                 params: vec!["self".to_owned(), "b".to_owned(), "c".to_owned()],
-                body: exp!(util::Expressions(
-                    vec![exp!(Statement::Break), exp!(util::Noop)],
+                body: exp!(common::Expressions(
+                    vec![exp!(Statement::Break), exp!(common::Noop)],
                 )),
             }),
         ))
@@ -97,7 +97,24 @@ fn test_funcall_sample() {
                 object: exp!(variables::Id(vec!["Account".to_string()])),
                 index: exp!(primitives::String("withdraw".to_string())),
             }),
-            args: exp!(util::Expressions(vec![exp!(primitives::Number(100f64))])),
+            args: exp!(common::Expressions(vec![exp!(primitives::Number(100f64))])),
+        }))
+    )
+}
+
+#[test]
+fn test_funcall_nested() {
+    assert_eq!(
+        function::parse_funcall(&mut make_lexer("Customer.account.withdraw(100.00)")),
+        Ok(exp!(function::Funcall {
+            function: exp!(tables::Indexing {
+                object: exp!(tables::Indexing {
+                    object: exp!(variables::Id(vec!["Customer".to_string()])),
+                    index: exp!(primitives::String("account".to_string())),
+                }),
+                index: exp!(primitives::String("withdraw".to_string())),
+            }),
+            args: exp!(common::Expressions(vec![exp!(primitives::Number(100f64))])),
         }))
     )
 }
@@ -111,7 +128,7 @@ fn test_funcall_complex() {
                 object: exp!(variables::Id(vec!["Account".to_string()])),
                 index: exp!(primitives::String("withdraw".to_string())),
             }),
-            args: exp!(util::Expressions(vec![
+            args: exp!(common::Expressions(vec![
                 exp!(variables::Id(vec!["Account".to_string()])),
                 exp!(primitives::Number(100f64)),
             ])),
@@ -120,21 +137,28 @@ fn test_funcall_complex() {
 }
 
 
-#[test]
-#[should_panic]
-fn test_fib() {
-    assert_eq!(
-        function::parse_funcdef(&mut make_lexer(
-            "
-      function a.b:fib(n)
-        N=N+1
-        if n<2 then
-          return n
-        else
-          return a.b.fib(n-1) + a.b.fib(n-2)
-        end
-      end",
-        )),
-        Ok(exp!(util::Noop))
-    )
-}
+//#[test]
+//fn test_fib() {
+//    assert_eq!(
+//        function::parse_funcdef(&mut make_lexer(
+//            "
+//      function a.b:fib(n)
+//        N=N+1
+//        if n<2 then
+//          return n
+//        else
+//          return a.b.fib(n-1) + a.b.fib(n-2)
+//        end
+//      end",
+//        )),
+//        Ok(make_assignment(
+//            vec!["t", "a", "f"],
+//            exp!(function::Function {
+//                params: vec!["self".to_owned(), "b".to_owned(), "c".to_owned()],
+//                body: exp!(common::Expressions(
+//                    vec![exp!(Statement::Break), exp!(common::Noop)],
+//                )),
+//            }),
+//        ))
+//    )
+//}

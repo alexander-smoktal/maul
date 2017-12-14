@@ -36,7 +36,7 @@ fn test_var_indexing() {
 fn test_assignment() {
     assert_eq!(
         variables::parse_assignment(&mut make_lexer("one, two, three = 1, true, false")),
-        Ok(exp!(util::Expressions(vec![
+        Ok(exp!(common::Expressions(vec![
             exp!(variables::Assignment(
                 exp!(variables::Id(vec!["one".to_string()])),
                 exp!(primitives::Number(1f64)),

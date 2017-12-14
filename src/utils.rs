@@ -5,10 +5,10 @@ use std::iter::Peekable;
 
 macro_rules! log_debug {
     ($fmt:expr) => (
-        #[cfg(test)]
+        #[cfg(debug_assertions)]
         println!($fmt));
     ($fmt:expr, $($arg:tt)*) => (
-        #[cfg(test)]
+        #[cfg(debug_assertions)]
         println!($fmt, $($arg)*));
 }
 

@@ -5,7 +5,7 @@ use super::*;
 use ast::lexer;
 
 pub trait Expression: Debug {
-    fn into_expressions(self: Box<Self>) -> Box<util::Expressions> {
+    fn into_expressions(self: Box<Self>) -> Box<common::Expressions> {
         panic!("Found conversion to expressions list for invalid type")
     }
 
@@ -23,5 +23,5 @@ impl PartialEq for Box<Expression> {
 impl Eq for Box<Expression> {}
 
 pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Box<Expression>> {
-    blocks::parse_block(lexer).ok().map(|e| e)
+    Some(blocks::parse_block(lexer).unwrap())
 }

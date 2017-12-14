@@ -13,6 +13,8 @@ impl expression::Expression for Goto {}
 
 // label ::= ‘::’ Name ‘::’
 pub fn parse_label(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Label {:?}", lexer);
+
     lexer
         .skip_expected_keyword(tokens::Keyword::PATH, "Expect '::' at label start")
         .and_then(|_| {
@@ -26,12 +28,14 @@ pub fn parse_label(lexer: &mut lexer::Lexer) -> ParseResult {
             lexer
                 .skip(1)
                 .skip_expected_keyword(tokens::Keyword::PATH, "Expect '::' after a label")
-                .map(|_| Box::new(label) as Box<expression::Expression>)
+                .map(|_| utils::exp_box(label))
         })
 }
 
 // goto Name
 pub fn parse_goto(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Goto {:?}", lexer);
+
     lexer
         .skip_expected_keyword(tokens::Keyword::GOTO, "Expect 'goto' keyword")
         .and_then(|_| {
@@ -47,6 +51,6 @@ pub fn parse_goto(lexer: &mut lexer::Lexer) -> ParseResult {
         })
         .map(|id| {
             lexer.skip(1);
-            Box::new(id) as Box<expression::Expression>
+            utils::exp_box(id)
         })
 }

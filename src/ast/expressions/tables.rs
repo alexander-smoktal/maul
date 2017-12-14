@@ -15,6 +15,8 @@ impl expression::Expression for TableConstructor {}
 
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 fn parse_field(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Field {:?}", lexer);
+
     // ‘[’ exp ‘]’ ‘=’ exp
     if let Ok(expression) = lexer.parse_or_rollback(|lexer: &mut lexer::Lexer| {
         lexer
@@ -38,7 +40,7 @@ fn parse_field(lexer: &mut lexer::Lexer) -> ParseResult {
             })
             .and_then(|index| {
                 lexer.parse_or_rollback(parse_exp).map(|value| {
-                    Box::new(variables::Assignment(index, value)) as Box<expression::Expression>
+                    utils::exp_box(variables::Assignment(index, value))
                 })
             })
 
@@ -57,10 +59,10 @@ fn parse_field(lexer: &mut lexer::Lexer) -> ParseResult {
                 )
                 .and_then(|_| {
                     lexer.parse_or_rollback(parse_exp).map(|value| {
-                        Box::new(variables::Assignment(
+                        utils::exp_box(variables::Assignment(
                             Box::new(variables::Id(vec![id.clone()])),
                             value,
-                        )) as Box<expression::Expression>
+                        ))
                     })
                 })
         })
@@ -81,6 +83,8 @@ fn parse_field(lexer: &mut lexer::Lexer) -> ParseResult {
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 // fieldsep ::= ‘,’ | ‘;’
 pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> ParseResult {
+    log_debug!("Table {:?}", lexer);
+
     lexer.skip_expected_keyword(
         tokens::Keyword::LCBRACKET,
         "Expected '{' at the beginning of table constructor",
@@ -105,8 +109,8 @@ pub fn parse_table_constructor(lexer: &mut lexer::Lexer) -> ParseResult {
                     tokens::Keyword::RCBRACKET,
                     "Expected table constructor closing brace '}'",
                 ) {
-                    Ok(_) => return Ok(Box::new(TableConstructor(fields))),
-                    err => return err.and(Ok(Box::new(util::Noop))),
+                    Ok(_) => return Ok(utils::exp_box(TableConstructor(fields))),
+                    err => return err.and(Ok(Box::new(common::Noop))),
                 }
             }
         }

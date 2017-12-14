@@ -15,7 +15,7 @@ fn test_simple_statement() {
 fn test_return_statement() {
     assert_eq!(
         parse_return_statement(&mut make_lexer("return nil, false, true;")),
-        Ok(exp!(Statement::Return(exp!(util::Expressions(vec![
+        Ok(exp!(Statement::Return(exp!(common::Expressions(vec![
             exp!(primitives::Nil),
             exp!(primitives::Boolean(false)),
             exp!(primitives::Boolean(true)),
