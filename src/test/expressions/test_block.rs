@@ -40,3 +40,39 @@ fn test_do_block() {
         ])))))
     )
 }
+
+#[test]
+fn test_while_block() {
+    assert_eq!(
+        blocks::parse_while_block(&mut make_lexer("while true do one = 8 end")),
+        Ok(exp!(blocks::WhileBlock {
+            condition: exp!(primitives::Boolean(true)),
+            block: exp!(blocks::DoBlock(exp!(util::Expressions(vec![
+                exp!(util::Expressions(vec![
+                    Box::new(variables::Assignment(
+                        exp!(variables::Id(vec!["one".to_string()])),
+                        exp!(primitives::Number(8f64)),
+                    )),
+                ])),
+            ])))),
+        }))
+    )
+}
+
+#[test]
+fn test_repeat_block() {
+    assert_eq!(
+        blocks::parse_repeat_block(&mut make_lexer("repeat one = 8 until false")),
+        Ok(exp!(blocks::RepeatBlock {
+            block: exp!(util::Expressions(vec![
+                exp!(util::Expressions(vec![
+                    Box::new(variables::Assignment(
+                        exp!(variables::Id(vec!["one".to_string()])),
+                        exp!(primitives::Number(8f64)),
+                    )),
+                ])),
+            ])),
+            condition: exp!(primitives::Boolean(false)),
+        }))
+    )
+}

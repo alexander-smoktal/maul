@@ -58,6 +58,8 @@ pub fn parse_statement(lexer: &mut lexer::Lexer) -> ParseResult {
         tokens::TokenType::Keyword(tokens::Keyword::PATH) => labels::parse_label(lexer),
         tokens::TokenType::Keyword(tokens::Keyword::GOTO) => labels::parse_goto(lexer),
         tokens::TokenType::Keyword(tokens::Keyword::DO) => blocks::parse_do_block(lexer),
+        tokens::TokenType::Keyword(tokens::Keyword::WHILE) => blocks::parse_while_block(lexer),
+        tokens::TokenType::Keyword(tokens::Keyword::REPEAT) => blocks::parse_repeat_block(lexer),
         tokens::TokenType::Keyword(_) => parse_keyword(lexer),
         tokens::TokenType::Id(_) => variables::parse_assignment(lexer),
         _ => Err(error::Error::new(lexer.head(), "Unexpected token")),
