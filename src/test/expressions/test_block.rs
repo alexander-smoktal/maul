@@ -66,13 +66,146 @@ fn test_repeat_block() {
         Ok(exp!(blocks::RepeatBlock {
             block: exp!(util::Expressions(vec![
                 exp!(util::Expressions(vec![
-                    Box::new(variables::Assignment(
+                    exp!(variables::Assignment(
                         exp!(variables::Id(vec!["one".to_string()])),
                         exp!(primitives::Number(8f64)),
                     )),
                 ])),
             ])),
             condition: exp!(primitives::Boolean(false)),
+        }))
+    )
+}
+
+// If blocks
+#[test]
+fn test_simple_if_block() {
+    assert_eq!(
+        blocks::parse_if_block(&mut make_lexer("if true then x =7 end")),
+        Ok(exp!(blocks::IfBlock {
+            conditions: vec![
+                blocks::Condition {
+                    condition: exp!(primitives::Boolean(true)),
+                    block: exp!(util::Expressions(vec![
+                        exp!(util::Expressions(vec![
+                            exp!(variables::Assignment(
+                                exp!(variables::Id(vec!["x".to_string()])),
+                                exp!(primitives::Number(7f64)),
+                            )),
+                        ])),
+                    ])),
+                },
+            ],
+            elseblock: None,
+        }))
+    )
+}
+
+#[test]
+fn test_if_elseif_block() {
+    assert_eq!(
+        blocks::parse_if_block(&mut make_lexer(
+            "if true then x =7 elseif false then x= 8 end",
+        )),
+        Ok(exp!(blocks::IfBlock {
+            conditions: vec![
+                blocks::Condition {
+                    condition: exp!(primitives::Boolean(true)),
+                    block: exp!(util::Expressions(vec![
+                        exp!(util::Expressions(vec![
+                            exp!(variables::Assignment(
+                                exp!(variables::Id(vec!["x".to_string()])),
+                                exp!(primitives::Number(7f64)),
+                            )),
+                        ])),
+                    ])),
+                },
+                blocks::Condition {
+                    condition: exp!(primitives::Boolean(false)),
+                    block: exp!(util::Expressions(vec![
+                        exp!(util::Expressions(vec![
+                            exp!(variables::Assignment(
+                                exp!(variables::Id(vec!["x".to_string()])),
+                                exp!(primitives::Number(8f64)),
+                            )),
+                        ])),
+                    ])),
+                },
+            ],
+            elseblock: None,
+        }))
+    )
+}
+
+#[test]
+fn test_if_else_block() {
+    assert_eq!(
+        blocks::parse_if_block(&mut make_lexer("if true then x =7 else x= 8 end")),
+        Ok(exp!(blocks::IfBlock {
+            conditions: vec![
+                blocks::Condition {
+                    condition: exp!(primitives::Boolean(true)),
+                    block: exp!(util::Expressions(vec![
+                        exp!(util::Expressions(vec![
+                            exp!(variables::Assignment(
+                                exp!(variables::Id(vec!["x".to_string()])),
+                                exp!(primitives::Number(7f64)),
+                            )),
+                        ])),
+                    ])),
+                },
+            ],
+            elseblock: Some(exp!(util::Expressions(vec![
+                exp!(util::Expressions(vec![
+                    exp!(variables::Assignment(
+                        exp!(variables::Id(vec!["x".to_string()])),
+                        exp!(primitives::Number(8f64)),
+                    )),
+                ])),
+            ]))),
+        }))
+    )
+}
+
+#[test]
+fn test_if_elseif_else_block() {
+    assert_eq!(
+        blocks::parse_if_block(&mut make_lexer(
+            "if true then x =7 elseif false then x= 8 else x = 1 end",
+        )),
+        Ok(exp!(blocks::IfBlock {
+            conditions: vec![
+                blocks::Condition {
+                    condition: exp!(primitives::Boolean(true)),
+                    block: exp!(util::Expressions(vec![
+                        exp!(util::Expressions(vec![
+                            exp!(variables::Assignment(
+                                exp!(variables::Id(vec!["x".to_string()])),
+                                exp!(primitives::Number(7f64)),
+                            )),
+                        ])),
+                    ])),
+                },
+                blocks::Condition {
+                    condition: exp!(primitives::Boolean(false)),
+                    block: exp!(util::Expressions(vec![
+                        exp!(util::Expressions(vec![
+                            exp!(variables::Assignment(
+                                exp!(variables::Id(vec!["x".to_string()])),
+                                exp!(primitives::Number(8f64)),
+                            )),
+                        ])),
+                    ])),
+                },
+            ],
+            elseblock: Some(exp!(util::Expressions(vec![
+                exp!(util::Expressions(vec![
+                    exp!(variables::Assignment(
+                        exp!(variables::Id(vec!["x".to_string()])),
+                        exp!(primitives::Number(1f64)),
+                    )),
+                ])),
+            ]))),
         }))
     )
 }

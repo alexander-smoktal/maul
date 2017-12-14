@@ -19,9 +19,33 @@ pub struct RepeatBlock {
 }
 impl expression::Expression for RepeatBlock {}
 
+// We could make typedef for 'while' and 'repeat', but can't implement trait for type
+#[cfg(test)]
+#[derive(Debug)]
+pub struct Condition {
+    pub condition: Box<expression::Expression>,
+    pub block: Box<expression::Expression>,
+}
+
+#[cfg(not(test))]
+#[derive(Debug)]
+struct Condition {
+    pub condition: Box<expression::Expression>,
+    pub block: Box<expression::Expression>,
+}
+
+#[derive(Debug)]
+pub struct IfBlock {
+    pub conditions: Vec<Condition>,
+    pub elseblock: Option<Box<expression::Expression>>,
+}
+impl expression::Expression for IfBlock {}
+
 // block ::= {stat} [retstat]
 pub fn parse_block(lexer: &mut lexer::Lexer) -> ParseResult {
     let mut result = vec![];
+
+    result.push(statements::parse_statement(lexer)?);
 
     while let Ok(stat) = lexer.parse_or_rollback(statements::parse_statement) {
         result.push(stat);
@@ -75,4 +99,57 @@ pub fn parse_repeat_block(lexer: &mut lexer::Lexer) -> ParseResult {
                     })
                 })
         })
+}
+
+fn parse_if_condition(lexer: &mut lexer::Lexer) -> Result<Condition, error::Error> {
+    parse_exp(lexer).and_then(|condition| {
+        lexer
+            .skip_expected_keyword(
+                tokens::Keyword::THEN,
+                "Expected 'then' inside 'if/elseif' statement",
+            )
+            .and_then(|_| {
+                parse_block(lexer).map(|block| Condition { condition, block })
+            })
+    })
+}
+
+// if exp then block {elseif exp then block} [else block] end |
+pub fn parse_if_block(lexer: &mut lexer::Lexer) -> ParseResult {
+    let mut conditions: Vec<Condition> = vec![];
+
+    // Parse start condition
+    conditions.push(lexer
+        .skip_expected_keyword(tokens::Keyword::IF, "Expected 'if' keyword")
+        .and_then(|_| parse_if_condition(lexer))?);
+
+    // Parse elseifs
+    loop {
+        if lexer.head().token == tokens::TokenType::Keyword(tokens::Keyword::ELSEIF) {
+            conditions.push(lexer
+                .skip_expected_keyword(tokens::Keyword::ELSEIF, "Expected 'elseif' keyword")
+                .and_then(|_| parse_if_condition(lexer))?);
+        } else {
+            break;
+        }
+    }
+
+    // Parse else
+    let mut elseblock: Option<Box<expression::Expression>> = None;
+
+    if lexer.head().token == tokens::TokenType::Keyword(tokens::Keyword::ELSE) {
+        elseblock = Some(lexer
+            .skip_expected_keyword(tokens::Keyword::ELSE, "Expected 'else' keyword")
+            .and_then(|_| parse_block(lexer))?);
+    }
+
+    lexer.skip_expected_keyword(
+        tokens::Keyword::END,
+        "Expected 'end' keyword, to close 'if' block",
+    )?;
+
+    Ok(Box::new(IfBlock {
+        conditions,
+        elseblock,
+    }) as Box<expression::Expression>)
 }
