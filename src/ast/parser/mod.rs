@@ -2,26 +2,8 @@
 pub mod parse_macros;
 
 use super::lexer::{Lexer, tokens};
-use super::expressions;
 
 type Position = usize;
-
-pub fn keyword(keyword: tokens::Keyword) -> impl FnMut(&mut Parser) -> Option<Box<expressions::expression::Expression>> {
-    move |ref mut parser| {
-        let parser_pos = parser.position();
-
-        parser
-        .next()
-        .cloned()
-        .and_then(|token|
-            if token.keyword() == Some(keyword.clone()) {
-                Some(Box::new(expressions::common::Noop) as Box<expressions::expression::Expression>)
-            } else {
-                parser.rollback(parser_pos);
-                None
-            })
-    }
-}
 
 #[derive(Debug)]
 pub struct Parser {

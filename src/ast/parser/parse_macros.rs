@@ -50,7 +50,7 @@ macro_rules! and {
                 }
             }), +);
 
-            match std::ops::Fn::call(&$nandler_func, results) {
+            match ops::Fn::call(&$nandler_func, results) {
                 expression @ Some(_) => {
                     debug_parser!("And handling function successfully handled expression and returned {:?}", expression);
                     expression
@@ -68,7 +68,7 @@ macro_rules! and {
 #[macro_export]
 macro_rules! rule {
     ($name: ident, $parse_func:expr) => {
-        fn $name(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
+        pub fn $name(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
             debug_parser!("Executing rule {}", stringify!($name));
 
             $parse_func(parser)

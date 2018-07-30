@@ -1,34 +1,35 @@
-use ast::lexer::tokens;
+//use ast::lexer::tokens;
 use ast::expressions::*;
-use ast::expressions::statements::*;
+//use ast::expressions::statements::*;
 
 use super::utils::*;
 
 #[test]
 fn test_exp_terminals() {
-    assert_eq!(parse_exp(&mut make_lexer("nil")), Ok(exp!(primitives::Nil)));
-    assert_eq!(
-        parse_exp(&mut make_lexer("false")),
-        Ok(exp!(primitives::Boolean(false)))
-    );
-    assert_eq!(
-        parse_exp(&mut make_lexer("true")),
-        Ok(exp!(primitives::Boolean(true)))
-    );
-    assert_eq!(
-        parse_exp(&mut make_lexer("...")),
-        Ok(exp!(Statement::Ellipsis))
-    );
-    assert_eq!(
-        parse_exp(&mut make_lexer("42.42")),
-        Ok(exp!(primitives::Number(42.42f64)))
-    );
-    assert_eq!(
-        parse_exp(&mut make_lexer(r#""Hello""#)),
-        Ok(exp!(primitives::String("Hello".to_string())))
-    );
+    assert_eq!(parse_string("nil"), sexp!(primitives::Nil));
+    assert_eq!(parse_string("false"), sexp!(primitives::Boolean(false)));
+    assert_eq!(parse_string("true"), sexp!(primitives::Boolean(true)));
+    //assert_eq!(parse_string("..."), sexp!(Statement::Ellipsis));
+    assert_eq!(parse_string("42.42"),sexp!(primitives::Number(42.42f64)));
+    assert_eq!(parse_string(r#""Hello""#), sexp!(primitives::String("Hello".to_string())));
 }
 
+
+#[test]
+fn test_multiple_expressions() {
+    assert_eq!(parse_string("nil, false"), sexp!(expression::Expressions(vec![
+        exp!(primitives::Nil),
+        exp!(primitives::Boolean(false))
+    ])));
+
+    assert_eq!(parse_string("nil, false, 42"), sexp!(expression::Expressions(vec![
+        exp!(primitives::Nil),
+        exp!(expression::Expressions(vec![
+            exp!(primitives::Boolean(false)),
+            exp!(primitives::Number(42f64))]))
+    ])));
+}
+/*
 #[test]
 fn test_exp_binop() {
     assert_eq!(
@@ -105,4 +106,4 @@ fn test_exp_table_constructor() {
             )),
         ])))
     );
-}
+}*/

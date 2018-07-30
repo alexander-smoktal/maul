@@ -12,7 +12,8 @@ pub struct AST {
 impl AST {
     pub fn new(source_code: String) -> Self {
         AST {
-            expressions: expressions::expression::from_parser(&mut parser::Parser::new(source_code)).unwrap_or(Box::new(expressions::common::Noop))
+            expressions: expressions::expression::Expressions::rule(&mut parser::Parser::new(source_code))
+            .unwrap_or(Box::new(expressions::primitives::Noop))
         }
     }
 }
