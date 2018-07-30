@@ -2,152 +2,15 @@ pub mod tokens;
 
 use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
 
-use error;
-use ast::expressions;
-
 use std::vec;
 use std::collections::HashMap;
 use std::iter::{Iterator, IntoIterator, FromIterator, Peekable};
 use std::string::String;
-use std::rc::Rc;
 use utils::AsExclusiveTakeWhile;
 use std::fmt;
 
-// ------------ Lexer ----------------
-#[derive(Clone)]
+// ---------- Lexer --------------
 pub struct Lexer {
-    tokens: Rc<Vec<Token>>,
-    position: usize,
-}
-
-impl Lexer {
-    /// Create new lexer, which can be used as token iterator
-    pub fn new(input: String) -> Lexer {
-        Lexer {
-            tokens: Rc::new(Vec::<Token>::from_iter(TokenIterator::new(input))),
-            position: 0,
-        }
-    }
-
-    /// Tries to run parse function. If failed, rollback itself to previous position
-    pub fn parse_or_rollback<F>(&mut self, function: F) -> expressions::ParseResult
-    where
-        F: Fn(&mut Lexer) -> expressions::ParseResult,
-    {
-        let self_copy = self.clone();
-
-        let result = function(self);
-        if result.is_err() {
-            *self = self_copy
-        }
-
-        result
-    }
-
-    /// Tries to run parse function, which would consume all tokens in lexer.
-    /// If failed, rollback itself to previous position
-    pub fn parse_all_or_rollback<F>(&mut self, function: F) -> expressions::ParseResult
-    where
-        F: Fn(&mut Lexer) -> expressions::ParseResult,
-    {
-        let self_copy = self.clone();
-
-        let result = function(self);
-        if result.is_ok() && self.pos() >= self.tokens.len() {
-            result
-        } else {
-            let err = if result.is_ok() {
-                Err(error::Error::new(self.head(), "Unexpected token"))
-            } else {
-                result
-            };
-
-            *self = self_copy;
-            err
-        }
-    }
-
-    pub fn take_while<P>(&self, predicate: P) -> Option<Lexer>
-    where
-        P: Fn(&Token) -> bool,
-    {
-        self.tokens
-            .iter()
-            .skip(self.position)
-            .find(|x| !predicate(x))
-            .map(|_| {
-                Lexer {
-                    tokens: Rc::new(
-                        self.tokens
-                            .iter()
-                            .skip(self.position)
-                            .cloned()
-                            .take_while(|x| predicate(x))
-                            .collect(),
-                    ),
-                    position: 0,
-                }
-            })
-    }
-
-    pub fn take_while_keyword(&self, keyword: tokens::Keyword) -> Option<Lexer> {
-        self.take_while(|ref x| x.token != TokenType::from(keyword.clone()))
-    }
-
-    pub fn pos(&self) -> usize {
-        self.position
-    }
-
-    pub fn skip(&mut self, num: usize) -> &mut Self {
-        self.position += num;
-        self
-    }
-
-    pub fn get(&self, index: usize) -> Token {
-        if self.position >= self.tokens.len() {
-            Token::eof()
-        } else {
-            self.tokens[self.position + index].clone()
-        }
-    }
-
-    pub fn head(&self) -> Token {
-        self.get(0)
-    }
-
-    pub fn skip_expected_keyword(
-        &mut self,
-        keyword: Keyword,
-        expect_message: &str,
-    ) -> Result<(), error::Error> {
-        if keyword == self.head() {
-            self.skip(1);
-            Ok(())
-        } else {
-            Err(error::Error {
-                error_token: self.head(),
-                message: format!("{}. Got: {:?}", expect_message, self.get(0)),
-            })
-        }
-    }
-}
-
-impl fmt::Debug for Lexer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Lexer -> {:?}",
-            self.tokens
-                .iter()
-                .skip(self.position)
-                .map(|t| t.token.clone())
-                .collect::<Vec<TokenType>>()
-        )
-    }
-}
-
-// ---------- Token Iterator --------------
-pub struct TokenIterator {
     char_iterator: Peekable<vec::IntoIter<char>>,
     token_table: HashMap<String, Keyword>,
     operator_table: HashMap<String, Keyword>,
@@ -157,11 +20,11 @@ pub struct TokenIterator {
     column: usize,
 }
 
-impl TokenIterator {
+impl Lexer {
     pub fn new(source_code: String) -> Self {
         let chars = Vec::<char>::from_iter(source_code.chars());
         let peekable = chars.into_iter().peekable();
-        TokenIterator {
+        Lexer {
             char_iterator: peekable,
             token_table: get_token_table(),
             operator_table: get_operator_table(),
@@ -268,8 +131,14 @@ impl TokenIterator {
     }
 }
 
+impl fmt::Debug for Lexer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Lexer {{ row: {}, col: {} }}", self.row, self.column)
+    }
+}
+
 // ----- Iterator trait implementation for the scanner -----
-impl Iterator for TokenIterator {
+impl Iterator for Lexer {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {

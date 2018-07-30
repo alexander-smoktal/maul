@@ -1,4 +1,5 @@
 pub mod lexer;
+#[macro_use]
 pub mod parser;
 pub mod expressions;
 
@@ -10,11 +11,9 @@ pub struct AST {
 
 impl AST {
     pub fn new(source_code: String) -> Self {
-        parser::Parser::new(source_code)
-    }
-
-    fn add_expression(&mut self, exp: Box<expressions::expression::Expression>) {
-        self.expressions = exp;
+        AST {
+            expressions: expressions::expression::from_parser(&mut parser::Parser::new(source_code)).unwrap_or(Box::new(expressions::common::Noop))
+        }
     }
 }
 

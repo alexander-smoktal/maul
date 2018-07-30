@@ -1,3 +1,7 @@
+#![feature(trace_macros)]
+#![feature(fn_traits)]
+#![feature(box_patterns)]
+
 pub mod utils;
 pub mod ast;
 pub mod error;

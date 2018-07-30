@@ -2,7 +2,6 @@ use std::fmt::Debug;
 use std::cmp::{PartialEq, Eq};
 
 use super::*;
-use ast::lexer;
 
 pub trait Expression: Debug {
     fn into_expressions(self: Box<Self>) -> Box<common::Expressions> {
@@ -22,6 +21,6 @@ impl PartialEq for Box<Expression> {
 
 impl Eq for Box<Expression> {}
 
-pub fn from_lexer(lexer: &mut lexer::Lexer) -> Option<Box<Expression>> {
-    Some(blocks::parse_block(lexer).unwrap())
+pub fn from_parser(parser: &mut parser::Parser) -> Option<Box<Expression>> {
+    expr_rule(parser)
 }
