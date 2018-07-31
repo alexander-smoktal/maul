@@ -6,10 +6,11 @@ pub mod statements;
 pub mod labels;
 pub mod operators;*/
 
+#[macro_use]
+mod utils;
 pub mod blocks;
 pub mod expression;
 pub mod primitives;
-mod utils;
 
 use std::vec::Vec;
 

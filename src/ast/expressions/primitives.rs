@@ -38,17 +38,7 @@ pub struct Boolean(pub bool);
 impl expression::Expression for Boolean {}
 
 impl Boolean {
-    pub fn rule(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        match parser.next() {
-            Some(&tokens::Token { token: tokens::TokenType::Keyword(tokens::Keyword::TRUE), ..}) => {
-                utils::some_expression(Boolean(true))
-            },
-            Some(&tokens::Token { token: tokens::TokenType::Keyword(tokens::Keyword::FALSE), ..}) => {
-                utils::some_expression(Boolean(false))
-            },
-            _ => None
-        }
-    }
+    make_keyword_rule![rule, (tokens::Keyword::TRUE, Boolean(true)), (tokens::Keyword::FALSE, Boolean(false))];
 }
 
 #[derive(Debug, Clone)]
@@ -56,13 +46,7 @@ pub struct Nil;
 impl expression::Expression for Nil {}
 
 impl Nil {
-    pub fn rule(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        if let Some(&tokens::Token { token: tokens::TokenType::Keyword(tokens::Keyword::NIL), ..}) = parser.next() {
-            utils::some_expression(Nil {})
-        } else {
-            None
-        }
-    }
+    make_keyword_rule![rule, (tokens::Keyword::NIL, Nil {})];
 }
 
 #[derive(Debug)]

@@ -39,7 +39,7 @@ impl Expressions {
 
     // explist ::= exp {‘,’ exp}
     rule!(rule, or![
-        and![(Expressions::exp, utils::keyword(tokens::Keyword::COMMA), Expressions::rule) => Expressions::new],
+        and![(Expressions::exp, utils::terminal(tokens::Keyword::COMMA), Expressions::rule) => Expressions::new],
         Expressions::exp
     ]);
 
