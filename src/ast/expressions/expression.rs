@@ -49,7 +49,8 @@ impl Expressions {
         primitives::Nil::rule,
         primitives::Boolean::rule,
         primitives::Number::rule,
-        primitives::String::rule
+        primitives::String::rule,
+        statements::Statement::ellipsis
     ]);
 }
 

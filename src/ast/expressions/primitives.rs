@@ -46,9 +46,5 @@ pub struct Nil;
 impl expression::Expression for Nil {}
 
 impl Nil {
-    make_keyword_rule![rule, (tokens::Keyword::NIL, Nil {})];
+    make_keyword_rule![rule, (tokens::Keyword::NIL, Nil)];
 }
-
-#[derive(Debug)]
-pub struct Noop;
-impl expression::Expression for Noop {}

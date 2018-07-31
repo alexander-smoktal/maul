@@ -2,15 +2,16 @@
 pub mod function;
 pub mod variables;
 pub mod tables;
-pub mod statements;
 pub mod labels;
-pub mod operators;*/
+*/
 
 #[macro_use]
 mod utils;
 pub mod blocks;
 pub mod expression;
 pub mod primitives;
+pub mod operators;
+pub mod statements;
 
 use std::vec::Vec;
 

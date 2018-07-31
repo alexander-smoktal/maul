@@ -1,7 +1,8 @@
-use super::*;
-use ast::lexer;
+use std::ops;
+
+use ast::parser;
 use ast::lexer::tokens;
-use error;
+use ast::expressions::*;
 
 #[derive(Debug)]
 pub enum Statement {
@@ -11,38 +12,21 @@ pub enum Statement {
 }
 impl expression::Expression for Statement {}
 
-// retstat ::= return [explist] [‘;’]
-pub fn parse_return_statement(lexer: &mut lexer::Lexer) -> ParseResult {
-    log_debug!("Return {:?}", lexer);
+impl Statement {
+    make_keyword_rule![ellipsis, (tokens::Keyword::DOT3, Statement::Ellipsis)];
+    make_keyword_rule![breakstat, (tokens::Keyword::BREAK, Statement::Break)];
 
-    lexer.skip_expected_keyword(tokens::Keyword::RETURN, "")?;
-
-    let exps = parse_explist(lexer);
-
-    let _ = lexer.skip_expected_keyword(
-        tokens::Keyword::COLONS,
-        "Expected colons to close 'return' statement",
-    );
-
-    Ok(utils::exp_box(
-        Statement::Return(Box::new(common::Expressions(exps))),
-    ))
+    // retstat ::= return [explist] [‘;’]
+    rule!(retstat, or![
+        and![(utils::terminal(tokens::Keyword::RETURN), expression::Expressions::rule, utils::terminal(tokens::Keyword::SEMICOLONS)) => 
+            |_ret, exp, _semi| utils::some_expression(Statement::Return(exp))],
+        and![(utils::terminal(tokens::Keyword::RETURN), expression::Expressions::rule) => 
+            |_ret, exp| utils::some_expression(Statement::Return(exp))],
+        utils::terminal(tokens::Keyword::RETURN)
+    ]);
 }
 
-fn parse_keyword(lexer: &mut lexer::Lexer) -> ParseResult {
-    log_debug!("Keyword {:?}", lexer);
 
-    let exp: ParseResult = match lexer.head().keyword().unwrap() {
-        tokens::Keyword::SEMICOLONS => Ok(utils::exp_box(common::Noop)),
-        tokens::Keyword::BREAK => Ok(utils::exp_box(Statement::Break)),
-        _ => Err(error::Error::new(lexer.head(), "Unexpected keyword: {:?}")),
-    };
-
-    exp.map(|exp| {
-        lexer.skip(1);
-        exp
-    })
-}
 
 // stat ::=  ‘;’ |
 // varlist ‘=’ explist |
@@ -59,7 +43,7 @@ fn parse_keyword(lexer: &mut lexer::Lexer) -> ParseResult {
 // function funcname funcbody |
 // local function Name funcbody |
 // local namelist [‘=’ explist]
-pub fn parse_statement(lexer: &mut lexer::Lexer) -> ParseResult {
+/*pub fn parse_statement(lexer: &mut lexer::Lexer) -> ParseResult {
     log_debug!("Statement {:?}", lexer);
 
     match lexer.head().token.clone() {
@@ -78,4 +62,4 @@ pub fn parse_statement(lexer: &mut lexer::Lexer) -> ParseResult {
         }
         _ => Err(error::Error::new(lexer.head(), "Unexpected token")),
     }
-}
+}*/

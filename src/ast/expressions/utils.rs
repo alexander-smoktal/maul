@@ -11,7 +11,7 @@ pub fn terminal(keyword: tokens::Keyword) -> impl FnMut(&mut parser::Parser) -> 
         .cloned()
         .and_then(|token|
             if token.keyword() == Some(keyword.clone()) {
-                Some(Box::new(primitives::Noop) as Box<expression::Expression>)
+                Some(Box::new(operators::Noop) as Box<expression::Expression>)
             } else {
                 parser.rollback(parser_pos);
                 None
