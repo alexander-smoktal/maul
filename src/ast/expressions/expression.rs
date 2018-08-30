@@ -1,7 +1,5 @@
 use std::fmt::Debug;
 use std::cmp::{PartialEq, Eq};
-use super::primitives;
-use ast::parser;
 use super::utils;
 pub use std::ops;
 
@@ -34,6 +32,7 @@ pub struct Expressions {
     head: Box<Expression>,
     tail: Option<Box<Expression>>
 }
+impl expression::Expression for Expressions {}
 
 impl Expressions {
     pub fn new(head: Box<Expression>, _comma: Option<Box<Expression>>, tail: Option<Box<Expression>>) -> Option<Box<Expression>> {
@@ -41,11 +40,5 @@ impl Expressions {
             head, 
             tail
         })
-    }
-}
-
-impl expression::Expression for Expressions {
-    fn into_expressions(self: Box<Self>) -> Box<Expressions> {
-        self as Box<Expressions>
     }
 }

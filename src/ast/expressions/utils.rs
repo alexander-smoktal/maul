@@ -1,5 +1,3 @@
-use super::*;
-use ast::parser;
 use ast::expressions::expression;
 
 pub fn some_expression<E: expression::Expression + 'static>(expression: E) -> Option<Box<expression::Expression>> {
