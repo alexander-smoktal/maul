@@ -6,7 +6,7 @@ pub mod labels;
 */
 
 #[macro_use]
-mod utils;
+pub mod utils;
 pub mod blocks;
 pub mod expression;
 pub mod primitives;
@@ -19,5 +19,3 @@ use error;
 use ast::lexer::tokens;
 
 const DEBUG: bool = false;
-
-

@@ -15,15 +15,6 @@ impl expression::Expression for Statement {}
 impl Statement {
     make_keyword_rule![ellipsis, (tokens::Keyword::DOT3, Statement::Ellipsis)];
     make_keyword_rule![breakstat, (tokens::Keyword::BREAK, Statement::Break)];
-
-    // retstat ::= return [explist] [‘;’]
-    rule!(retstat, or![
-        and![(utils::terminal(tokens::Keyword::RETURN), expression::Expressions::rule, utils::terminal(tokens::Keyword::SEMICOLONS)) => 
-            |_ret, exp, _semi| utils::some_expression(Statement::Return(exp))],
-        and![(utils::terminal(tokens::Keyword::RETURN), expression::Expressions::rule) => 
-            |_ret, exp| utils::some_expression(Statement::Return(exp))],
-        utils::terminal(tokens::Keyword::RETURN)
-    ]);
 }
 
 

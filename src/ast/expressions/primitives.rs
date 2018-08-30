@@ -11,7 +11,7 @@ impl expression::Expression for String {}
 
 impl String {
     pub fn rule(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        if let Some(&tokens::Token { token: tokens::TokenType::String(ref string), ..}) = parser.next() {
+        if let Some(&tokens::Token { token: tokens::TokenType::String(ref string), ..}) = parser.peek() {
             utils::some_expression(String(string.clone()))
         } else {
             None
@@ -25,7 +25,7 @@ impl expression::Expression for Number {}
 
 impl Number {
     pub fn rule(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        if let Some(&tokens::Token { token: tokens::TokenType::Number(ref number), ..}) = parser.next() {
+        if let Some(&tokens::Token { token: tokens::TokenType::Number(ref number), ..}) = parser.peek() {
             utils::some_expression(Number(number.clone()))
         } else {
             None

@@ -30,28 +30,18 @@ impl Eq for Box<Expression> {}
 pub type ParseResult = Result<Box<expression::Expression>, error::Error>;
 
 #[derive(Debug)]
-pub struct Expressions(pub Vec<Box<expression::Expression>>);
+pub struct Expressions {
+    head: Box<Expression>,
+    tail: Option<Box<Expression>>
+}
 
 impl Expressions {
-    fn new(left: Box<Expression>, _comma: Box<Expression>, right: Box<Expression>) -> Option<Box<Expression>> {
-        utils::some_expression(Expressions(vec![left, right]))
+    pub fn new(head: Box<Expression>, _comma: Option<Box<Expression>>, tail: Option<Box<Expression>>) -> Option<Box<Expression>> {
+        utils::some_expression(Expressions {
+            head, 
+            tail
+        })
     }
-
-    // explist ::= exp {‘,’ exp}
-    rule!(rule, or![
-        and![(Expressions::exp, utils::terminal(tokens::Keyword::COMMA), Expressions::rule) => Expressions::new],
-        Expressions::exp
-    ]);
-
-    // exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
-    //          prefixexp | tableconstructor | exp binop exp | unop exp
-    rule!(exp, or![
-        primitives::Nil::rule,
-        primitives::Boolean::rule,
-        primitives::Number::rule,
-        primitives::String::rule,
-        statements::Statement::ellipsis
-    ]);
 }
 
 impl expression::Expression for Expressions {
