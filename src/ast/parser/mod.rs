@@ -4,8 +4,6 @@ pub mod rules;
 
 use super::lexer::{Lexer, tokens};
 
-type Position = usize;
-
 #[derive(Debug)]
 pub struct Parser {
     /// Lexer

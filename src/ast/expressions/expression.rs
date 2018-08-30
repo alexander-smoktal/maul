@@ -23,14 +23,10 @@ impl PartialEq for Box<Expression> {
 
 impl Eq for Box<Expression> {}
 
-// prefixexp ::= var | functioncall | ‘(’ exp ‘)’
-
-pub type ParseResult = Result<Box<expression::Expression>, error::Error>;
-
 #[derive(Debug)]
 pub struct Expressions {
-    head: Box<Expression>,
-    tail: Option<Box<Expression>>
+    pub head: Box<Expression>,
+    pub tail: Option<Box<Expression>>
 }
 impl expression::Expression for Expressions {}
 

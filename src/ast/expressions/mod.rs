@@ -12,10 +12,3 @@ pub mod statements;
 pub mod labels;
 pub mod variables;
 pub mod tables;
-
-use std::vec::Vec;
-
-use error;
-use ast::lexer::tokens;
-
-const DEBUG: bool = false;
