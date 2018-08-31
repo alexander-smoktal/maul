@@ -1,10 +1,17 @@
+// TODO: Move this two modules up
 #[macro_use]
 pub mod parse_macros;
-pub mod rules;
+//pub mod rules;
 
 use super::lexer::{Lexer, tokens};
 
 const DEBUG: bool = false;
+
+#[derive(Debug)]
+pub enum Result {
+    Ok,
+    Error(String)
+}
 
 #[derive(Debug)]
 pub struct Parser {
@@ -22,7 +29,6 @@ impl Parser {
         }
     }
 
-    // TODO: Store borrowed positions and trim vector for all prefix token we can't access anymore
     pub fn peek(&mut self) -> Option<&tokens::Token> {
         let result = if let Some(ref token) = self.lookahead_token {
             Some(token)

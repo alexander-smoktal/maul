@@ -3,6 +3,7 @@
 #![feature(box_patterns)]
 
 pub mod utils;
+#[macro_use]
 pub mod ast;
 pub mod error;
 

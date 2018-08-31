@@ -7,8 +7,10 @@ use ast::lexer::tokens::Keyword;
 const DEBUG: bool = false;
 
 /*chunk ::= block
-block ::= {stat} [retstat]
-stat ::=  ‘;’ |
+block ::= {stat} [retstat]*/
+
+
+/*stat ::=  ‘;’ |
         varlist ‘=’ explist |
         functioncall |
         label |

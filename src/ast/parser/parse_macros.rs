@@ -12,20 +12,20 @@ macro_rules! debug_parser {
 #[macro_export]
 macro_rules! or {
     [$($parse_funcs: expr),+] => {
-        |parser: &mut parser::Parser| -> Option<Box<expression::Expression>> {
+        |parser, stack| -> bool {
             $(
-                let result = $parse_funcs(parser);
+                let result = $parse_funcs(parser, stack);
 
-                if result.is_some() {
-                    debug_parser!("Or statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), result, parser);
-                    return result
+                if result {
+                    debug_parser!("Or statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), stack.pick(), parser);
+                    return true
                 } else {
                     debug_parser!("Or statement rule {} didn't accept parser input {:?}", stringify!($parse_funcs), parser);
                 }
             )+;
 
             debug_parser!("Or statement fails");
-            None
+            false
         }
     }
 }
@@ -33,28 +33,20 @@ macro_rules! or {
 #[macro_export]
 macro_rules! and {
     [($($parse_funcs: expr),+) => $nandler_func: expr] => {
-        |parser: &mut parser::Parser| -> Option<Box<expression::Expression>> {
+        |parser, stack| -> bool {
+            $(if $parse_funcs(parser, stack) {
+                debug_parser!("And statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), expression, parser);
+            } else {
+                debug_parser!("And statement rule {} didn't accept parser input {:?}", stringify!($parse_funcs), parser);
+                return None
+            }), +
 
-            let results = ($(match $parse_funcs(parser) {
-                Some(expression) => {
-                    debug_parser!("And statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), expression, parser);
-                    expression
-                }
-                _ => {
-                    debug_parser!("And statement rule {} didn't accept parser input {:?}", stringify!($parse_funcs), parser);
-                    return None
-                }
-            }), +);
-
-            match ops::Fn::call(&$nandler_func, results) {
-                expression @ Some(_) => {
-                    debug_parser!("And handling function {:?} successfully handled expression and returned {:?}", stringify!($nandler_func), expression);
-                    expression
-                }
-                _ => {
-                    debug_parser!("And handling function {:?} failed to process expressions", stringify!($nandler_func));
-                    return None
-                }
+            if $nandler_func(stack) {
+                debug_parser!("And handling function {:?} successfully handled expression and returned {:?}", stringify!($nandler_func), expression);
+                true
+            } else {
+                debug_parser!("And handling function {:?} failed to process expressions", stringify!($nandler_func));
+                false
             }
         }
     };
@@ -63,14 +55,14 @@ macro_rules! and {
 #[macro_export]
 macro_rules! optional {
     ($parse_func:expr) => {
-        |parser: &mut parser::Parser| -> Option<Option<Box<expression::Expression>>> {
-            if let Some(result) = $parse_func(parser) {
+        |parser, stack| -> bool {
+            if $parse_func(parser, stack) {
                 debug_parser!("Optional rule {} parsed parser input {:?}", stringify!($parse_func), result);
-                Some(Some(result))
             } else {
                 debug_parser!("Optional rule {} didn't parse parser input {:?}", stringify!($parse_func), parser);
-                Some(None)
             }
+
+            true
         }
     }
 }
@@ -78,10 +70,10 @@ macro_rules! optional {
 #[macro_export]
 macro_rules! rule {
     ($name: ident, $parse_func:expr) => {
-        pub fn $name(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
+        pub fn $name(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
             debug_parser!("Executing rule {}", stringify!($name));
 
-            $parse_func(parser)
+            $parse_func(parser, stack)
         }
     };
 }
@@ -89,16 +81,18 @@ macro_rules! rule {
 #[macro_export]
 macro_rules! terminal {
     ($keyword: expr) => {
-        |parser: &mut parser::Parser| -> Option<Box<expression::Expression>> {
+        |parser, stack| -> bool {
             if let Some(token) = parser.peek().cloned() {
                 if token.keyword() == Some($keyword) {
                     parser.shift();
-                    Some(Box::new(operators::Noop) as Box<expression::Expression>)
+                    stack.push_single(Box::new(operators::Noop));
+
+                    true
                 } else {
-                    None
+                    false
                 }
             } else {
-                None
+                false
             }
         }
     }
