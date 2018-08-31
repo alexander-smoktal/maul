@@ -4,6 +4,8 @@ pub mod rules;
 
 use super::lexer::{Lexer, tokens};
 
+const DEBUG: bool = false;
+
 #[derive(Debug)]
 pub struct Parser {
     /// Lexer
@@ -22,7 +24,7 @@ impl Parser {
 
     // TODO: Store borrowed positions and trim vector for all prefix token we can't access anymore
     pub fn peek(&mut self) -> Option<&tokens::Token> {
-        if let Some(ref token) = self.lookahead_token {
+        let result = if let Some(ref token) = self.lookahead_token {
             Some(token)
         } else {
             if let Some(token) = self.lexer.next() {
@@ -31,10 +33,15 @@ impl Parser {
             } else {
                 None
             }
-        }
+        };
+
+        debug_parser!("Parser peek {:?}", result);
+        result
     }
 
+    /// Function to shift parset. Must be called only by functions, which consume token
     pub fn shift(&mut self) {
+        debug_parser!("Parser shift {:?}", self.lookahead_token);
         self.lookahead_token = None
     }
 }

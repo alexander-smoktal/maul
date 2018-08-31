@@ -11,6 +11,7 @@ macro_rules! exp {
     ($e: expr) => (Box::new($e) as Box<expression::Expression>);
 }
 
+#[allow(dead_code)]
 pub fn parse_string(source_code: &str) -> Option<Box<expression::Expression>> {
-    expression::Expressions::rule(&mut parser::Parser::new(source_code.to_string()))
+    parser::rules::exp(&mut parser::Parser::new(source_code.to_string()))
 }

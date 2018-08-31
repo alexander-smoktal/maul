@@ -18,7 +18,6 @@ macro_rules! or {
 
                 if result.is_some() {
                     debug_parser!("Or statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), result, parser);
-                    parser.shift();
                     return result
                 } else {
                     debug_parser!("Or statement rule {} didn't accept parser input {:?}", stringify!($parse_funcs), parser);
@@ -39,7 +38,6 @@ macro_rules! and {
             let results = ($(match $parse_funcs(parser) {
                 Some(expression) => {
                     debug_parser!("And statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), expression, parser);
-                    parser.shift();
                     expression
                 }
                 _ => {
@@ -50,11 +48,11 @@ macro_rules! and {
 
             match ops::Fn::call(&$nandler_func, results) {
                 expression @ Some(_) => {
-                    debug_parser!("And handling function successfully handled expression and returned {:?}", expression);
+                    debug_parser!("And handling function {:?} successfully handled expression and returned {:?}", stringify!($nandler_func), expression);
                     expression
                 }
                 _ => {
-                    debug_parser!("And handling function failed to process expressions");
+                    debug_parser!("And handling function {:?} failed to process expressions", stringify!($nandler_func));
                     return None
                 }
             }
@@ -67,8 +65,10 @@ macro_rules! optional {
     ($parse_func:expr) => {
         |parser: &mut parser::Parser| -> Option<Option<Box<expression::Expression>>> {
             if let Some(result) = $parse_func(parser) {
+                debug_parser!("Optional rule {} parsed parser input {:?}", stringify!($parse_func), result);
                 Some(Some(result))
             } else {
+                debug_parser!("Optional rule {} didn't parse parser input {:?}", stringify!($parse_func), parser);
                 Some(None)
             }
         }
