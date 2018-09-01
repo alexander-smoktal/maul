@@ -22,7 +22,7 @@ impl Stack {
         }
     }
 
-    pub fn pick(&self) -> &Element {
+    pub fn peek(&self) -> &Element {
         self.elements.last().unwrap()
     }
 
@@ -70,6 +70,12 @@ impl Stack {
 
     pub fn push_optional(&mut self, expression: Option<Box<expressions::Expression>>) {
         self.elements.push(Element::Optional(expression))
+    }
+}
+
+impl ::std::cmp::PartialEq<&'static str> for Stack {
+    fn eq(&self, other: &&'static str) -> bool {
+        format!("{:?}", self.elements) == other.to_string()
     }
 }
 

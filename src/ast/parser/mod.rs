@@ -1,7 +1,7 @@
 // TODO: Move this two modules up
 #[macro_use]
 pub mod parse_macros;
-//pub mod rules;
+pub mod rules;
 
 use super::lexer::{Lexer, tokens};
 

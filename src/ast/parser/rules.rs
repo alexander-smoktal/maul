@@ -1,10 +1,26 @@
-use std::ops;
-
 use ast::parser;
+use ast::stack;
 use ast::expressions::{primitives, statements, expression, operators, utils, labels, variables, tables};
 use ast::lexer::tokens::Keyword;
 
 const DEBUG: bool = false;
+
+fn ignore(_: &mut stack::Stack) -> bool {
+    true
+}
+
+#[allow(dead_code)]
+fn first(stack: &mut stack::Stack) -> bool {
+    let (_second, first) = stack_unpack!(stack, single, single);
+    stack.push_single(first);
+    true
+}
+
+fn second(stack: &mut stack::Stack) -> bool {
+    let (second, _first) = stack_unpack!(stack, single, single);
+    stack.push_single(second);
+    true
+}
 
 /*chunk ::= block
 block ::= {stat} [retstat]*/
@@ -27,7 +43,7 @@ block ::= {stat} [retstat]*/
         local namelist [‘=’ explist] */
 
 // retstat ::= return [explist] [‘;’]
-rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist), optional!(terminal!(Keyword::SEMICOLONS))) =>
+/*rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist), optional!(terminal!(Keyword::SEMICOLONS))) =>
                     |_, explist, _| utils::some_expression(statements::Statement::Return(explist))]);
 // label ::= ‘::’ Name ‘::’
 rule!(name, and![(terminal!(Keyword::PATH), variables::Id::name, terminal!(Keyword::PATH)) =>
@@ -66,12 +82,18 @@ rule!(var, or![
 
 // namelist ::= Name {‘,’ Name}
 rule!(namelist, and![(variables::Id::name, optional!(terminal!(Keyword::COMMA)), optional!(variables::Id::name)) => variables::Varlist::new]);
-
+*/
 // explist ::= exp {‘,’ exp}
-rule!(explist, and![(exp, optional!(terminal!(Keyword::COMMA)), optional!(explist)) => expression::Expressions::new]);
+rule!(explist, and![(
+    exp, 
+    repetition!(and![(
+        terminal!(Keyword::COMMA),
+        exp) =>
+        second])) => 
+    expression::Expressions::new]);
 
 // exp_suffix ::= binop [exp_suffix]
-rule!(exp_suffix, and![(binop, optional!(exp_suffix)) => |_, _| None]);
+rule!(exp_suffix, and![(binop, optional!(exp)) => ignore]);
 
 // exp_prefix ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
 //        prefixexp | tableconstructor | unop exp !!!!
@@ -80,11 +102,11 @@ rule!(exp_prefix, or![
     primitives::Boolean::rule,
     primitives::Number::rule,
     primitives::String::rule,
-    statements::Statement::ellipsis
+    statements::Statement::ellipsis,
+    unop
 ]);
 // exp ::= exp_prefix [exp_suffix]
-rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => |pref, _| Some(pref)]);
-
+rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
 
 /*
 prefixexp ::= var | functioncall | ‘(’ exp ‘)’
@@ -108,10 +130,6 @@ fieldsep ::= ‘,’ | ‘;’*/
 //        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
 //        ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |
 //        and | or
-rule!(binop, or![terminal!(Keyword::PLUS), terminal!(Keyword::MINUS), terminal!(Keyword::MUL), terminal!(Keyword::DIV),
-    terminal!(Keyword::POW), terminal!(Keyword::MOD), terminal!(Keyword::AND), terminal!(Keyword::TILDA),
-    terminal!(Keyword::OR), terminal!(Keyword::SHRIGHT), terminal!(Keyword::SHLEFT), terminal!(Keyword::DOT2), terminal!(Keyword::LESS),
-    terminal!(Keyword::LEQ), terminal!(Keyword::GREATER), terminal!(Keyword::GEQ), terminal!(Keyword::EQ), terminal!(Keyword::NEQ),
-    terminal!(Keyword::AND), terminal!(Keyword::OR)]);
-// unop ::= ‘-’ | not | ‘#’ | ‘~’*/
-rule!(unop, or![terminal!(Keyword::MINUS), terminal!(Keyword::NOT), terminal!(Keyword::HASH), terminal!(Keyword::TILDA)]);
+rule!(binop, operators::Binop::rule);
+// unop ::= ‘-’ | not | ‘#’ | ‘~’
+rule!(unop, operators::Unop::rule);

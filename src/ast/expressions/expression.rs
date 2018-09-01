@@ -1,23 +1,21 @@
-use super::utils;
 pub use std::ops;
+use std::collections::VecDeque;
 
-use super::*;
+use ast::stack;
 
 // TODO: Remove this
 pub use super::Expression as Expression;
 
 #[derive(Debug)]
-pub struct Expressions {
-    pub head: Box<Expression>,
-    pub tail: Option<Box<Expression>>
-}
-impl expression::Expression for Expressions {}
+pub struct Expressions(VecDeque<Box<Expression>>);
+impl Expression for Expressions {}
 
 impl Expressions {
-    pub fn new(head: Box<Expression>, _comma: Option<Box<Expression>>, tail: Option<Box<Expression>>) -> Option<Box<Expression>> {
-        utils::some_expression(Expressions {
-            head,
-            tail
-        })
+    pub fn new(stack: &mut stack::Stack) -> bool {
+        let (mut tail, head) = stack_unpack!(stack, repetition, single);
+        tail.push_front(head);
+
+        stack.push_single(Box::new(Expressions(tail)));
+        true
     }
 }

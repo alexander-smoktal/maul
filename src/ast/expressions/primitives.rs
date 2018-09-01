@@ -1,7 +1,7 @@
 use super::expression;
-use super::utils;
 use ast::lexer::tokens;
 use ast::parser;
+use ast::stack;
 
 use std::string::String as StdString;
 
@@ -10,11 +10,13 @@ pub struct String(pub StdString);
 impl expression::Expression for String {}
 
 impl String {
-    pub fn rule(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        if let Some(&tokens::Token { token: tokens::TokenType::String(ref string), ..}) = parser.peek() {
-            utils::some_expression(String(string.clone()))
+    pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
+        if let Some(tokens::Token { token: tokens::TokenType::String(string), ..}) = parser.peek().cloned() {
+            parser.shift();
+            stack.push_single(Box::new(String(string)));
+            true
         } else {
-            None
+            false
         }
     }
 }
@@ -24,11 +26,13 @@ pub struct Number(pub f64);
 impl expression::Expression for Number {}
 
 impl Number {
-    pub fn rule(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        if let Some(&tokens::Token { token: tokens::TokenType::Number(ref number), ..}) = parser.peek() {
-            utils::some_expression(Number(number.clone()))
+    pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
+        if let Some(tokens::Token { token: tokens::TokenType::Number(number), ..}) = parser.peek().cloned() {
+            parser.shift();
+            stack.push_single(Box::new(Number(number)));
+            true
         } else {
-            None
+            false
         }
     }
 }

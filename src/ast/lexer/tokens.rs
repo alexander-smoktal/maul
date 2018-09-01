@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 #[allow(dead_code)]
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Hash)]
 pub enum Keyword {
     AND,
     BREAK,

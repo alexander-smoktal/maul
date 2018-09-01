@@ -15,5 +15,5 @@ fn test_stack_unpack() {
     let (optional, repetition, single) = stack_unpack!(stack, optional, repetition, single);
     println!("{:?}, {:?}, {:?}", single, repetition, optional);
 
-    assert!(false);
+    assert_eq!(format!("{:?}, {:?}, {:?}", single, repetition, optional), "Nil, [Nil, Nil], Some(Nil)"); 
 }

@@ -8,13 +8,14 @@ pub fn some_expression<E: expression::Expression + 'static>(expression: E) -> Op
 #[macro_export]
 macro_rules! make_keyword_rule {
     [$fn_name: ident, $(($keyword: pat, $output: expr)),+] => {
-        pub fn $fn_name(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
+        pub fn $fn_name(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
             match parser.peek().cloned() {
                 $(Some(tokens::Token { token: tokens::TokenType::Keyword($keyword), ..}) => {
                     parser.shift();
-                    utils::some_expression($output)
+                    stack.push_single(Box::new($output));
+                    true
                 })+,
-                _ => None
+                _ => false
             }
         }
     };

@@ -1,75 +1,38 @@
-//use ast::lexer::tokens;
-use ast::expressions::*;
-//use ast::expressions::statements::*;
-
-use super::utils::*;
+use ast::parser::rules;
+use super::utils::parse_string;
 
 #[test]
 fn test_exp_terminals() {
-    assert_eq!(parse_string("nil"), sexp!(primitives::Nil));
-    assert_eq!(parse_string("false"), sexp!(primitives::Boolean(false)));
-    assert_eq!(parse_string("true"), sexp!(primitives::Boolean(true)));
-    //assert_eq!(parse_string("..."), sexp!(Statement::Ellipsis));
-    assert_eq!(parse_string("42.42"),sexp!(primitives::Number(42.42f64)));
-    assert_eq!(parse_string(r#""Hello""#), sexp!(primitives::String("Hello".to_string())));
+    assert_eq!(parse_string("nil", rules::exp), "[Single(Nil)]");
+    assert_eq!(parse_string("false", rules::exp), "[Single(Boolean(false))]");
+    assert_eq!(parse_string("true", rules::exp), "[Single(Boolean(true))]");
+    assert_eq!(parse_string("...", rules::exp), "[Single(Ellipsis)]");
+    assert_eq!(parse_string("42.42", rules::exp), "[Single(Number(42.42))]");
+    assert_eq!(parse_string(r#""Hello""#, rules::exp), r#"[Single(String("Hello"))]"#);
 }
-
-
+    
 #[test]
-fn test_multiple_expressions() {
-    assert_eq!(parse_string("nil, false"), sexp!(expression::Expressions(vec![
-        exp!(primitives::Nil),
-        exp!(primitives::Boolean(false))
-    ])));
-
-    assert_eq!(parse_string("nil, false, 42"), sexp!(expression::Expressions(vec![
-        exp!(primitives::Nil),
-        exp!(expression::Expressions(vec![
-            exp!(primitives::Boolean(false)),
-            exp!(primitives::Number(42f64))]))
-    ])));
-}
-/*
-#[test]
-fn test_exp_binop() {
-    assert_eq!(
-        parse_exp(&mut make_lexer("1 + 3")),
-        Ok(exp!(operators::Binop(
-            tokens::Keyword::PLUS,
-            exp!(primitives::Number(1f64)),
-            exp!(primitives::Number(3f64)),
-        )))
-    );
-
-    assert_eq!(
-        parse_exp(&mut make_lexer("1.1 ~= 7")),
-        Ok(exp!(operators::Binop(
-            tokens::Keyword::NEQ,
-            exp!(primitives::Number(1.1f64)),
-            exp!(primitives::Number(7f64)),
-        )))
-    );
+fn test_explist() {
+    assert_eq!(parse_string("nil, false", rules::explist), "[Single(Expressions([Nil, Boolean(false)]))]");
+    assert_eq!(parse_string("nil, false, 42", rules::explist), "[Single(Expressions([Nil, Boolean(false), Number(42)]))]");
 }
 
 #[test]
 fn test_exp_unop() {
-    assert_eq!(
-        parse_exp(&mut make_lexer("-3")),
-        Ok(exp!(operators::Unop(
-            tokens::Keyword::MINUS,
-            exp!(primitives::Number(3f64)),
-        )))
-    );
-
-    assert_eq!(
-        parse_exp(&mut make_lexer("#7")),
-        Ok(exp!(operators::Unop(
-            tokens::Keyword::HASH,
-            exp!(primitives::Number(7f64)),
-        )))
-    );
+    assert_eq!(parse_string("-3", rules::exp), "[Single(Unop(MINUS, Number(3)))]");
+    assert_eq!(parse_string("#7", rules::exp), "[Single(Unop(HASH, Number(7)))]");
+    assert_eq!(parse_string("~false", rules::exp), "[Single(Unop(TILDA, Boolean(false)))]");
 }
 
+
+#[test]
+fn test_exp_binop() {
+    assert_eq!(parse_string("1 - 3", rules::exp), "[Single(Binop(MINUS, Number(1), Number(3)))]");
+    assert_eq!(parse_string("1 - 3 + 4", rules::exp), "[Single(Binop(MINUS, Number(1), Binop(PLUS, Number(3), Number(4))))]");
+    assert_eq!(parse_string("-1 - -3", rules::exp), "[Single(Binop(MINUS, Unop(MINUS, Number(1)), Unop(MINUS, Number(3))))]");
+}
+
+/*
 #[test]
 fn test_exp_prefix() {
     assert_eq!(
