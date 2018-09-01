@@ -1,3 +1,12 @@
+#[macro_export]
+macro_rules! debug_parser {
+    ($($params: expr), +) => {
+        if DEBUG {
+            println!($($params,) +);
+        }
+    };
+}
+
 pub mod lexer;
 #[macro_use]
 pub mod stack;

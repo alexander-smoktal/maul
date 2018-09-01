@@ -43,11 +43,15 @@ block ::= {stat} [retstat]*/
         local namelist [‘=’ explist] */
 
 // retstat ::= return [explist] [‘;’]
-/*rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist), optional!(terminal!(Keyword::SEMICOLONS))) =>
-                    |_, explist, _| utils::some_expression(statements::Statement::Return(explist))]);
+rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), optional!(terminal!(Keyword::SEMICOLONS), nil)) => 
+                    |stack: &mut stack::Stack| {
+                        let (_semi, explist, _ret) = stack_unpack!(stack, optional, optional, single);
+                        stack.push_single(Box::new(statements::Statement::Return(explist)))
+                    }]);
+
 // label ::= ‘::’ Name ‘::’
-rule!(name, and![(terminal!(Keyword::PATH), variables::Id::name, terminal!(Keyword::PATH)) =>
-                 |_, name, _| utils::some_expression(labels::Label(name))]);
+rule!(label, and![(terminal!(Keyword::PATH), variables::Id::rule, terminal!(Keyword::PATH)) => labels::Label::new]);
+                /*
 /*funcname ::= Name {‘.’ Name} [‘:’ Name]*/
 // varlist ::= var {‘,’ var}
 rule!(varlist, and![(var, optional!(terminal!(Keyword::COMMA)), optional!(varlist)) => variables::Varlist::new]);

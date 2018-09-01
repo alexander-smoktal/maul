@@ -1,17 +1,20 @@
 use super::*;
+use ast::stack;
 use ast::parser;
+use ast::lexer::tokens;
 
 #[derive(Debug, Clone)]
 pub struct Id(pub String);
 impl expression::Expression for Id {}
 
 impl Id {
-    pub fn name(parser: &mut parser::Parser) -> Option<Box<expression::Expression>> {
-        if let Some(name) = parser.peek().and_then(|token| token.id()).map(|string| Box::new(Id(string)) as Box<expression::Expression>) {
+    pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
+        if let Some(tokens::Token { token: tokens::TokenType::Id(string), ..}) = parser.peek().cloned() {
             parser.shift();
-            Some(name)
+            stack.push_single(Box::new(Id(string)));
+            true
         } else {
-            None
+            false
         }
     }
 }

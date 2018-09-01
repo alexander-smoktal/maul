@@ -1,24 +1,18 @@
-use ast::expressions::*;
-use ast::expressions::statements::*;
-
-use super::utils::make_lexer;
-
-#[test]
+use super::utils::parse_string;
+use ast::parser::rules;
+/*#[test]
 fn test_simple_statement() {
     assert_eq!(
         parse_statement(&mut make_lexer("break;")),
         Ok(exp!(Statement::Break))
     )
-}
+}*/
 
 #[test]
 fn test_return_statement() {
-    assert_eq!(
-        parse_return_statement(&mut make_lexer("return nil, false, true;")),
-        Ok(exp!(Statement::Return(exp!(common::Expressions(vec![
-            exp!(primitives::Nil),
-            exp!(primitives::Boolean(false)),
-            exp!(primitives::Boolean(true)),
-        ])))))
-    )
+    assert_eq!(parse_string("return nil, false, 42;", rules::retstat), 
+        "[Single(Return(Some(Expressions([Nil, Boolean(false), Number(42)]))))]");
+
+    assert_eq!(parse_string("return;", rules::retstat), 
+        "[Single(Return(None))]");
 }

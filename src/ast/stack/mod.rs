@@ -3,6 +3,8 @@ use std::iter::{IntoIterator, FromIterator};
 
 use ast::expressions;
 
+const DEBUG: bool = true;
+
 #[derive(Debug)]
 pub enum Element {
     Single(Box<expressions::Expression>),
@@ -32,7 +34,10 @@ impl Stack {
         }
 
         match self.elements.pop().unwrap() {
-            Element::Single(expression) => expression,
+            Element::Single(expression) => {
+                debug_parser!("Stack pop: {:?}", expression);
+                expression
+            },
             element => panic!(format!("Expected single element on stack. Got {:?}", element))
         }
     }
@@ -43,7 +48,10 @@ impl Stack {
         }
 
         match self.elements.pop().unwrap() {
-            Element::Repetition(expressions) => expressions,
+            Element::Repetition(expressions) => {
+                debug_parser!("Stack pop: {:?}", expressions);
+                expressions
+            },
             element => panic!(format!("Expected repetition vector on stack. Got {:?}", element))
         }
     }
@@ -54,22 +62,28 @@ impl Stack {
         }
 
         match self.elements.pop().unwrap() {
-            Element::Optional(expression) => expression,
+            Element::Optional(expression) => {
+                debug_parser!("Stack pop: {:?}", expression);
+                expression
+            },
             element => panic!(format!("Expected optional element on stack. Got {:?}", element))
         }
     }
 
     pub fn push_single(&mut self, expression: Box<expressions::Expression>) {
-        self.elements.push(Element::Single(expression))
+        self.elements.push(Element::Single(expression));
+        debug_parser!("Stack push: {:?}", self.peek())
     }
 
     pub fn push_repetition<I>(&mut self, expressions: I)
         where I: IntoIterator <Item = Box<expressions::Expression>, IntoIter = ::std::vec::IntoIter<Box<expressions::Expression>>> {
-        self.elements.push(Element::Repetition(VecDeque::from_iter(expressions)))
+        self.elements.push(Element::Repetition(VecDeque::from_iter(expressions)));
+        debug_parser!("Stack push: {:?}", self.peek())
     }
 
     pub fn push_optional(&mut self, expression: Option<Box<expressions::Expression>>) {
-        self.elements.push(Element::Optional(expression))
+        self.elements.push(Element::Optional(expression));
+        debug_parser!("Stack push: {:?}", self.peek())
     }
 }
 

@@ -1,15 +1,6 @@
 //trace_macros!(true);
 
 #[macro_export]
-macro_rules! debug_parser {
-    ($($params: expr), +) => {
-        if DEBUG {
-            println!($($params,) +);
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! or {
     [$($parse_funcs: expr),+] => {
         |parser: &mut parser::Parser, stack: &mut stack::Stack| -> bool {
@@ -34,28 +25,50 @@ macro_rules! or {
 macro_rules! and {
     [($($parse_funcs: expr),+) => $nandler_func: expr] => {
         |parser: &mut parser::Parser, stack: &mut stack::Stack| -> bool {
+            let mut entered = false; // If we already accepted first token
+
             ($(if $parse_funcs(parser, stack) {
+                entered = true;
                 debug_parser!("And statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), stack.peek(), parser);
             } else {
+                if entered {
+                    panic!("TODO: Custom error message. Unexpected token: {:?}", parser.peek());
+                }
+
                 debug_parser!("And statement rule {} didn't accept parser input {:?}", stringify!($parse_funcs), parser);
                 return false
             }), +);
 
-            if $nandler_func(stack) {
-                debug_parser!("And handling function {:?} successfully handled expression and returned {:?}",
-                    stringify!($nandler_func),
-                    stack.peek());
-                true
-            } else {
-                debug_parser!("And handling function {:?} failed to process expressions", stringify!($nandler_func));
-                false
-            }
+            let _ = entered; // To suppress unused boolean
+            $nandler_func(stack);
+            debug_parser!("And handling function {:?} successfully handled expression and returned {:?}",
+                stringify!($nandler_func),
+                stack.peek());
+
+            true
         }
     };
 }
 
+/// Macro has two modifications:
+/// - optional!(rule) If we don't care about optional value (i.e. when optional expression handles it's head);
+/// - optional!(rule, nil) If we want to know if optional rule pushed expression on stack (we handle set of expressions manually)
 #[macro_export]
 macro_rules! optional {
+    ($parse_func:expr, nil) => {
+        |parser: &mut parser::Parser, stack: &mut stack::Stack| -> bool {
+            if $parse_func(parser, stack) {
+                let expression = Some(stack.pop_single());
+                stack.push_optional(expression);
+                debug_parser!("Optional rule {} parsed parser input {:?}", stringify!($parse_func), stack.peek());
+            } else {
+                stack.push_optional(None);
+                debug_parser!("Optional rule {} didn't parse parser input {:?}", stringify!($parse_func), parser);
+            }
+
+            true
+        }
+    };
     ($parse_func:expr) => {
         |parser: &mut parser::Parser, stack: &mut stack::Stack| -> bool {
             if $parse_func(parser, stack) {
