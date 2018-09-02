@@ -14,22 +14,22 @@ fn test_exp_terminals() {
 #[test]
 fn test_explist() {
     assert_eq!(parse_string("nil, false", rules::explist), "[Single(Expressions([Nil, Boolean(false)]))]");
-    assert_eq!(parse_string("nil, false, 42", rules::explist), "[Single(Expressions([Nil, Boolean(false), Number(42)]))]");
+    assert_eq!(parse_string("nil, false, 42", rules::explist), "[Single(Expressions([Nil, Boolean(false), Number(42.0)]))]");
 }
 
 #[test]
 fn test_exp_unop() {
-    assert_eq!(parse_string("-3", rules::exp), "[Single(Unop(MINUS, Number(3)))]");
-    assert_eq!(parse_string("#7", rules::exp), "[Single(Unop(HASH, Number(7)))]");
+    assert_eq!(parse_string("-3", rules::exp), "[Single(Unop(MINUS, Number(3.0)))]");
+    assert_eq!(parse_string("#7", rules::exp), "[Single(Unop(HASH, Number(7.0)))]");
     assert_eq!(parse_string("~false", rules::exp), "[Single(Unop(TILDA, Boolean(false)))]");
 }
 
 
 #[test]
 fn test_exp_binop() {
-    assert_eq!(parse_string("1 - 3", rules::exp), "[Single(Binop(MINUS, Number(1), Number(3)))]");
-    assert_eq!(parse_string("1 - 3 + 4", rules::exp), "[Single(Binop(MINUS, Number(1), Binop(PLUS, Number(3), Number(4))))]");
-    assert_eq!(parse_string("-1 - -3", rules::exp), "[Single(Binop(MINUS, Unop(MINUS, Number(1)), Unop(MINUS, Number(3))))]");
+    assert_eq!(parse_string("1 - 3", rules::exp), "[Single(Binop(MINUS, Number(1.0), Number(3.0)))]");
+    assert_eq!(parse_string("1 - 3 + 4", rules::exp), "[Single(Binop(MINUS, Number(1.0), Binop(PLUS, Number(3.0), Number(4.0))))]");
+    assert_eq!(parse_string("-1 - -3", rules::exp), "[Single(Binop(MINUS, Unop(MINUS, Number(1.0)), Unop(MINUS, Number(3.0))))]");
 }
 
 /*
