@@ -1,4 +1,4 @@
-use ast::parser::rules;
+use ast::rules;
 use super::utils::parse_string;
 
 #[test]
@@ -10,7 +10,7 @@ fn test_exp_terminals() {
     assert_eq!(parse_string("42.42", rules::exp), "[Single(Number(42.42))]");
     assert_eq!(parse_string(r#""Hello""#, rules::exp), r#"[Single(String("Hello"))]"#);
 }
-    
+
 #[test]
 fn test_explist() {
     assert_eq!(parse_string("nil, false", rules::explist), "[Single(Expressions([Nil, Boolean(false)]))]");

@@ -1,9 +1,9 @@
-use super::expression;
+use ast::expressions;
 use ast::stack;
 
 #[derive(Debug)]
-pub struct Label(pub Box<expression::Expression>);
-impl expression::Expression for Label {}
+pub struct Label(pub Box<expressions::Expression>);
+impl expressions::Expression for Label {}
 
 impl Label {
     pub fn new(stack: &mut stack::Stack) {
@@ -13,5 +13,5 @@ impl Label {
 }
 
 #[derive(Debug)]
-pub struct Goto(pub Box<expression::Expression>);
-impl expression::Expression for Goto {}
+pub struct Goto(pub Box<expressions::Expression>);
+impl expressions::Expression for Goto {}

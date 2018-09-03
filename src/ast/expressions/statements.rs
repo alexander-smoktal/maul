@@ -1,15 +1,15 @@
 use ast::parser;
 use ast::stack;
 use ast::lexer::tokens;
-use ast::expressions::*;
+use ast::expressions;
 
 #[derive(Debug)]
 pub enum Statement {
     Break,
     Ellipsis,
-    Return(Option<Box<expression::Expression>>),
+    Return(Option<Box<expressions::Expression>>),
 }
-impl expression::Expression for Statement {}
+impl expressions::Expression for Statement {}
 
 impl Statement {
     make_keyword_rule![ellipsis, (tokens::Keyword::DOT3, Statement::Ellipsis)];

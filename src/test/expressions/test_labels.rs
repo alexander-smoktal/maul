@@ -1,5 +1,5 @@
 use super::utils::parse_string;
-use ast::parser::rules;
+use ast::rules;
 
 #[test]
 fn test_label() {

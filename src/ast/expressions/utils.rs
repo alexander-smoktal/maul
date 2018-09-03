@@ -1,6 +1,6 @@
-use ast::expressions::expression;
+use ast::expressions;
 
-pub fn some_expression<E: expression::Expression + 'static>(expression: E) -> Option<Box<expression::Expression>> {
+pub fn some_expression<E: expressions::Expression + 'static>(expression: E) -> Option<Box<expressions::Expression>> {
     log_debug!("Made expression: {:?}", expression);
     Some(Box::new(expression))
 }

@@ -1,14 +1,12 @@
 pub use std::ops;
 use std::collections::VecDeque;
 
+use ast::expressions;
 use ast::stack;
 
-// TODO: Remove this
-pub use super::Expression as Expression;
-
 #[derive(Debug)]
-pub struct Expressions(VecDeque<Box<Expression>>);
-impl Expression for Expressions {}
+pub struct Expressions(VecDeque<Box<expressions::Expression>>);
+impl expressions::Expression for Expressions {}
 
 impl Expressions {
     pub fn new(stack: &mut stack::Stack) {

@@ -1,36 +1,36 @@
-use super::*;
+use ast::expressions;
 
 #[derive(Debug)]
-pub struct DoBlock(pub Box<expression::Expression>);
-impl expression::Expression for DoBlock {}
+pub struct DoBlock(pub Box<expressions::Expression>);
+impl expressions::Expression for DoBlock {}
 
 #[derive(Debug)]
 pub struct WhileBlock {
-    pub condition: Box<expression::Expression>,
-    pub block: Box<expression::Expression>,
+    pub condition: Box<expressions::Expression>,
+    pub block: Box<expressions::Expression>,
 }
-impl expression::Expression for WhileBlock {}
+impl expressions::Expression for WhileBlock {}
 
 #[derive(Debug)]
 pub struct RepeatBlock {
-    pub block: Box<expression::Expression>,
-    pub condition: Box<expression::Expression>,
+    pub block: Box<expressions::Expression>,
+    pub condition: Box<expressions::Expression>,
 }
-impl expression::Expression for RepeatBlock {}
+impl expressions::Expression for RepeatBlock {}
 
 // We could make typedef for 'while' and 'repeat', but can't implement trait for type
 #[derive(Debug)]
 pub struct Condition {
-    pub condition: Box<expression::Expression>,
-    pub block: Box<expression::Expression>,
+    pub condition: Box<expressions::Expression>,
+    pub block: Box<expressions::Expression>,
 }
 
 #[derive(Debug)]
 pub struct IfBlock {
     pub conditions: Vec<Condition>,
-    pub elseblock: Option<Box<expression::Expression>>,
+    pub elseblock: Option<Box<expressions::Expression>>,
 }
-impl expression::Expression for IfBlock {}
+impl expressions::Expression for IfBlock {}
 
 // block ::= {stat} [retstat]
 

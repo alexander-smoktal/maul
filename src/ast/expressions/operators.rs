@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use super::*;
+use ast::expressions;
 use ast::parser;
 use ast::stack;
-use ast::parser::rules;
+use ast::rules;
 use ast::lexer::tokens;
 
 // binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
@@ -13,14 +13,14 @@ use ast::lexer::tokens;
 #[derive(Debug)]
 pub struct Binop(
     pub tokens::Keyword,
-    pub Box<expression::Expression>,
-    pub Box<expression::Expression>
+    pub Box<expressions::Expression>,
+    pub Box<expressions::Expression>
 );
-impl expression::Expression for Binop {}
+impl expressions::Expression for Binop {}
 
 impl Binop {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
-        let terminals: HashSet<tokens::Keyword> = 
+        let terminals: HashSet<tokens::Keyword> =
             vec![tokens::Keyword::PLUS, tokens::Keyword::MINUS, tokens::Keyword::MUL, tokens::Keyword::DIV,
             tokens::Keyword::POW, tokens::Keyword::MOD, tokens::Keyword::AND, tokens::Keyword::TILDA,
             tokens::Keyword::OR, tokens::Keyword::SHRIGHT, tokens::Keyword::SHLEFT, tokens::Keyword::DOT2, tokens::Keyword::LESS,
@@ -53,12 +53,12 @@ impl Binop {
 
 // unop ::= ‘-’ | not | ‘#’ | ‘~’
 #[derive(Debug)]
-pub struct Unop(pub tokens::Keyword, pub Box<expression::Expression>);
-impl expression::Expression for Unop {}
+pub struct Unop(pub tokens::Keyword, pub Box<expressions::Expression>);
+impl expressions::Expression for Unop {}
 
 impl Unop {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
-        let terminals: HashSet<tokens::Keyword> = 
+        let terminals: HashSet<tokens::Keyword> =
             vec![tokens::Keyword::MINUS, tokens::Keyword::NOT,
             tokens::Keyword::HASH, tokens::Keyword::TILDA].into_iter().collect();
 
@@ -68,7 +68,7 @@ impl Unop {
                 if !terminals.contains(&keyword) {
                     return false
                 }
-                
+
                 parser.shift();
 
                 if rules::exp_prefix(parser, stack) {
@@ -88,7 +88,7 @@ impl Unop {
 
 #[derive(Debug)]
 pub struct Noop;
-impl expression::Expression for Noop {}
+impl expressions::Expression for Noop {}
 
 impl Noop {
     make_keyword_rule![semi, (tokens::Keyword::SEMICOLONS, Noop)];
