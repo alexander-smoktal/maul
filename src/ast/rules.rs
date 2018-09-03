@@ -59,7 +59,9 @@ rule!(stat, or![
 ]);
 
 // retstat ::= return [explist] [‘;’]
-rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), optional!(terminal!(Keyword::SEMICOLONS), nil)) =>
+rule!(retstat, and![(terminal!(Keyword::RETURN),
+                    optional!(and![(explist) => expression::Expressions::new], nil), 
+                    optional!(terminal!(Keyword::SEMICOLONS), nil)) =>
                     |stack: &mut stack::Stack| {
                         let (_semi, explist, _ret) = stack_unpack!(stack, optional, optional, single);
                         stack.push_single(Box::new(statements::Statement::Return(explist)))
@@ -134,7 +136,7 @@ rule!(explist, and![(
         terminal!(Keyword::COMMA),
         exp) =>
         second])) =>
-    expression::Expressions::new]);
+    prepend_vector_prefix]);
 
 // exp_suffix ::= binop [exp_suffix]
 rule!(exp_suffix, and![(binop, optional!(exp)) => ignore]);

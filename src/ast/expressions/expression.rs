@@ -10,8 +10,7 @@ impl expressions::Expression for Expressions {}
 
 impl Expressions {
     pub fn new(stack: &mut stack::Stack) {
-        let (mut tail, head) = stack_unpack!(stack, repetition, single);
-        tail.push_front(head);
+        let tail = stack.pop_repetition();
 
         stack.push_single(Box::new(Expressions(tail)));
     }

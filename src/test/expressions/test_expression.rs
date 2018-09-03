@@ -13,8 +13,8 @@ fn test_exp_terminals() {
 
 #[test]
 fn test_explist() {
-    assert_eq!(parse_string("nil, false", rules::explist), "[Single(Expressions([Nil, Boolean(false)]))]");
-    assert_eq!(parse_string("nil, false, 42", rules::explist), "[Single(Expressions([Nil, Boolean(false), Number(42.0)]))]");
+    assert_eq!(parse_string("nil, false", rules::explist), "[Repetition([Nil, Boolean(false)])]");
+    assert_eq!(parse_string("nil, false, 42", rules::explist), "[Repetition([Nil, Boolean(false), Number(42.0)])]");
 }
 
 #[test]
