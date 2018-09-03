@@ -89,7 +89,7 @@ functioncall_suffix1 ::= args [functioncall_suffix1] | ‘:’ Name args [functi
 functioncall_suffix2 ::= var_suffix functioncall_suffix1 [functioncall_suffix2] -- resolved to var
 functioncall_suffix3 ::= functioncall_suffix1 [functioncall_suffix2]
 functioncall_suffix4 ::= var_suffix functioncall_suffix3 | functioncall_suffix3 -- either var expression or prefixexp expression
-functioncall ::= Name [opt_var_suffix] functioncall_suffix3 |                   -- var ID
+functioncall ::= Name [var_suffix] functioncall_suffix3 |                   -- var ID
         ‘(’ exp ‘)’ functioncall_suffix4
 args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString 
 functiondef ::= function funcbody

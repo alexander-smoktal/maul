@@ -154,17 +154,51 @@ rule!(exp_prefix, or![
 // exp ::= exp_prefix [exp_suffix]
 rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
 
-/*
-prefixexp ::= var | functioncall | ‘(’ exp ‘)’
--- This one is terrible. To resolve 3-way recursion (prefixexp, var, functioncall), we need this set of rules
-functioncall_suffix1 ::= args [functioncall_suffix1] | ‘:’ Name args [functioncall_suffix1]
-functioncall_suffix2 ::= var_suffix functioncall_suffix1 [functioncall_suffix2] -- resolved to var
-functioncall_suffix3 ::= functioncall_suffix1 [functioncall_suffix2]
-functioncall_suffix4 ::= var_suffix functioncall_suffix3 | functioncall_suffix3 -- either var expression or prefixexp expression
-functioncall ::= Name [opt_var_suffix] functioncall_suffix3 |                   -- var ID
-        ‘(’ exp ‘)’ functioncall_suffix4
-args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
-functiondef ::= function funcbody
+//prefixexp ::= var | functioncall | ‘(’ exp ‘)’
+// -- This one is terrible. To resolve 3-way recursion (prefixexp, var, functioncall), we need this set of rules
+// functioncall_suffix1 ::= args [functioncall_suffix1] | ‘:’ Name args [functioncall_suffix1]
+rule!(functioncall_suffix1, or![
+    and![(
+        and![(args) => function::Funcall::new], 
+        optional!(functioncall_suffix1)) => ignore],
+    and![(
+        and![(terminal!(Keyword::COLONS), variables::Id::rule, args) => function::Funcall::new_self], 
+        optional!(functioncall_suffix1)) => ignore]
+]);
+
+// functioncall_suffix2 ::= var_suffix functioncall_suffix1 [functioncall_suffix2] -- resolved to var
+rule!(functioncall_suffix2, and![(var_suffix, functioncall_suffix1, optional!(functioncall_suffix2)) => ignore]);
+
+// functioncall_suffix3 ::= functioncall_suffix1 [functioncall_suffix2]
+rule!(functioncall_suffix3, and![(functioncall_suffix1, optional!(functioncall_suffix2)) => ignore]);
+
+// functioncall_suffix4 ::= var_suffix functioncall_suffix3 | functioncall_suffix3 -- either var expression or prefixexp expression
+rule!(functioncall_suffix4, or![
+    and![(var_suffix, functioncall_suffix3) => ignore],
+    functioncall_suffix3
+]);
+
+// functioncall ::= Name [var_suffix] functioncall_suffix3 |                   -- var ID
+//        ‘(’ exp ‘)’ functioncall_suffix4
+rule!(functioncall, or![
+    and![(variables::Id::rule, optional!(var_suffix), functioncall_suffix3) => ignore],
+    and![(
+        and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
+            |stack: &mut stack::Stack| {
+                // Remove braces from stack
+                let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
+                stack.push_single(expression)
+            }],
+        functioncall_suffix4) => ignore]
+]);
+
+// args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
+rule!(args, or![
+    and![(terminal!(Keyword::LBRACE), optional!(explist), terminal!(Keyword::RBRACE)) => function::Funcall::new_args],
+    primitives::String::rule
+]);
+
+/*functiondef ::= function funcbody
 funcbody ::= ‘(’ [parlist] ‘)’ block end
 parlist ::= namelist [‘,’ ‘...’] | ‘...’
 tableconstructor ::= ‘{’ [fieldlist] ‘}’
