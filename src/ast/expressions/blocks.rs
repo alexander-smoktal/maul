@@ -1,4 +1,24 @@
+use std::collections::VecDeque;
+
 use ast::expressions;
+use ast::stack;
+
+#[derive(Debug)]
+pub struct Block {
+    statements: VecDeque<Box<expressions::Expression>>,
+    ret: Box<expressions::Expression>
+}
+impl expressions::Expression for Block {}
+impl Block {
+    pub fn new(stack: &mut stack::Stack) {
+        let (ret, statements) = stack_unpack!(stack, single, repetition);
+
+        stack.push_single(Box::new(Block {
+            statements,
+            ret
+        }));
+    }
+}
 
 #[derive(Debug)]
 pub struct DoBlock(pub Box<expressions::Expression>);
@@ -31,16 +51,3 @@ pub struct IfBlock {
     pub elseblock: Option<Box<expressions::Expression>>,
 }
 impl expressions::Expression for IfBlock {}
-
-// block ::= {stat} [retstat]
-
-
-// do block end
-
-
-// while exp do block end
-
-
-// repeat block until exp
-
-// if exp then block {elseif exp then block} [else block] end |

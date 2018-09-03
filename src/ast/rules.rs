@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use ast::parser;
 use ast::stack;
-use ast::expressions::{primitives, statements, expression, operators, labels, variables, tables};
+use ast::expressions::*;
 use ast::lexer::tokens::Keyword;
 
 const DEBUG: bool = false;
@@ -30,9 +30,11 @@ fn prepend_vector_prefix(stack: &mut stack::Stack) {
     stack.push_repetition(tail);
 }
 
-/*chunk ::= block
-block ::= {stat} [retstat]*/
+// chunk ::= block
+rule!(chunk, block);
 
+//block ::= {stat} [retstat]
+rule!(block, and![(repetition!(stat), retstat) => blocks::Block::new]);
 
 /*stat ::=  ‘;’ |
         varlist ‘=’ explist |
@@ -48,7 +50,13 @@ block ::= {stat} [retstat]*/
         for namelist in explist do block end |
         function funcname funcbody |
         local function Name funcbody |
-        local namelist [‘=’ explist] */
+        local namelist [‘=’ explist] !!!*/
+
+rule!(stat, or![
+    label,
+    statements::Statement::breakstat,
+    and![(terminal!(Keyword::GOTO), variables::Id::rule) => labels::Goto::new]
+]);
 
 // retstat ::= return [explist] [‘;’]
 rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), optional!(terminal!(Keyword::SEMICOLONS), nil)) =>
@@ -60,7 +68,13 @@ rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), option
 // label ::= ‘::’ Name ‘::’
 rule!(label, and![(terminal!(Keyword::PATH), variables::Id::rule, terminal!(Keyword::PATH)) => labels::Label::new]);
 
-/*funcname ::= Name {‘.’ Name} [‘:’ Name]*/
+// funcname ::= Name {‘.’ Name} [‘:’ Name]
+rule!(funcname,
+    and![(
+        and![(variables::Id::rule,
+            repetition!(and![(terminal!(Keyword::DOT), variables::Id::rule) => second])) => prepend_vector_prefix],
+        optional!(and![(terminal!(Keyword::COLONS), variables::Id::rule) => second], nil)) =>
+        function::Funcname::new]);
 
 // varlist ::= var {‘,’ var}
 // We push vector on top to check assignment parity

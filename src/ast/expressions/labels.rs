@@ -15,3 +15,10 @@ impl Label {
 #[derive(Debug)]
 pub struct Goto(pub Box<expressions::Expression>);
 impl expressions::Expression for Goto {}
+
+impl Goto {
+    pub fn new(stack: &mut stack::Stack) {
+        let (name, _goto) = stack_unpack!(stack, single, single);
+        stack.push_single(Box::new(Goto(name)))
+    }
+}

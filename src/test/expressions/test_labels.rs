@@ -6,10 +6,7 @@ fn test_label() {
     assert_eq!(parse_string(":: Label ::", rules::label), r#"[Single(Label(Id("Label")))]"#);
 }
 
-/*#[test]
+#[test]
 fn test_goto() {
-    assert_eq!(
-        statements::parse_statement(&mut make_lexer("goto label")),
-        Ok(exp!(labels::Goto("label".to_string())))
-    );
-}*/
+    assert_eq!(parse_string("goto Label", rules::stat), r#"[Single(Goto(Id("Label")))]"#);
+}

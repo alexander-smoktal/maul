@@ -1,10 +1,32 @@
-use ast::lexer::*;
-use ast::expressions::*;
-use ast::expressions::statements::*;
-use error;
+use super::utils::parse_string;
+use ast::rules;
 
-use super::utils::*;
+#[test]
+fn test_funcname() {
+    assert_eq!(parse_string("a", rules::funcname), r#"[Single(Funcname { names: [Id("a")], this: false })]"#);
+    assert_eq!(parse_string("a.b", rules::funcname), r#"[Single(Funcname { names: [Id("a"), Id("b")], this: false })]"#);
+    assert_eq!(parse_string("a.b:c", rules::funcname), r#"[Single(Funcname { names: [Id("a"), Id("b"), Id("c")], this: true })]"#);
+}
 
+#[test]
+#[should_panic]
+fn test_invalid_functions0() {
+    
+    assert_eq!(parse_string("a.", rules::funcname), "");
+}
+#[test]
+#[should_panic]
+fn test_invalid_functions1() {
+    assert_eq!(parse_string("a.:c", rules::funcname), "");
+}
+
+#[test]
+#[should_panic]
+fn test_invalid_functions2() {
+    assert_eq!(parse_string("a:", rules::funcname), "");
+}
+
+/*
 #[test]
 fn test_empty_function() {
     assert_eq!(
@@ -134,7 +156,7 @@ fn test_funcall_complex() {
             ])),
         }))
     )
-}
+}*/
 
 
 //#[test]

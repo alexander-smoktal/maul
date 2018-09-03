@@ -1,7 +1,3 @@
-/*
-pub mod function;
-*/
-
 use ast::lexer::tokens;
 
 #[macro_use]
@@ -14,6 +10,7 @@ pub mod statements;
 pub mod labels;
 pub mod variables;
 pub mod tables;
+pub mod function;
 
 use std::fmt::Debug;
 use std::cmp::{PartialEq, Eq};
