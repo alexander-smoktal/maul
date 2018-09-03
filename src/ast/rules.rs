@@ -1,6 +1,8 @@
+use std::collections::VecDeque;
+
 use ast::parser;
 use ast::stack;
-use ast::expressions::{primitives, statements, expression, operators, utils, labels, variables, tables};
+use ast::expressions::{primitives, statements, expression, operators, labels, variables, tables};
 use ast::lexer::tokens::Keyword;
 
 const DEBUG: bool = false;
@@ -10,16 +12,22 @@ fn ignore(_: &mut stack::Stack) -> bool {
 }
 
 #[allow(dead_code)]
-fn first(stack: &mut stack::Stack) -> bool {
+fn first(stack: &mut stack::Stack) {
     let (_second, first) = stack_unpack!(stack, single, single);
     stack.push_single(first);
-    true
 }
 
-fn second(stack: &mut stack::Stack) -> bool {
+fn second(stack: &mut stack::Stack) {
     let (second, _first) = stack_unpack!(stack, single, single);
     stack.push_single(second);
-    true
+}
+
+/// Function prepends element on stack before last to the last vector-element (for varlist and namelist)
+fn prepend_vector_prefix(stack: &mut stack::Stack) {
+    let (mut tail, head) = stack_unpack!(stack, repetition, single);
+    tail.push_front(head);
+
+    stack.push_repetition(tail);
 }
 
 /*chunk ::= block
@@ -43,7 +51,7 @@ block ::= {stat} [retstat]*/
         local namelist [‘=’ explist] */
 
 // retstat ::= return [explist] [‘;’]
-rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), optional!(terminal!(Keyword::SEMICOLONS), nil)) => 
+rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), optional!(terminal!(Keyword::SEMICOLONS), nil)) =>
                     |stack: &mut stack::Stack| {
                         let (_semi, explist, _ret) = stack_unpack!(stack, optional, optional, single);
                         stack.push_single(Box::new(statements::Statement::Return(explist)))
@@ -51,49 +59,67 @@ rule!(retstat, and![(terminal!(Keyword::RETURN), optional!(explist, nil), option
 
 // label ::= ‘::’ Name ‘::’
 rule!(label, and![(terminal!(Keyword::PATH), variables::Id::rule, terminal!(Keyword::PATH)) => labels::Label::new]);
-                /*
+
 /*funcname ::= Name {‘.’ Name} [‘:’ Name]*/
+
 // varlist ::= var {‘,’ var}
-rule!(varlist, and![(var, optional!(terminal!(Keyword::COMMA)), optional!(varlist)) => variables::Varlist::new]);
+// We push vector on top to check assignment parity
+rule!(varlist, and![(
+    var,
+    repetition!(and![(terminal!(Keyword::COMMA), var) => second])) =>
+    prepend_vector_prefix]);
 
 // var_suffix ::= ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
+// Note nexted and!'s. We use internal and! to remove braces and dot
 rule!(var_suffix, or![
-    and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET), optional!(var_suffix)) =>
-        |_, expr, _, suffix| utils::some_expression(expression::Expressions {
-            head: Box::new(tables::Indexing(expr)),
-            tail: suffix
-        })],
-    and![(terminal!(Keyword::DOT), variables::Id::name, optional!(var_suffix)) =>
-        |_, id, suffix| utils::some_expression(expression::Expressions {
-            head: Box::new(tables::Indexing(id)),
-            tail: suffix
-        })]
+    and![(
+        and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET)) =>
+            |stack: &mut stack::Stack| {
+                // Remove brackets from stack
+                let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
+                stack.push_single(expression);
+                tables::Indexing::new(stack)
+            }],
+        optional!(var_suffix)) => ignore],
+    and![(
+        and![(terminal!(Keyword::DOT), variables::Id::rule) =>
+            |stack: &mut stack::Stack| {
+                // Remove dot from stack
+                let (name, _dot) = stack_unpack!(stack, single, single);
+                stack.push_single(name);
+                tables::Indexing::new(stack)
+            }],
+        optional!(var_suffix)) => ignore]
 ]);
 
 // var ::=  Name [var_suffix] | functioncall var_suffix | ‘(’ exp ‘)’ var_suffix !!! no funcall
+// Note nexted and!'s. We use internal and! to remove braces
 rule!(var, or![
-    and![(variables::Id::name, optional!(var_suffix)) =>
-        |head, tail| utils::some_expression(expression::Expressions {
-            head,
-            tail
-        })],
-    and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE), var_suffix) =>
-        |_, head, _, tail| utils::some_expression(expression::Expressions {
-            head,
-            tail: Some(tail)
-        })]
-]);
+    and![(variables::Id::rule, optional!(var_suffix)) => ignore],
+    and![(
+        and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
+            |stack: &mut stack::Stack| {
+                // Remove braces from stack
+                let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
+                stack.push_single(expression)
+            }],
+        var_suffix) => ignore]]);
+
 
 // namelist ::= Name {‘,’ Name}
-rule!(namelist, and![(variables::Id::name, optional!(terminal!(Keyword::COMMA)), optional!(variables::Id::name)) => variables::Varlist::new]);
-*/
+// We push vector on top to check assignment parity
+rule!(namelist, and![(
+    variables::Id::rule,
+    repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule) => second])) =>
+    prepend_vector_prefix]);
+
 // explist ::= exp {‘,’ exp}
 rule!(explist, and![(
-    exp, 
+    exp,
     repetition!(and![(
         terminal!(Keyword::COMMA),
         exp) =>
-        second])) => 
+        second])) =>
     expression::Expressions::new]);
 
 // exp_suffix ::= binop [exp_suffix]

@@ -2,6 +2,8 @@
 pub mod function;
 */
 
+use ast::lexer::tokens;
+
 #[macro_use]
 pub mod utils;
 pub mod blocks;
@@ -29,3 +31,9 @@ impl PartialEq for Box<Expression> {
 }
 
 impl Eq for Box<Expression> {}
+
+// Struct for debugging. Wraps terminal. Basically Noop
+#[derive(Debug)]
+pub struct Terminal(pub tokens::Keyword);
+
+impl Expression for Terminal {}

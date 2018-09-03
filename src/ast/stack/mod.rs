@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::iter::{IntoIterator, FromIterator};
 
 use ast::expressions;
 
@@ -75,9 +74,8 @@ impl Stack {
         debug_parser!("Stack push: {:?}", self.peek())
     }
 
-    pub fn push_repetition<I>(&mut self, expressions: I)
-        where I: IntoIterator <Item = Box<expressions::Expression>, IntoIter = ::std::vec::IntoIter<Box<expressions::Expression>>> {
-        self.elements.push(Element::Repetition(VecDeque::from_iter(expressions)));
+    pub fn push_repetition(&mut self, expressions: VecDeque<Box<expressions::Expression>>) {
+        self.elements.push(Element::Repetition(expressions));
         debug_parser!("Stack push: {:?}", self.peek())
     }
 

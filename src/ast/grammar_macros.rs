@@ -86,11 +86,11 @@ macro_rules! optional {
 macro_rules! repetition {
     ($parse_func:expr) => {
         |parser: &mut parser::Parser, stack: &mut stack::Stack| -> bool {
-            let mut result = vec![];
+            let mut result = VecDeque::new();
 
             while $parse_func(parser, stack) {
                 let single = stack.pop_single();
-                result.push(single)
+                result.push_back(single)
             }
 
             stack.push_repetition(result);
@@ -115,13 +115,17 @@ macro_rules! terminal {
     ($keyword: expr) => {
         |parser: &mut parser::Parser, stack: &mut stack::Stack| -> bool {
             if let Some(token) = parser.peek().cloned() {
-                if token.keyword() == Some($keyword) {
-                    parser.shift();
-                    stack.push_single(Box::new(operators::Noop));
-
-                    true
-                } else {
-                    false
+                match token.keyword() {
+                    Some(keyword) => {
+                        if keyword == $keyword {
+                            parser.shift();
+                            stack.push_single(Box::new(::ast::expressions::Terminal(keyword)));
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    _ => false
                 }
             } else {
                 false

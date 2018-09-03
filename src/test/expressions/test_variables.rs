@@ -1,71 +1,32 @@
-use ast::expressions::*;
-use ast::parser::*;
+use super::utils::parse_string;
+use ast::rules;
 
 #[test]
 // var_suffix ::= ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
 // var ::=  Name [var_suffix] | functioncall var_suffix | ‘(’ exp ‘)’ var_suffix
 fn test_var() {
-    let mut parser = Parser::new("variable".to_string());
-    assert_eq!(rules::var(&mut parser), sexp!(expression::Expressions { head: exp!(variables::Id("variable".to_string())), tail: None }));
-
-    parser = Parser::new("(nil)[nil]".to_string());
-    assert_eq!(rules::var(&mut parser), sexp!(
-        expression::Expressions { head: exp!(primitives::Nil),
-                                  tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(primitives::Nil))), tail: None }) }));
-
-    parser = Parser::new("(nil).func".to_string());
-    assert_eq!(rules::var(&mut parser), sexp!(
-        expression::Expressions { head: exp!(primitives::Nil),
-                                  tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(variables::Id("func".to_string())))), tail: None }) }));
-
-    parser = Parser::new("variable[nil]".to_string());
-    assert_eq!(rules::var(&mut parser), sexp!(
-        expression::Expressions { head: exp!(variables::Id("variable".to_string())),
-                                  tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(primitives::Nil))), tail: None }) }));
-
-    parser = Parser::new("variable.func".to_string());
-    assert_eq!(rules::var(&mut parser), sexp!(
-        expression::Expressions { head: exp!(variables::Id("variable".to_string())),
-                                  tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(variables::Id("func".to_string())))), tail: None }) }));
+    assert_eq!(parse_string("variable", rules::var), r#"[Single(Id("variable"))]"#);
+    assert_eq!(parse_string("(nil)[nil]", rules::var), "[Single(Indexing { object: Nil, index: Nil })]");
+    assert_eq!(parse_string("(nil).func", rules::var), r#"[Single(Indexing { object: Nil, index: Id("func") })]"#);
+    assert_eq!(parse_string("variable[nil]", rules::var), r#"[Single(Indexing { object: Id("variable"), index: Nil })]"#);
+    assert_eq!(parse_string("variable.func", rules::var), r#"[Single(Indexing { object: Id("variable"), index: Id("func") })]"#);
 }
 
 #[test]
+#[should_panic]
 fn test_invalid_var() {
-    let mut parser = Parser::new("(nil)".to_string());
-    assert_eq!(rules::var(&mut parser), None);
+    assert_eq!(parse_string("(nil)", rules::var), "");
 }
+
 
 #[test]
 fn test_var_recursive() {
-    let mut parser = Parser::new("variable[nil].func".to_string());
-    assert_eq!(rules::var(&mut parser),
-        sexp!(expression::Expressions { head: exp!(variables::Id("variable".to_string())),
-                                        tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(primitives::Nil))),
-                                                                              tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(variables::Id("func".to_string())))),
-                                                                                                                    tail: None }) }) }));
-
-    parser = Parser::new("variable.func[nil]".to_string());
-    assert_eq!(rules::var(&mut parser), sexp!(
-        expression::Expressions { head: exp!(variables::Id("variable".to_string())),
-                                  tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(variables::Id("func".to_string())))),
-                                                                        tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(primitives::Nil))),
-                                                                                                              tail: None }) }) }));
-
+    assert_eq!(parse_string("variable[nil].func", rules::var), r#"[Single(Indexing { object: Indexing { object: Id("variable"), index: Nil }, index: Id("func") })]"#);
+    assert_eq!(parse_string("variable.func[nil]", rules::var), r#"[Single(Indexing { object: Indexing { object: Id("variable"), index: Id("func") }, index: Nil })]"#);
 }
+
 
 #[test]
 fn test_varlist() {
-    let mut parser = Parser::new("var1, var2, var3[nil].func".to_string());
-    assert_eq!(rules::varlist(&mut parser),
-        sexp!(variables::Varlist {
-            head: exp!(expression::Expressions { head: exp!(variables::Id("var1".to_string())), tail: None }),
-            tail: sexp!(variables::Varlist {
-                head: exp!(expression::Expressions { head: exp!(variables::Id("var2".to_string())), tail: None }),
-                tail: sexp!(variables::Varlist {
-                    head: exp!(expression::Expressions {
-                        head: exp!(variables::Id("var3".to_string())),
-                        tail: sexp!(expression::Expressions {
-                            head: exp!(tables::Indexing(exp!(primitives::Nil))),
-                            tail: sexp!(expression::Expressions { head: exp!(tables::Indexing(exp!(variables::Id("func".to_string())))), tail: None }) }) }),
-                    tail: None }) }) }));
+    assert_eq!(parse_string("var1, var2, var3[nil].func", rules::varlist), r#"[Repetition([Id("var1"), Id("var2"), Indexing { object: Indexing { object: Id("var3"), index: Nil }, index: Id("func") }])]"#);
 }
