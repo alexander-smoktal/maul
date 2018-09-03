@@ -9,33 +9,33 @@ The original grammar:
 ```lua
 chunk ::= block
 block ::= {stat} [retstat]
-stat ::=  ‘;’ | 
-        varlist ‘=’ explist | 
-        functioncall | 
-        label | 
-        break | 
-        goto Name | 
-        do block end | 
-        while exp do block end | 
-        repeat block until exp | 
-        if exp then block {elseif exp then block} [else block] end | 
-        for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end | 
-        for namelist in explist do block end | 
-        function funcname funcbody | 
-        local function Name funcbody | 
-        local namelist [‘=’ explist] 
+stat ::=  ‘;’ |
+        varlist ‘=’ explist |
+        functioncall |
+        label |
+        break |
+        goto Name |
+        do block end |
+        while exp do block end |
+        repeat block until exp |
+        if exp then block {elseif exp then block} [else block] end |
+        for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
+        for namelist in explist do block end |
+        function funcname funcbody |
+        local function Name funcbody |
+        local namelist [‘=’ explist]
 retstat ::= return [explist] [‘;’]
 label ::= ‘::’ Name ‘::’
 funcname ::= Name {‘.’ Name} [‘:’ Name]
 varlist ::= var {‘,’ var}
-var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name 
+var ::=  Name | prefixexp ‘[’ exp ‘]’ | prefixexp ‘.’ Name
 namelist ::= Name {‘,’ Name}
 explist ::= exp {‘,’ exp}
-exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef | 
-        prefixexp | tableconstructor | exp binop exp | unop exp 
+exp ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
+        prefixexp | tableconstructor | exp binop exp | unop exp
 prefixexp ::= var | functioncall | ‘(’ exp ‘)’
-functioncall ::=  prefixexp args | prefixexp ‘:’ Name args 
-args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString 
+functioncall ::=  prefixexp args | prefixexp ‘:’ Name args
+args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
 functiondef ::= function funcbody
 funcbody ::= ‘(’ [parlist] ‘)’ block end
 parlist ::= namelist [‘,’ ‘...’] | ‘...’
@@ -43,9 +43,9 @@ tableconstructor ::= ‘{’ [fieldlist] ‘}’
 fieldlist ::= field {fieldsep field} [fieldsep]
 field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 fieldsep ::= ‘,’ | ‘;’
-binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ | 
-        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ | 
-        ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ | 
+binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
+        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
+        ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |
         and | or
 unop ::= ‘-’ | not | ‘#’ | ‘~’
 ```
@@ -56,21 +56,21 @@ Modified grammar. Without left recursion (including indirect) and rules to be su
 ```lua
 chunk ::= block
 block ::= {stat} [retstat]
-stat ::=  ‘;’ | 
-        varlist ‘=’ explist | 
-        functioncall | 
-        label | 
-        break | 
-        goto Name | 
-        do block end | 
-        while exp do block end | 
-        repeat block until exp | 
-        if exp then block {elseif exp then block} [else block] end | 
-        for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end | 
-        for namelist in explist do block end | 
-        function funcname funcbody | 
-        local function Name funcbody | 
-        local namelist [‘=’ explist] 
+stat ::=  ‘;’ |
+        varlist ‘=’ explist |
+        functioncall |
+        label |
+        break |
+        goto Name |
+        do block end |
+        while exp do block end |
+        repeat block until exp |
+        if exp then block {elseif exp then block} [else block] end |
+        for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
+        for namelist in explist do block end |
+        function funcname funcbody |
+        local function Name funcbody |
+        local namelist [‘=’ explist]
 retstat ::= return [explist] [‘;’]
 label ::= ‘::’ Name ‘::’
 funcname ::= Name {‘.’ Name} [‘:’ Name]
@@ -80,7 +80,7 @@ var ::=  Name [opt_var_suffix] | functioncall var_suffix | ‘(’ exp ‘)’ v
 namelist ::= Name {‘,’ Name}
 explist ::= exp {‘,’ exp}
 exp_suffix ::= binop exp [exp_suffix]
-exp_prefix ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef | 
+exp_prefix ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
         prefixexp | tableconstructor | unop exp
 exp ::= exp_prefix [exp_suffix]
 prefixexp ::= var | functioncall | ‘(’ exp ‘)’
@@ -91,17 +91,22 @@ functioncall_suffix3 ::= functioncall_suffix1 [functioncall_suffix2]
 functioncall_suffix4 ::= var_suffix functioncall_suffix3 | functioncall_suffix3 -- either var expression or prefixexp expression
 functioncall ::= Name [var_suffix] functioncall_suffix3 |                   -- var ID
         ‘(’ exp ‘)’ functioncall_suffix4
-args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString 
+args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
 functiondef ::= function funcbody
 funcbody ::= ‘(’ [parlist] ‘)’ block end
-parlist ::= namelist [‘,’ ‘...’] | ‘...’
+-- Here we have a problem of prefix comma for both variants. Will resolve manually
+-- Name always will produce vector and ellipsis will produce single element, which is the indicator of the end
+parlist_name ::= Name [parlist_suffix] | ‘...’ [parlist_suffix]
+parlist_suffix ::= ‘,’ parlist_name
+parlist ::= Name [parlist_suffix] | ‘...’
+
 tableconstructor ::= ‘{’ [fieldlist] ‘}’
 fieldlist ::= field {fieldsep field} [fieldsep]
 field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 fieldsep ::= ‘,’ | ‘;’
-binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ | 
-        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ | 
-        ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ | 
+binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
+        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
+        ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |
         and | or
 unop ::= ‘-’ | not | ‘#’ | ‘~’
 ```

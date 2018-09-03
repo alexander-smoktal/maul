@@ -3,9 +3,10 @@ use std::collections::VecDeque;
 use ast::parser;
 use ast::stack;
 use ast::expressions::*;
+
 use ast::lexer::tokens::Keyword;
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 fn ignore(_: &mut stack::Stack) -> bool {
     true
@@ -60,7 +61,7 @@ rule!(stat, or![
 
 // retstat ::= return [explist] [‘;’]
 rule!(retstat, and![(terminal!(Keyword::RETURN),
-                    optional!(and![(explist) => expression::Expressions::new], nil), 
+                    optional!(and![(explist) => expression::Expressions::new], nil),
                     optional!(terminal!(Keyword::SEMICOLONS), nil)) =>
                     |stack: &mut stack::Stack| {
                         let (_semi, explist, _ret) = stack_unpack!(stack, optional, optional, single);
@@ -151,6 +152,7 @@ rule!(exp_prefix, or![
     statements::Statement::ellipsis,
     unop
 ]);
+
 // exp ::= exp_prefix [exp_suffix]
 rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
 
@@ -159,10 +161,10 @@ rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
 // functioncall_suffix1 ::= args [functioncall_suffix1] | ‘:’ Name args [functioncall_suffix1]
 rule!(functioncall_suffix1, or![
     and![(
-        and![(args) => function::Funcall::new], 
+        and![(args) => function::Funcall::new],
         optional!(functioncall_suffix1)) => ignore],
     and![(
-        and![(terminal!(Keyword::COLONS), variables::Id::rule, args) => function::Funcall::new_self], 
+        and![(terminal!(Keyword::COLONS), variables::Id::rule, args) => function::Funcall::new_self],
         optional!(functioncall_suffix1)) => ignore]
 ]);
 
@@ -198,9 +200,40 @@ rule!(args, or![
     primitives::String::rule
 ]);
 
-/*functiondef ::= function funcbody
-funcbody ::= ‘(’ [parlist] ‘)’ block end
-parlist ::= namelist [‘,’ ‘...’] | ‘...’
+
+//functiondef ::= function funcbody*/
+
+// funcbody ::= ‘(’ [parlist] ‘)’ block end
+
+// -- Here we have a problem of prefix comma for both variants. Will resolve manually
+// -- Names always will produce vector and ellipsis will produce single element, which is the indicator of the end
+// See FunctionParameters::new* function for further documentation
+// parlist_name ::= Name [parlist_suffix] | ‘...’ [parlist_suffix]
+rule!(parlist_name, or![
+    and![(and![(variables::Id::rule) => function::FunctionParameters::new_parameter], optional!(parlist_suffix)) => ignore],
+    and![(and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_final_varargs], optional!(parlist_suffix)) => ignore]
+]);
+
+// parlist_suffix ::= ‘,’ parlist_name
+rule!(parlist_suffix, and![(terminal!(Keyword::COMMA), parlist_name) => ignore]);
+
+// parlist ::= Name [parlist_suffix] | ‘...’
+rule!(parlist, or![
+    and![(
+        and![(variables::Id::rule) =>
+            |stack: &mut stack::Stack| {
+                // Each name inside parameters list will produce repetition. Hence we do this with the first name too
+                let name = stack.pop_single();
+
+                let mut vec = VecDeque::new();
+                vec.push_back(name);
+                stack.push_repetition(vec)
+            }],
+        optional!(parlist_suffix)) => function::FunctionParameters::new_namelist],
+    and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_varargs]]);
+
+/*
+
 tableconstructor ::= ‘{’ [fieldlist] ‘}’
 fieldlist ::= field {fieldsep field} [fieldsep]
 field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp

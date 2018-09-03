@@ -89,10 +89,12 @@ macro_rules! repetition {
             let mut result = VecDeque::new();
 
             while $parse_func(parser, stack) {
+                debug_parser!("Repeating rule {}", stringify!($parse_func));
                 let single = stack.pop_single();
                 result.push_back(single)
             }
 
+            debug_parser!("Finished repetition {}", stringify!($parse_func));
             stack.push_repetition(result);
             true
         }
@@ -119,6 +121,7 @@ macro_rules! terminal {
                     Some(keyword) => {
                         if keyword == $keyword {
                             parser.shift();
+                            debug_parser!("Accepted keyword {:?}", keyword);
                             stack.push_single(Box::new(::ast::expressions::Terminal(keyword)));
                             true
                         } else {
