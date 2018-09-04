@@ -6,16 +6,10 @@ use ast::expressions::*;
 
 use ast::lexer::tokens::Keyword;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 fn ignore(_: &mut stack::Stack) -> bool {
     true
-}
-
-#[allow(dead_code)]
-fn first(stack: &mut stack::Stack) {
-    let (_second, first) = stack_unpack!(stack, single, single);
-    stack.push_single(first);
 }
 
 fn second(stack: &mut stack::Stack) {
