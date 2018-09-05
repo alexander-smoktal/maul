@@ -34,12 +34,24 @@ impl Funcname {
 }
 
 #[derive(Debug)]
-pub struct Function {
-    pub params: Vec<String>,
-    pub body: Box<expressions::Expression>,
+pub struct Closure {
+    params: Option<Box<expressions::Expression>>,
+    body: Box<expressions::Expression>,
 }
-impl expressions::Expression for Function {}
+impl expressions::Expression for Closure {}
 
+impl Closure {
+    // ‘(’ [parlist] ‘)’ block end
+    pub fn new(stack: &mut stack::Stack) {
+        // We've remove braces before
+        let (_end, body, params) = stack_unpack!(stack, single, single, optional);
+
+        stack.push_single(Box::new(Closure {
+            params,
+            body
+        }))
+    }
+}
 
 #[derive(Debug)]
 pub struct FunctionParameters {

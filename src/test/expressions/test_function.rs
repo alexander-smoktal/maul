@@ -18,6 +18,18 @@ fn test_func_args() {
 
 #[test]
 #[should_panic]
+fn test_invalid_args() {
+    assert_eq!(parse_string("one, two,", rules::parlist), "[Single(Nil)]");
+}
+
+#[test]
+#[should_panic]
+fn test_multiple_varargs() {
+    assert_eq!(parse_string("one, two, ..., ...", rules::parlist), "[Single(Nil)]");
+}
+
+#[test]
+#[should_panic]
 fn test_invalid_functions0() {
 
     assert_eq!(parse_string("a.", rules::funcname), "");
@@ -82,7 +94,7 @@ fn test_invalid_funccall2() {
     assert_eq!(parse_string("a(1).b", rules::functioncall), "");
 }
 
-/*#[test]
+#[test]
 fn test_functioncall_rec_prefixexp() {
     assert_eq!(parse_string("(true)(1, 5)", rules::functioncall),
         r#"[Single(Funcall { function: Boolean(true), args: [Number(1.0), Number(5.0)], method: None })]"#);
@@ -119,152 +131,37 @@ fn test_functioncall_rec_args() {
 
     assert_eq!(parse_string("obj:method1():method2(3)", rules::functioncall),
         r#"[Single(Funcall { function: Funcall { function: Id("obj"), args: [], method: Some(Id("method1")) }, args: [Number(3.0)], method: Some(Id("method2")) })]"#);
-}*/
-
-/*
-#[test]
-=======
-fn test_invalid_args() {
-    assert_eq!(parse_string("one, two,", rules::parlist), "[Single(Nil)]");
-}
-
-#[test]
-#[should_panic]
-fn test_multiple_varargs() {
-    assert_eq!(parse_string("one, two, ..., ...", rules::parlist), "[Single(Nil)]");
-}
-
-*#[test]
->>>>>>> Added function parameters
-fn test_empty_function() {
-    assert_eq!(
-        function::parse_funcdef(&mut make_lexer("")),
-        Err(error::Error::new(
-            tokens::Token::eof(),
-            "Expected 'function' keyword at the function start. Got: Token \
-            { token: None, row: 0, column: 0 }",
-        ))
-    )
 }
 
 
 #[test]
-fn test_sample_function() {
-    assert_eq!(
-        function::parse_funcdef(&mut make_lexer("function f () break; end")),
-        Ok(make_assignment(
-            vec!["f"],
-            exp!(function::Function {
-                params: vec![],
-                body: exp!(common::Expressions(
-                    vec![exp!(Statement::Break), exp!(common::Noop)],
-                )),
-            }),
-        ))
-    )
+fn test_closure() {
+    assert_eq!(parse_string("function () break; end", rules::functiondef), 
+        "[Single(Closure { params: None, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
+    assert_eq!(parse_string("function (...) break; end", rules::functiondef), 
+        "[Single(Closure { params: Some(FunctionParameters { namelist: None, varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
+    assert_eq!(parse_string("function (t, a, b, c) end", rules::functiondef), 
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: Some([Id("t"), Id("a"), Id("b"), Id("c")]), varargs: false }), body: Block { statements: [], retstat: None } })]"#);
+    assert_eq!(parse_string("function (b, c, ...) break; end", rules::functiondef), 
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: Some([Id("b"), Id("c")]), varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
+    assert_eq!(parse_string("function (t, a, b, c) return 7; end", rules::functiondef), 
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: Some([Id("t"), Id("a"), Id("b"), Id("c")]), varargs: false }), body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
 }
 
-#[test]
-fn test_complex_function() {
-    assert_eq!(
-        function::parse_funcdef(&mut make_lexer("function t.a.b.c.f () break; end")),
-        Ok(make_assignment(
-            vec!["t", "a", "b", "c", "f"],
-            exp!(function::Function {
-                params: vec![],
-                body: exp!(common::Expressions(
-                    vec![exp!(Statement::Break), exp!(common::Noop)],
-                )),
-            }),
-        ))
-    )
+/*#[test]
+fn test_functiondef() {
+    assert_eq!(parse_string("function f () break; end", rules::functiondef), 
+        "");
+    assert_eq!(parse_string("function t.a.b.c.f (...) break; end", rules::functiondef), 
+        "");
+    assert_eq!(parse_string("function f (t, a, b, c) break; end", rules::functiondef), 
+        "");
+    assert_eq!(parse_string("function t.a:f(b, c, ...) break; end", rules::functiondef), 
+        "");
+    assert_eq!(parse_string("function f (t, a, b, c) break; end", rules::functiondef), 
+        "");
 }
-
-#[test]
-fn test_param_function() {
-    assert_eq!(
-        function::parse_funcdef(&mut make_lexer("function f (t, a, b, c) break; end")),
-        Ok(make_assignment(
-            vec!["f"],
-            exp!(function::Function {
-                params: vec![
-                    "t".to_owned(),
-                    "a".to_owned(),
-                    "b".to_owned(),
-                    "c".to_owned(),
-                ],
-                body: exp!(common::Expressions(
-                    vec![exp!(Statement::Break), exp!(common::Noop)],
-                )),
-            }),
-        ))
-    )
-}
-
-#[test]
-fn test_method() {
-    assert_eq!(
-        function::parse_funcdef(&mut make_lexer("function t.a:f(b, c) break; end")),
-        Ok(make_assignment(
-            vec!["t", "a", "f"],
-            exp!(function::Function {
-                params: vec!["self".to_owned(), "b".to_owned(), "c".to_owned()],
-                body: exp!(common::Expressions(
-                    vec![exp!(Statement::Break), exp!(common::Noop)],
-                )),
-            }),
-        ))
-    )
-}
-
-
-#[test]
-fn test_funcall_sample() {
-    assert_eq!(
-        function::parse_funcall(&mut make_lexer("Account.withdraw(100.00)")),
-        Ok(exp!(function::Funcall {
-            function: exp!(tables::Indexing {
-                object: exp!(variables::Id(vec!["Account".to_string()])),
-                index: exp!(primitives::String("withdraw".to_string())),
-            }),
-            args: exp!(common::Expressions(vec![exp!(primitives::Number(100f64))])),
-        }))
-    )
-}
-
-#[test]
-fn test_funcall_nested() {
-    assert_eq!(
-        function::parse_funcall(&mut make_lexer("Customer.account.withdraw(100.00)")),
-        Ok(exp!(function::Funcall {
-            function: exp!(tables::Indexing {
-                object: exp!(tables::Indexing {
-                    object: exp!(variables::Id(vec!["Customer".to_string()])),
-                    index: exp!(primitives::String("account".to_string())),
-                }),
-                index: exp!(primitives::String("withdraw".to_string())),
-            }),
-            args: exp!(common::Expressions(vec![exp!(primitives::Number(100f64))])),
-        }))
-    )
-}
-
-#[test]
-fn test_funcall_complex() {
-    assert_eq!(
-        function::parse_funcall(&mut make_lexer("Account:withdraw(100.00)")),
-        Ok(exp!(function::Funcall {
-            function: exp!(tables::Indexing {
-                object: exp!(variables::Id(vec!["Account".to_string()])),
-                index: exp!(primitives::String("withdraw".to_string())),
-            }),
-            args: exp!(common::Expressions(vec![
-                exp!(variables::Id(vec!["Account".to_string()])),
-                exp!(primitives::Number(100f64)),
-            ])),
-        }))
-    )
-}*/
+*/
 
 //#[test]
 //fn test_fib() {

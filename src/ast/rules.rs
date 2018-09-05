@@ -6,7 +6,7 @@ use ast::expressions::*;
 
 use ast::lexer::tokens::Keyword;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 fn ignore(_: &mut stack::Stack) -> bool {
     true
@@ -25,11 +25,17 @@ fn prepend_vector_prefix(stack: &mut stack::Stack) {
     stack.push_repetition(tail);
 }
 
+/// Function to remove enclosing brackets
+pub fn remove_enclosing_brackets(stack: &mut stack::Stack) {
+    let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
+    stack.push_single(expression);
+}
+
 // chunk ::= block
 rule!(chunk, block);
 
 //block ::= {stat} [retstat]
-rule!(block, and![(repetition!(stat), retstat) => blocks::Block::new]);
+rule!(block, and![(repetition!(stat), optional!(retstat, nil)) => blocks::Block::new]);
 
 /*stat ::=  ‘;’ |
         varlist ‘=’ explist |
@@ -48,6 +54,8 @@ rule!(block, and![(repetition!(stat), retstat) => blocks::Block::new]);
         local namelist [‘=’ explist] !!!*/
 
 rule!(stat, or![
+    and![(terminal!(Keyword::SEMICOLONS)) => ignore],
+    functioncall,
     label,
     statements::Statement::breakstat,
     and![(terminal!(Keyword::GOTO), variables::Id::rule) => labels::Goto::new]
@@ -98,12 +106,7 @@ rule!(var_repetition, or![
 rule!(var, or![
     and![(variables::Id::rule, optional!(var_repetition)) => ignore],
     and![(
-        and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
-            |stack: &mut stack::Stack| {
-                // Remove braces from stack
-                let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
-                stack.push_single(expression)
-            }],
+        and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) => remove_enclosing_brackets],
         var_repetition) => ignore]]);
 
 
@@ -134,6 +137,8 @@ rule!(exp_prefix, or![
     primitives::Number::rule,
     primitives::String::rule,
     statements::Statement::ellipsis,
+    functiondef,
+    prefixexp,
     unop
 ]);
 
@@ -143,12 +148,7 @@ rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
 // prefixexp_prefix ::= Name | ‘(’ exp ‘)’
 rule!(prefixexp_prefix, or![
     variables::Id::rule,
-    and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
-        |stack: &mut stack::Stack| {
-            // Remove braces from stack
-            let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
-            stack.push_single(expression)
-        }]]);
+    and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) => remove_enclosing_brackets]]);
 
 // prefixexp_suffix ::= var_suffix [prefixexp_suffix] | functioncall_suffix [prefixexp_suffix]
 rule!(prefixexp_suffix, or![
@@ -181,9 +181,19 @@ rule!(args, or![
     primitives::String::rule
 ]);
 
-//functiondef ::= function funcbody*/
+// functiondef ::= function funcbody
+rule!(functiondef, and![(terminal!(Keyword::FUNCTION), funcbody) => second]);
 
 // funcbody ::= ‘(’ [parlist] ‘)’ block end
+rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE), 
+                            optional!(parlist, nil), 
+                            terminal!(Keyword::RBRACE)) => 
+                            |stack: &mut stack::Stack| {
+                                let (_rb, params, _lb) = stack_unpack!(stack, single, optional, single);
+                                stack.push_optional(params);
+                            }],
+                      block,
+                      terminal!(Keyword::END)) => function::Closure::new]);
 
 // -- Here we have a problem of prefix comma for both variants. Will resolve manually
 // -- Names always will produce vector and ellipsis will produce single element, which is the indicator of the end

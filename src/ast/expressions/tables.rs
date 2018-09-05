@@ -1,5 +1,6 @@
 use ast::expressions;
 use ast::stack;
+use ast::rules;
 
 #[derive(Debug)]
 pub struct Indexing {
@@ -20,9 +21,7 @@ impl Indexing {
 
     /// ["String"] indexing
     pub fn new_table(stack: &mut stack::Stack) {
-        // Remove brackets from stack
-        let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
-        stack.push_single(expression);
+        rules::remove_enclosing_brackets(stack);
         Indexing::new(stack)
     }
 

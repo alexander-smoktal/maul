@@ -6,16 +6,16 @@ use ast::stack;
 #[derive(Debug)]
 pub struct Block {
     statements: VecDeque<Box<expressions::Expression>>,
-    ret: Box<expressions::Expression>
+    retstat: Option<Box<expressions::Expression>>
 }
 impl expressions::Expression for Block {}
 impl Block {
     pub fn new(stack: &mut stack::Stack) {
-        let (ret, statements) = stack_unpack!(stack, single, repetition);
+        let (retstat, statements) = stack_unpack!(stack, optional, repetition);
 
         stack.push_single(Box::new(Block {
             statements,
-            ret
+            retstat
         }));
     }
 }
