@@ -2,18 +2,18 @@ use ast::lexer::tokens;
 
 #[macro_use]
 pub mod utils;
-pub mod function;
 pub mod blocks;
 pub mod expression;
-pub mod primitives;
-pub mod operators;
-pub mod statements;
+pub mod function;
 pub mod labels;
-pub mod variables;
+pub mod operators;
+pub mod primitives;
+pub mod statements;
 pub mod tables;
+pub mod variables;
 
+use std::cmp::{Eq, PartialEq};
 use std::fmt::Debug;
-use std::cmp::{PartialEq, Eq};
 
 pub trait Expression: Debug {
     fn clone(&self) -> Box<Expression> {

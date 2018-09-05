@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 
 use ast::expressions;
-use ast::parser;
-use ast::stack;
-use ast::rules;
 use ast::lexer::tokens;
+use ast::parser;
+use ast::rules;
+use ast::stack;
 
 // binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
 //        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
@@ -14,24 +14,40 @@ use ast::lexer::tokens;
 pub struct Binop(
     pub tokens::Keyword,
     pub Box<expressions::Expression>,
-    pub Box<expressions::Expression>
+    pub Box<expressions::Expression>,
 );
 impl expressions::Expression for Binop {}
 
 impl Binop {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
-        let terminals: HashSet<tokens::Keyword> =
-            vec![tokens::Keyword::PLUS, tokens::Keyword::MINUS, tokens::Keyword::MUL, tokens::Keyword::DIV,
-            tokens::Keyword::POW, tokens::Keyword::MOD, tokens::Keyword::AND, tokens::Keyword::TILDA,
-            tokens::Keyword::OR, tokens::Keyword::SHRIGHT, tokens::Keyword::SHLEFT, tokens::Keyword::DOT2, tokens::Keyword::LESS,
-            tokens::Keyword::LEQ, tokens::Keyword::GREATER, tokens::Keyword::GEQ, tokens::Keyword::EQ, tokens::Keyword::NEQ,
-            tokens::Keyword::AND, tokens::Keyword::OR].into_iter().collect();
+        let terminals: HashSet<tokens::Keyword> = vec![
+            tokens::Keyword::PLUS,
+            tokens::Keyword::MINUS,
+            tokens::Keyword::MUL,
+            tokens::Keyword::DIV,
+            tokens::Keyword::POW,
+            tokens::Keyword::MOD,
+            tokens::Keyword::AND,
+            tokens::Keyword::TILDA,
+            tokens::Keyword::OR,
+            tokens::Keyword::SHRIGHT,
+            tokens::Keyword::SHLEFT,
+            tokens::Keyword::DOT2,
+            tokens::Keyword::LESS,
+            tokens::Keyword::LEQ,
+            tokens::Keyword::GREATER,
+            tokens::Keyword::GEQ,
+            tokens::Keyword::EQ,
+            tokens::Keyword::NEQ,
+            tokens::Keyword::AND,
+            tokens::Keyword::OR,
+        ].into_iter()
+        .collect();
 
         if let Some(token) = parser.peek().cloned() {
             if let Some(keyword) = token.keyword() {
-
                 if !terminals.contains(&keyword) {
-                    return false
+                    return false;
                 }
 
                 parser.shift();
@@ -40,9 +56,12 @@ impl Binop {
                     let (expression_right, expression_left) = stack_unpack!(stack, single, single);
 
                     stack.push_single(Box::new(Binop(keyword, expression_left, expression_right)));
-                    return true
+                    return true;
                 } else {
-                    panic!(format!("Expecter expressiion after binary operator, got {:?}", parser.peek()))
+                    panic!(format!(
+                        "Expecter expressiion after binary operator, got {:?}",
+                        parser.peek()
+                    ))
                 }
             }
         }
@@ -58,15 +77,18 @@ impl expressions::Expression for Unop {}
 
 impl Unop {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
-        let terminals: HashSet<tokens::Keyword> =
-            vec![tokens::Keyword::MINUS, tokens::Keyword::NOT,
-            tokens::Keyword::HASH, tokens::Keyword::TILDA].into_iter().collect();
+        let terminals: HashSet<tokens::Keyword> = vec![
+            tokens::Keyword::MINUS,
+            tokens::Keyword::NOT,
+            tokens::Keyword::HASH,
+            tokens::Keyword::TILDA,
+        ].into_iter()
+        .collect();
 
         if let Some(token) = parser.peek().cloned() {
             if let Some(keyword) = token.keyword() {
-
                 if !terminals.contains(&keyword) {
-                    return false
+                    return false;
                 }
 
                 parser.shift();
@@ -75,9 +97,12 @@ impl Unop {
                     let expression = stack.pop_single();
 
                     stack.push_single(Box::new(Unop(keyword, expression)));
-                    return true
+                    return true;
                 } else {
-                    panic!(format!("Expecter expressiion after unary operator, got {:?}", parser.peek()))
+                    panic!(format!(
+                        "Expecter expressiion after unary operator, got {:?}",
+                        parser.peek()
+                    ))
                 }
             }
         }

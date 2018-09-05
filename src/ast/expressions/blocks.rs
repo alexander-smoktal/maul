@@ -6,7 +6,7 @@ use ast::stack;
 #[derive(Debug)]
 pub struct Block {
     statements: VecDeque<Box<expressions::Expression>>,
-    retstat: Option<Box<expressions::Expression>>
+    retstat: Option<Box<expressions::Expression>>,
 }
 impl expressions::Expression for Block {}
 impl Block {
@@ -15,7 +15,7 @@ impl Block {
 
         stack.push_single(Box::new(Block {
             statements,
-            retstat
+            retstat,
         }));
     }
 }

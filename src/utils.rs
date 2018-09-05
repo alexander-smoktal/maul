@@ -2,7 +2,6 @@
 
 use std::iter::Peekable;
 
-
 macro_rules! log_debug {
     ($fmt:expr) => (
         #[cfg(debug_assertions)]
@@ -11,7 +10,6 @@ macro_rules! log_debug {
         #[cfg(debug_assertions)]
         println!($fmt, $($arg)*));
 }
-
 
 /// Macro to create String -> T hash map from list of static string and values
 macro_rules! string_hash_map {
@@ -23,7 +21,6 @@ macro_rules! string_hash_map {
         result
      })
 }
-
 
 /// Iterator to advance iterator until next value meets requirements
 pub struct ExclusiveTakeWhile<'a, T, P>
@@ -46,8 +43,7 @@ where
             (self.pred)(val)
         } else {
             false
-        }
-        {
+        } {
             self.iter.next()
         } else {
             None

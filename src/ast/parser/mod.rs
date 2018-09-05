@@ -1,11 +1,11 @@
-use super::lexer::{Lexer, tokens};
+use super::lexer::{tokens, Lexer};
 
 const DEBUG: bool = false;
 
 #[derive(Debug)]
 pub enum Result {
     Ok,
-    Error(String)
+    Error(String),
 }
 
 #[derive(Debug)]
@@ -20,7 +20,7 @@ impl Parser {
     pub fn new(input: String) -> Parser {
         Parser {
             lexer: Lexer::new(input),
-            lookahead_token: None
+            lookahead_token: None,
         }
     }
 

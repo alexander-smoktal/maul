@@ -11,7 +11,11 @@ impl expressions::Expression for String {}
 
 impl String {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
-        if let Some(tokens::Token { token: tokens::TokenType::String(string), ..}) = parser.peek().cloned() {
+        if let Some(tokens::Token {
+            token: tokens::TokenType::String(string),
+            ..
+        }) = parser.peek().cloned()
+        {
             parser.shift();
             stack.push_single(Box::new(String(string)));
             true
@@ -27,7 +31,11 @@ impl expressions::Expression for Number {}
 
 impl Number {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
-        if let Some(tokens::Token { token: tokens::TokenType::Number(number), ..}) = parser.peek().cloned() {
+        if let Some(tokens::Token {
+            token: tokens::TokenType::Number(number),
+            ..
+        }) = parser.peek().cloned()
+        {
             parser.shift();
             stack.push_single(Box::new(Number(number)));
             true
@@ -42,7 +50,11 @@ pub struct Boolean(pub bool);
 impl expressions::Expression for Boolean {}
 
 impl Boolean {
-    make_keyword_rule![rule, (tokens::Keyword::TRUE, Boolean(true)), (tokens::Keyword::FALSE, Boolean(false))];
+    make_keyword_rule![
+        rule,
+        (tokens::Keyword::TRUE, Boolean(true)),
+        (tokens::Keyword::FALSE, Boolean(false))
+    ];
 }
 
 #[derive(Debug, Clone)]

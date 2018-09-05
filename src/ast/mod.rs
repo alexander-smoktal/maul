@@ -12,12 +12,12 @@ pub mod lexer;
 pub mod stack;
 #[macro_use]
 pub mod grammar_macros;
-pub mod parser;
 pub mod expressions;
+pub mod parser;
 pub mod rules;
 
-use std::fmt::{Debug, Formatter, Error};
 use std::collections::VecDeque;
+use std::fmt::{Debug, Error, Formatter};
 
 pub struct AST {
     expressions: VecDeque<Box<expressions::Expression>>,
@@ -31,7 +31,7 @@ impl AST {
         rules::exp(&mut parser, &mut stack);
 
         AST {
-            expressions: stack.pop_repetition()
+            expressions: stack.pop_repetition(),
         }
     }
 }

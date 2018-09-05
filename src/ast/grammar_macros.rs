@@ -1,3 +1,4 @@
+#![cfg_attr(rustfmt, rustfmt_skip)]
 //trace_macros!(true);
 
 #[macro_export]

@@ -4,13 +4,13 @@ use ast::lexer::tokens::*;
 use ast::parser;
 
 struct ParseWrapper {
-    parser: parser::Parser
+    parser: parser::Parser,
 }
 
 impl ParseWrapper {
     pub fn new(source: &str) -> Self {
         ParseWrapper {
-            parser: parser::Parser::new(source.to_string())
+            parser: parser::Parser::new(source.to_string()),
         }
     }
 
@@ -32,7 +32,6 @@ fn test_empty_lexer() {
         unreachable!()
     }
 }
-
 
 #[test]
 fn test_keywords() {
@@ -60,7 +59,6 @@ fn test_keywords() {
     );
     assert_eq!(parser.next(), None);
 }
-
 
 #[test]
 fn test_strings() {
@@ -96,7 +94,10 @@ fn test_invalid_strings() {
 fn test_numbers() {
     let mut parser = ParseWrapper::new("3 43 42.42 777");
 
-    assert_eq!(parser.next(), Some(Token::new(TokenType::Number(3f64), 1, 1)));
+    assert_eq!(
+        parser.next(),
+        Some(Token::new(TokenType::Number(3f64), 1, 1))
+    );
     assert_eq!(
         parser.next(),
         Some(Token::new(TokenType::Number(43f64), 1, 4))

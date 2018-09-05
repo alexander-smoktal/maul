@@ -1,13 +1,13 @@
 pub mod tokens;
 
-use self::tokens::{get_token_table, get_operator_table, Token, TokenType, Keyword};
+use self::tokens::{get_operator_table, get_token_table, Keyword, Token, TokenType};
 
-use std::vec;
 use std::collections::HashMap;
-use std::iter::{Iterator, IntoIterator, FromIterator, Peekable};
-use std::string::String;
-use utils::AsExclusiveTakeWhile;
 use std::fmt;
+use std::iter::{FromIterator, IntoIterator, Iterator, Peekable};
+use std::string::String;
+use std::vec;
+use utils::AsExclusiveTakeWhile;
 
 // ---------- Lexer --------------
 pub struct Lexer {
@@ -87,7 +87,8 @@ impl Lexer {
         // Skip starting doublequote
         self.char_iterator.next();
 
-        let string: String = self.char_iterator
+        let string: String = self
+            .char_iterator
             .take_while_exclusive(string_chars)
             .collect();
         self.advance_pos(string.len() + 2); // With doublequotes
@@ -104,7 +105,8 @@ impl Lexer {
         let numeric_chars = |chr: &char| chr.is_numeric() || chr.clone() == '.';
 
         // Looking for the end of the number
-        let number: String = self.char_iterator
+        let number: String = self
+            .char_iterator
             .take_while_exclusive(numeric_chars)
             .collect();
         self.advance_pos(number.len());

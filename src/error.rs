@@ -24,10 +24,7 @@ impl Error {
     pub fn complain(&self) {
         panic!(
             "{}: {}. {} {:?}",
-            self.error_token.row,
-            self.error_token.column,
-            self.message,
-            self.error_token
+            self.error_token.row, self.error_token.column, self.message, self.error_token
         );
     }
 }

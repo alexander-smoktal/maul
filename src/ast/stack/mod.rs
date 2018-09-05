@@ -8,19 +8,17 @@ const DEBUG: bool = false;
 pub enum Element {
     Single(Box<expressions::Expression>),
     Repetition(VecDeque<Box<expressions::Expression>>),
-    Optional(Option<Box<expressions::Expression>>)
+    Optional(Option<Box<expressions::Expression>>),
 }
 
 #[derive(Debug)]
 pub struct Stack {
-    elements: Vec<Element>
+    elements: Vec<Element>,
 }
 
 impl Stack {
     pub fn new() -> Self {
-        Stack {
-            elements: vec![]
-        }
+        Stack { elements: vec![] }
     }
 
     pub fn peek(&self) -> &Element {
@@ -36,8 +34,11 @@ impl Stack {
             Element::Single(expression) => {
                 debug_parser!("Stack pop: {:?}", expression);
                 expression
-            },
-            element => panic!(format!("Expected single element on stack. Got {:?}", element))
+            }
+            element => panic!(format!(
+                "Expected single element on stack. Got {:?}",
+                element
+            )),
         }
     }
 
@@ -50,8 +51,11 @@ impl Stack {
             Element::Repetition(expressions) => {
                 debug_parser!("Stack pop: {:?}", expressions);
                 expressions
-            },
-            element => panic!(format!("Expected repetition vector on stack. Got {:?}", element))
+            }
+            element => panic!(format!(
+                "Expected repetition vector on stack. Got {:?}",
+                element
+            )),
         }
     }
 
@@ -64,8 +68,11 @@ impl Stack {
             Element::Optional(expression) => {
                 debug_parser!("Stack pop: {:?}", expression);
                 expression
-            },
-            element => panic!(format!("Expected optional element on stack. Got {:?}", element))
+            }
+            element => panic!(format!(
+                "Expected optional element on stack. Got {:?}",
+                element
+            )),
         }
     }
 
@@ -93,9 +100,15 @@ impl ::std::cmp::PartialEq<&'static str> for Stack {
 
 #[macro_export]
 macro_rules! stack_pop {
-    ($stack: expr, single) => { $stack.pop_single() };
-    ($stack: expr, repetition) => { $stack.pop_repetition() };
-    ($stack: expr, optional) => { $stack.pop_optional() };
+    ($stack: expr, single) => {
+        $stack.pop_single()
+    };
+    ($stack: expr, repetition) => {
+        $stack.pop_repetition()
+    };
+    ($stack: expr, optional) => {
+        $stack.pop_optional()
+    };
 }
 
 #[macro_export]

@@ -1,3 +1,5 @@
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
 use std::collections::VecDeque;
 
 use ast::parser;

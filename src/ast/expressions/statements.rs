@@ -1,7 +1,7 @@
+use ast::expressions;
+use ast::lexer::tokens;
 use ast::parser;
 use ast::stack;
-use ast::lexer::tokens;
-use ast::expressions;
 
 #[derive(Debug)]
 pub enum Statement {

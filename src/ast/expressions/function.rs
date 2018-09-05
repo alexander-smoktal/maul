@@ -1,11 +1,11 @@
-use std::collections::VecDeque;
 use ast::expressions;
 use ast::stack;
+use std::collections::VecDeque;
 
 #[derive(Debug)]
 pub struct Funcname {
     pub object: VecDeque<Box<expressions::Expression>>,
-    pub method: Option<Box<expressions::Expression>>
+    pub method: Option<Box<expressions::Expression>>,
 }
 impl expressions::Expression for Funcname {}
 
@@ -13,10 +13,7 @@ impl Funcname {
     pub fn new(stack: &mut stack::Stack) {
         let (method, object) = stack_unpack!(stack, optional, repetition);
 
-        stack.push_single(Box::new(Funcname {
-            object,
-            method
-        }))
+        stack.push_single(Box::new(Funcname { object, method }))
     }
 }
 
@@ -33,17 +30,14 @@ impl Closure {
         // We've remove braces before
         let (_end, body, params) = stack_unpack!(stack, single, single, optional);
 
-        stack.push_single(Box::new(Closure {
-            params,
-            body
-        }))
+        stack.push_single(Box::new(Closure { params, body }))
     }
 }
 
 #[derive(Debug)]
 pub struct FunctionParameters {
     pub namelist: Option<VecDeque<Box<expressions::Expression>>>,
-    pub varargs: bool
+    pub varargs: bool,
 }
 impl expressions::Expression for FunctionParameters {}
 impl FunctionParameters {
@@ -70,11 +64,14 @@ impl FunctionParameters {
 
                 stack.push_single(Box::new(FunctionParameters {
                     namelist: Some(namelist),
-                    varargs: true
+                    varargs: true,
                 }))
-            },
+            }
             // Already had ellipsis after namelist. Invalid syntax
-            _ => panic!("Invalid syntax. Expected ')' to close namelist. Got {:?}", stack.peek())
+            _ => panic!(
+                "Invalid syntax. Expected ')' to close namelist. Got {:?}",
+                stack.peek()
+            ),
         }
     }
 
@@ -89,9 +86,9 @@ impl FunctionParameters {
 
                 stack.push_single(Box::new(FunctionParameters {
                     namelist: Some(namelist),
-                    varargs: false
+                    varargs: false,
                 }))
-            },
+            }
             // Already had ellipsis after namelist, which properly created parameters. Ignore
             _ => {}
         }
@@ -102,7 +99,7 @@ impl FunctionParameters {
         stack.pop_single();
         stack.push_single(Box::new(FunctionParameters {
             namelist: None,
-            varargs: true
+            varargs: true,
         }))
     }
 }
@@ -111,7 +108,7 @@ impl FunctionParameters {
 pub struct Funcall {
     pub object: Box<expressions::Expression>,
     pub args: VecDeque<Box<expressions::Expression>>,
-    pub method: Option<Box<expressions::Expression>>
+    pub method: Option<Box<expressions::Expression>>,
 }
 impl expressions::Expression for Funcall {}
 
@@ -122,17 +119,18 @@ impl Funcall {
         stack.push_single(Box::new(Funcall {
             object,
             args,
-            method: None
+            method: None,
         }))
     }
 
     pub fn new_self(stack: &mut stack::Stack) {
-         let (args, method, _colon, object) = stack_unpack!(stack, repetition, single, single, single);
+        let (args, method, _colon, object) =
+            stack_unpack!(stack, repetition, single, single, single);
 
-         stack.push_single(Box::new(Funcall {
+        stack.push_single(Box::new(Funcall {
             object,
             args,
-            method: Some(method)
+            method: Some(method),
         }))
     }
 

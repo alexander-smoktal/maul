@@ -1,5 +1,5 @@
-pub use std::ops;
 use std::collections::VecDeque;
+pub use std::ops;
 
 use ast::expressions;
 use ast::stack;

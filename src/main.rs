@@ -26,8 +26,7 @@ fn main() {
         else
           return a.b.fib(n-1) + a.b.fib(n-2)
         end
-      end"
-            .to_owned(),
+      end".to_owned(),
     );
 
     print!("AST {:?}", ast);
