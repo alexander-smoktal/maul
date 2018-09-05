@@ -6,7 +6,7 @@ use ast::expressions::*;
 
 use ast::lexer::tokens::Keyword;
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 fn ignore(_: &mut stack::Stack) -> bool {
     true
@@ -150,50 +150,46 @@ rule!(exp_prefix, or![
 // exp ::= exp_prefix [exp_suffix]
 rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
 
-//prefixexp ::= var | functioncall | ‘(’ exp ‘)’
-// -- This one is terrible. To resolve 3-way recursion (prefixexp, var, functioncall), we need this set of rules
-// functioncall_suffix1 ::= args [functioncall_suffix1] | ‘:’ Name args [functioncall_suffix1]
-rule!(functioncall_suffix1, or![
-    and![(
-        and![(args) => function::Funcall::new],
-        optional!(functioncall_suffix1)) => ignore],
-    and![(
-        and![(terminal!(Keyword::COLONS), variables::Id::rule, args) => function::Funcall::new_self],
-        optional!(functioncall_suffix1)) => ignore]
+// prefixexp_prefix ::= Name | ‘(’ exp ‘)’
+rule!(prefixexp_prefix, or![
+    variables::Id::rule,
+    and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
+        |stack: &mut stack::Stack| {
+            // Remove braces from stack
+            let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
+            stack.push_single(expression)
+        }]]);
+
+// prefixexp_suffix ::= var_suffix [prefixexp_suffix] | functioncall_suffix [prefixexp_suffix]
+rule!(prefixexp_suffix, or![
+    and![(var_suffix, optional!(prefixexp_suffix)) => ignore],
+    and![(functioncall_suffix, optional!(prefixexp_suffix)) => ignore]
 ]);
 
-// functioncall_suffix2 ::= var_suffix functioncall_suffix1 [functioncall_suffix2] -- resolved to var
-rule!(functioncall_suffix2, and![(var_suffix, functioncall_suffix1, optional!(functioncall_suffix2)) => ignore]);
+// prefixexp ::= prefixexp_prefix [prefixexp_suffix]
+rule!(prefixexp, and![(prefixexp_prefix, optional!(prefixexp_suffix)) => ignore]);
 
-// functioncall_suffix3 ::= functioncall_suffix1 [functioncall_suffix2]
-rule!(functioncall_suffix3, and![(functioncall_suffix1, optional!(functioncall_suffix2)) => ignore]);
-
-// functioncall_suffix4 ::= var_suffix functioncall_suffix3 | functioncall_suffix3 -- either var expression or prefixexp expression
-rule!(functioncall_suffix4, or![
-    and![(var_suffix, functioncall_suffix3) => ignore],
-    functioncall_suffix3
+// To resolve 3-way recursion (prefixexp, var, functioncall), we need this set of rules
+// functioncall_suffix ::= args [functioncall_suffix] | ‘:’ Name args [functioncall_suffix]
+rule!(functioncall_suffix, or![
+    and![(and![(args) => function::Funcall::new], optional!(functioncall_suffix)) => ignore],
+    and![(and![(terminal!(Keyword::COLONS), variables::Id::rule, args) => function::Funcall::new_self], optional!(functioncall_suffix)) => ignore]
 ]);
 
-// functioncall ::= Name [var_suffix] functioncall_suffix3 |                   -- var ID
-//        ‘(’ exp ‘)’ functioncall_suffix4
-rule!(functioncall, or![
-    and![(variables::Id::rule, optional!(var_suffix), functioncall_suffix3) => ignore],
-    and![(
-        and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
-            |stack: &mut stack::Stack| {
-                // Remove braces from stack
-                let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
-                stack.push_single(expression)
-            }],
-        functioncall_suffix4) => ignore]
+// functioncall_repetition ::= functioncall_suffix [functioncall_repetition] | var_suffix [var_suffix] functioncall_suffix [functioncall_repetition]
+rule!(functioncall_repetition, or![
+    and![(functioncall_suffix, optional!(functioncall_repetition)) => ignore],
+    and![(var_suffix, functioncall_suffix, optional!(functioncall_repetition)) => ignore]
 ]);
+
+// functioncall ::= prefixexp_prefix functioncall_repetition
+rule!(functioncall, and![(prefixexp_prefix, functioncall_repetition) => ignore]);
 
 // args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
 rule!(args, or![
     and![(terminal!(Keyword::LBRACE), optional!(explist), terminal!(Keyword::RBRACE)) => function::Funcall::new_args],
     primitives::String::rule
 ]);
-
 
 //functiondef ::= function funcbody*/
 

@@ -42,6 +42,9 @@ fn test_functioncall() {
     assert_eq!(parse_string("func()", rules::functioncall),
         r#"[Single(Funcall { function: Id("func"), args: [], method: None })]"#);
 
+    assert_eq!(parse_string("obj.func()()", rules::functioncall),
+        r#"[Single(Funcall { function: Funcall { function: Indexing { object: Id("obj"), index: Id("func") }, args: [], method: None }, args: [], method: None })]"#);
+
     assert_eq!(parse_string("obj:method(1, 5)", rules::functioncall),
         r#"[Single(Funcall { function: Id("obj"), args: [Number(1.0), Number(5.0)], method: Some(Id("method")) })]"#);
 
@@ -62,6 +65,24 @@ fn test_functioncall() {
 }
 
 #[test]
+#[should_panic]
+fn test_invalid_funccall0() {
+
+    assert_eq!(parse_string("a.b", rules::functioncall), "");
+}
+#[test]
+#[should_panic]
+fn test_invalid_funccall1() {
+    assert_eq!(parse_string(r#"a["b"]"#, rules::functioncall), "");
+}
+
+#[test]
+#[should_panic]
+fn test_invalid_funccall2() {
+    assert_eq!(parse_string("a(1).b", rules::functioncall), "");
+}
+
+/*#[test]
 fn test_functioncall_rec_prefixexp() {
     assert_eq!(parse_string("(true)(1, 5)", rules::functioncall),
         r#"[Single(Funcall { function: Boolean(true), args: [Number(1.0), Number(5.0)], method: None })]"#);
@@ -98,7 +119,7 @@ fn test_functioncall_rec_args() {
 
     assert_eq!(parse_string("obj:method1():method2(3)", rules::functioncall),
         r#"[Single(Funcall { function: Funcall { function: Id("obj"), args: [], method: Some(Id("method1")) }, args: [Number(3.0)], method: Some(Id("method2")) })]"#);
-}
+}*/
 
 /*
 #[test]

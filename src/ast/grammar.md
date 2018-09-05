@@ -75,6 +75,7 @@ retstat ::= return [explist] [‘;’]
 label ::= ‘::’ Name ‘::’
 funcname ::= Name {‘.’ Name} [‘:’ Name]
 varlist ::= var {‘,’ var}
+-- Resolve 3-way recursion (prefixexp, var, functioncall)
 var_suffix ::= ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
 var ::=  Name [opt_var_suffix] | functioncall var_suffix | ‘(’ exp ‘)’ var_suffix
 namelist ::= Name {‘,’ Name}
@@ -83,14 +84,17 @@ exp_suffix ::= binop exp [exp_suffix]
 exp_prefix ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
         prefixexp | tableconstructor | unop exp
 exp ::= exp_prefix [exp_suffix]
-prefixexp ::= var | functioncall | ‘(’ exp ‘)’
--- This one is terrible. To resolve 3-way recursion (prefixexp, var, functioncall), we need this set of rules
-functioncall_suffix1 ::= args [functioncall_suffix1] | ‘:’ Name args [functioncall_suffix1]
-functioncall_suffix2 ::= var_suffix functioncall_suffix1 [functioncall_suffix2] -- resolved to var
-functioncall_suffix3 ::= functioncall_suffix1 [functioncall_suffix2]
-functioncall_suffix4 ::= var_suffix functioncall_suffix3 | functioncall_suffix3 -- either var expression or prefixexp expression
-functioncall ::= Name [var_suffix] functioncall_suffix3 |                   -- var ID
-        ‘(’ exp ‘)’ functioncall_suffix4
+
+-- Resolve 3-way recursion (prefixexp, var, functioncall)
+prefixexp_prefix ::= Name | ‘(’ exp ‘)’
+prefixexp_suffix ::= var_suffix [prefixexp_suffix] | functioncall_suffix [prefixexp_suffix]
+prefixexp ::= prefixexp_prefix [prefixexp_suffix]
+
+-- Resolve 3-way recursion (prefixexp, var, functioncall)
+// functioncall_suffix ::= args [functioncall_suffix] | ‘:’ Name args [functioncall_suffix]
+functioncall_repetition ::= functioncall_suffix [functioncall_repetition] | var_suffix functioncall_suffix [functioncall_repetition]
+functioncall ::= prefixexp_prefix functioncall_repetition
+
 args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
 functiondef ::= function funcbody
 funcbody ::= ‘(’ [parlist] ‘)’ block end

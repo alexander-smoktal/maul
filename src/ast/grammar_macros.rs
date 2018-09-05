@@ -32,7 +32,7 @@ macro_rules! and {
                 debug_parser!("And statement rule {} accepted expression {:?}. Parser state {:?}", stringify!($parse_funcs), stack.peek(), parser);
             } else {
                 if entered {
-                    panic!("TODO: Custom error message. Unexpected token: {:?}", parser.peek());
+                    panic!("TODO: Custom error message. Unexpected token: {:?}. Rule: {:?}", parser.peek(), stringify!($parse_funcs));
                 }
 
                 debug_parser!("And statement rule {} didn't accept parser input {:?}", stringify!($parse_funcs), parser);
