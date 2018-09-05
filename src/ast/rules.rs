@@ -81,32 +81,22 @@ rule!(varlist, and![(
     prepend_vector_prefix]);
 
 // var_suffix ::= ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
-// Note nexted and!'s. We use internal and! to remove braces and dot
 rule!(var_suffix, or![
-    and![(
-        and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET)) =>
-            |stack: &mut stack::Stack| {
-                // Remove brackets from stack
-                let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
-                stack.push_single(expression);
-                tables::Indexing::new(stack)
-            }],
-        optional!(var_suffix)) => ignore],
-    and![(
-        and![(terminal!(Keyword::DOT), variables::Id::rule) =>
-            |stack: &mut stack::Stack| {
-                // Remove dot from stack
-                let (name, _dot) = stack_unpack!(stack, single, single);
-                stack.push_single(name);
-                tables::Indexing::new(stack)
-            }],
-        optional!(var_suffix)) => ignore]
+    and![(and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET)) =>
+        tables::Indexing::new_table], optional!(var_suffix)) => ignore],
+    and![(and![(terminal!(Keyword::DOT), variables::Id::rule) =>
+        tables::Indexing::new_object], optional!(var_suffix)) => ignore]
 ]);
 
-// var ::=  Name [var_suffix] | functioncall var_suffix | ‘(’ exp ‘)’ var_suffix !!! no funcall
-// Note nexted and!'s. We use internal and! to remove braces
+// var_repetition ::= var_suffix [var_repetition] | functioncall_suffix var_suffix [var_repetition]
+rule!(var_repetition, or![
+    and![(var_suffix, optional!(var_repetition)) => ignore],
+    and![(functioncall_suffix, var_suffix, optional!(var_repetition)) => ignore]
+]);
+
+// var ::=  Name [var_repetition] | ‘(’ exp ‘)’ var_repetition
 rule!(var, or![
-    and![(variables::Id::rule, optional!(var_suffix)) => ignore],
+    and![(variables::Id::rule, optional!(var_repetition)) => ignore],
     and![(
         and![(terminal!(Keyword::LBRACE), exp, terminal!(Keyword::RBRACE)) =>
             |stack: &mut stack::Stack| {
@@ -114,7 +104,7 @@ rule!(var, or![
                 let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
                 stack.push_single(expression)
             }],
-        var_suffix) => ignore]]);
+        var_repetition) => ignore]]);
 
 
 // namelist ::= Name {‘,’ Name}

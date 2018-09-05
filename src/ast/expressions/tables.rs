@@ -10,8 +10,24 @@ pub struct Indexing {
 impl expressions::Expression for Indexing {}
 
 impl Indexing {
+    /// .Name indexing
+    pub fn new_object(stack: &mut stack::Stack) {
+        // Remove dot from stack
+        let (name, _dot) = stack_unpack!(stack, single, single);
+        stack.push_single(name);
+        Indexing::new(stack)
+    }
+
+    /// ["String"] indexing
+    pub fn new_table(stack: &mut stack::Stack) {
+        // Remove brackets from stack
+        let (_rb, expression, _lb) = stack_unpack!(stack, single, single, single);
+        stack.push_single(expression);
+        Indexing::new(stack)
+    }
+
     /// Createx indexing for its prefix
-    pub fn new(stack: &mut stack::Stack) {
+    fn new(stack: &mut stack::Stack) {
         let (index, object) = stack_unpack!(stack, single, single);
 
         stack.push_single(Box::new(

@@ -77,7 +77,9 @@ funcname ::= Name {‘.’ Name} [‘:’ Name]
 varlist ::= var {‘,’ var}
 -- Resolve 3-way recursion (prefixexp, var, functioncall)
 var_suffix ::= ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
-var ::=  Name [opt_var_suffix] | functioncall var_suffix | ‘(’ exp ‘)’ var_suffix
+var_repetition ::= var_suffix [var_repetition] | functioncall_suffix var_suffix [var_repetition]
+var ::=  Name [var_repetition] | ‘(’ exp ‘)’ var_repetition
+
 namelist ::= Name {‘,’ Name}
 explist ::= exp {‘,’ exp}
 exp_suffix ::= binop exp [exp_suffix]
