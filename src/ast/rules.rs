@@ -12,6 +12,7 @@ fn ignore(_: &mut stack::Stack) -> bool {
     true
 }
 
+/// Removes sequences separators (commas, dots, etc).
 fn second(stack: &mut stack::Stack) {
     let (second, _first) = stack_unpack!(stack, single, single);
     stack.push_single(second);
@@ -34,7 +35,7 @@ pub fn remove_enclosing_brackets(stack: &mut stack::Stack) {
 // chunk ::= block
 rule!(chunk, block);
 
-//block ::= {stat} [retstat]
+// block ::= {stat} [retstat]
 rule!(block, and![(repetition!(stat), optional!(retstat, nil)) => blocks::Block::new]);
 
 /*stat ::=  ‘;’ |
@@ -82,7 +83,7 @@ rule!(funcname,
         function::Funcname::new]);
 
 // varlist ::= var {‘,’ var}
-// We push vector on top to check assignment parity
+// We push vector not expression on top to check assignment parity
 rule!(varlist, and![(
     var,
     repetition!(and![(terminal!(Keyword::COMMA), var) => second])) =>
@@ -111,7 +112,7 @@ rule!(var, or![
 
 
 // namelist ::= Name {‘,’ Name}
-// We push vector on top to check assignment parity
+// We push vector not expression on top to check assignment parity
 rule!(namelist, and![(
     variables::Id::rule,
     repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule) => second])) =>
@@ -200,8 +201,8 @@ rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE),
 // See FunctionParameters::new* function for further documentation
 // parlist_name ::= Name [parlist_suffix] | ‘...’ [parlist_suffix]
 rule!(parlist_name, or![
-    and![(and![(variables::Id::rule) => function::FunctionParameters::new_parameter], optional!(parlist_suffix)) => ignore],
-    and![(and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_final_varargs], optional!(parlist_suffix)) => ignore]
+    and![(and![(variables::Id::rule) => function::FunctionParameters::new_name], optional!(parlist_suffix)) => ignore],
+    and![(and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_namelist_varargs], optional!(parlist_suffix)) => ignore]
 ]);
 
 // parlist_suffix ::= ‘,’ parlist_name
@@ -220,10 +221,10 @@ rule!(parlist, or![
                 stack.push_repetition(vec)
             }],
         optional!(parlist_suffix)) => function::FunctionParameters::new_namelist],
-    and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_varargs]]);
+    and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_single_varargs]
+]);
 
 /*
-
 tableconstructor ::= ‘{’ [fieldlist] ‘}’
 fieldlist ::= field {fieldsep field} [fieldsep]
 field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
@@ -234,5 +235,6 @@ fieldsep ::= ‘,’ | ‘;’*/
 //        ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |
 //        and | or
 rule!(binop, operators::Binop::rule);
+
 // unop ::= ‘-’ | not | ‘#’ | ‘~’
 rule!(unop, operators::Unop::rule);

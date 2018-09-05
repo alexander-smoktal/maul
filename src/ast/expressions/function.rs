@@ -4,32 +4,19 @@ use ast::stack;
 
 #[derive(Debug)]
 pub struct Funcname {
-    names: VecDeque<Box<expressions::Expression>>,
-    /// If pass self pointer as first argument
-    this: bool // TODO: Rework to have optional method name
+    pub object: VecDeque<Box<expressions::Expression>>,
+    pub method: Option<Box<expressions::Expression>>
 }
 impl expressions::Expression for Funcname {}
 
 impl Funcname {
     pub fn new(stack: &mut stack::Stack) {
-        let (method_name, mut names) = stack_unpack!(stack, optional, repetition);
+        let (method, object) = stack_unpack!(stack, optional, repetition);
 
-        match method_name {
-            Some(method) => {
-                names.push_back(method);
-
-                stack.push_single(Box::new(Funcname {
-                    names,
-                    this: true
-                }))
-            },
-            _ => {
-                stack.push_single(Box::new(Funcname {
-                    names,
-                    this: false
-                }))
-            }
-        }
+        stack.push_single(Box::new(Funcname {
+            object,
+            method
+        }))
     }
 }
 
@@ -61,7 +48,7 @@ pub struct FunctionParameters {
 impl expressions::Expression for FunctionParameters {}
 impl FunctionParameters {
     /// Each new name in parameters list will append itself to the parameters list
-    pub fn new_parameter(stack: &mut stack::Stack) {
+    pub fn new_name(stack: &mut stack::Stack) {
         let (name, _comma, mut namelist) = stack_unpack!(stack, single, single, repetition);
 
         namelist.push_back(name);
@@ -72,7 +59,7 @@ impl FunctionParameters {
     /// - after namelist;
     /// - after another ellipsis.
     /// Second one is invalid. So we check if we have repetitions on top. And later construct parameters itself.
-    pub fn new_final_varargs(stack: &mut stack::Stack) {
+    pub fn new_namelist_varargs(stack: &mut stack::Stack) {
         // Pop ellipsis and comma
         let (_ellipsis, _comma) = stack_unpack!(stack, single, single);
 
@@ -110,7 +97,7 @@ impl FunctionParameters {
         }
     }
 
-    pub fn new_varargs(stack: &mut stack::Stack) {
+    pub fn new_single_varargs(stack: &mut stack::Stack) {
         // Ellipsis
         stack.pop_single();
         stack.push_single(Box::new(FunctionParameters {
@@ -122,7 +109,7 @@ impl FunctionParameters {
 
 #[derive(Debug)]
 pub struct Funcall {
-    pub function: Box<expressions::Expression>,
+    pub object: Box<expressions::Expression>,
     pub args: VecDeque<Box<expressions::Expression>>,
     pub method: Option<Box<expressions::Expression>>
 }
@@ -130,20 +117,20 @@ impl expressions::Expression for Funcall {}
 
 impl Funcall {
     pub fn new(stack: &mut stack::Stack) {
-        let (args, function) = stack_unpack!(stack, repetition, single);
+        let (args, object) = stack_unpack!(stack, repetition, single);
 
         stack.push_single(Box::new(Funcall {
-            function,
+            object,
             args,
             method: None
         }))
     }
 
     pub fn new_self(stack: &mut stack::Stack) {
-         let (args, method, _colon, function) = stack_unpack!(stack, repetition, single, single, single);
+         let (args, method, _colon, object) = stack_unpack!(stack, repetition, single, single, single);
 
          stack.push_single(Box::new(Funcall {
-            function,
+            object,
             args,
             method: Some(method)
         }))
