@@ -21,16 +21,16 @@ fn test_funcname() {
 fn test_func_args() {
     assert_eq!(
         parse_string("one", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: Some([Id("one")]), varargs: false })]"#
+        r#"[Single(FunctionParameters { namelist: [Id("one")], varargs: false })]"#
     );
-    assert_eq!(parse_string("one, two", rules::parlist), r#"[Single(FunctionParameters { namelist: Some([Id("one"), Id("two")]), varargs: false })]"#);
+    assert_eq!(parse_string("one, two", rules::parlist), r#"[Single(FunctionParameters { namelist: [Id("one"), Id("two")], varargs: false })]"#);
     assert_eq!(
         parse_string("one, two, ...", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: Some([Id("one"), Id("two")]), varargs: true })]"#
+        r#"[Single(FunctionParameters { namelist: [Id("one"), Id("two")], varargs: true })]"#
     );
     assert_eq!(
         parse_string("...", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: None, varargs: true })]"#
+        r#"[Single(FunctionParameters { namelist: [], varargs: true })]"#
     );
 }
 
@@ -160,29 +160,29 @@ fn test_functioncall_rec_args() {
 
 #[test]
 fn test_closure() {
-    assert_eq!(parse_string("function () break; end", rules::functiondef), 
+    assert_eq!(parse_string("function () break; end", rules::functiondef),
         "[Single(Closure { params: None, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
-    assert_eq!(parse_string("function (...) break; end", rules::functiondef), 
-        "[Single(Closure { params: Some(FunctionParameters { namelist: None, varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
-    assert_eq!(parse_string("function (t, a, b, c) end", rules::functiondef), 
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: Some([Id("t"), Id("a"), Id("b"), Id("c")]), varargs: false }), body: Block { statements: [], retstat: None } })]"#);
-    assert_eq!(parse_string("function (b, c, ...) break; end", rules::functiondef), 
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: Some([Id("b"), Id("c")]), varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
-    assert_eq!(parse_string("function (t, a, b, c) return 7; end", rules::functiondef), 
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: Some([Id("t"), Id("a"), Id("b"), Id("c")]), varargs: false }), body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
+    assert_eq!(parse_string("function (...) break; end", rules::functiondef),
+        "[Single(Closure { params: Some(FunctionParameters { namelist: [], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
+    assert_eq!(parse_string("function (t, a, b, c) end", rules::functiondef),
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [Id("t"), Id("a"), Id("b"), Id("c")], varargs: false }), body: Block { statements: [], retstat: None } })]"#);
+    assert_eq!(parse_string("function (b, c, ...) break; end", rules::functiondef),
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [Id("b"), Id("c")], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
+    assert_eq!(parse_string("function (t, a, b, c) return 7; end", rules::functiondef),
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [Id("t"), Id("a"), Id("b"), Id("c")], varargs: false }), body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
 }
 
 /*#[test]
 fn test_functiondef() {
-    assert_eq!(parse_string("function f () break; end", rules::functiondef), 
+    assert_eq!(parse_string("function f () break; end", rules::functiondef),
         "");
-    assert_eq!(parse_string("function t.a.b.c.f (...) break; end", rules::functiondef), 
+    assert_eq!(parse_string("function t.a.b.c.f (...) break; end", rules::functiondef),
         "");
-    assert_eq!(parse_string("function f (t, a, b, c) break; end", rules::functiondef), 
+    assert_eq!(parse_string("function f (t, a, b, c) break; end", rules::functiondef),
         "");
-    assert_eq!(parse_string("function t.a:f(b, c, ...) break; end", rules::functiondef), 
+    assert_eq!(parse_string("function t.a:f(b, c, ...) break; end", rules::functiondef),
         "");
-    assert_eq!(parse_string("function f (t, a, b, c) break; end", rules::functiondef), 
+    assert_eq!(parse_string("function f (t, a, b, c) break; end", rules::functiondef),
         "");
 }
 */

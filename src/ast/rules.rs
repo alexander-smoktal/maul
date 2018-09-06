@@ -188,9 +188,9 @@ rule!(args, or![
 rule!(functiondef, and![(terminal!(Keyword::FUNCTION), funcbody) => second]);
 
 // funcbody ::= ‘(’ [parlist] ‘)’ block end
-rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE), 
-                            optional!(parlist, nil), 
-                            terminal!(Keyword::RBRACE)) => 
+rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE),
+                            optional!(parlist, nil),
+                            terminal!(Keyword::RBRACE)) =>
                             |stack: &mut stack::Stack| {
                                 let (_rb, params, _lb) = stack_unpack!(stack, single, optional, single);
                                 stack.push_optional(params);
@@ -201,7 +201,7 @@ rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE),
 // -- Here we have a problem of prefix comma for both variants. Will resolve manually
 // -- Names always will produce vector and ellipsis will produce single element, which is the indicator of the end
 // See FunctionParameters::new* function for further documentation
-// parlist_name ::= Name [parlist_suffix] | ‘...’ [parlist_suffix]
+// parlist_name ::= Name [parlist_suffix] | ‘...’
 rule!(parlist_name, or![
     and![(and![(variables::Id::rule) => function::FunctionParameters::new_name], optional!(parlist_suffix)) => ignore],
     and![(and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_namelist_varargs], optional!(parlist_suffix)) => ignore]

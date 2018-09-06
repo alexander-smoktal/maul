@@ -102,7 +102,7 @@ functiondef ::= function funcbody
 funcbody ::= ‘(’ [parlist] ‘)’ block end
 -- Here we have a problem of prefix comma for both variants. Will resolve manually
 -- Name always will produce vector and ellipsis will produce single element, which is the indicator of the end
-parlist_name ::= Name [parlist_suffix] | ‘...’ [parlist_suffix]
+parlist_name ::= Name [parlist_suffix] | ‘...’
 parlist_suffix ::= ‘,’ parlist_name
 parlist ::= Name [parlist_suffix] | ‘...’
 

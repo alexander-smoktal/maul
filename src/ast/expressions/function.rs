@@ -36,7 +36,7 @@ impl Closure {
 
 #[derive(Debug)]
 pub struct FunctionParameters {
-    pub namelist: Option<VecDeque<Box<expressions::Expression>>>,
+    pub namelist: VecDeque<Box<expressions::Expression>>,
     pub varargs: bool,
 }
 impl expressions::Expression for FunctionParameters {}
@@ -57,22 +57,12 @@ impl FunctionParameters {
         // Pop ellipsis and comma
         let (_ellipsis, _comma) = stack_unpack!(stack, single, single);
 
-        match stack.peek() {
-            // This is valid case. We have varargs after namelist
-            stack::Element::Repetition(_) => {
-                let namelist = stack.pop_repetition();
+        let namelist = stack.pop_repetition();
 
-                stack.push_single(Box::new(FunctionParameters {
-                    namelist: Some(namelist),
-                    varargs: true,
-                }))
-            }
-            // Already had ellipsis after namelist. Invalid syntax
-            _ => panic!(
-                "Invalid syntax. Expected ')' to close namelist. Got {:?}",
-                stack.peek()
-            ),
-        }
+        stack.push_single(Box::new(FunctionParameters {
+            namelist: namelist,
+            varargs: true,
+        }))
     }
 
     /// Final namelist function. We either had namelist or namelist followed by ellipsis.VecDeque
@@ -85,7 +75,7 @@ impl FunctionParameters {
                 let namelist = stack.pop_repetition();
 
                 stack.push_single(Box::new(FunctionParameters {
-                    namelist: Some(namelist),
+                    namelist: namelist,
                     varargs: false,
                 }))
             }
@@ -98,7 +88,7 @@ impl FunctionParameters {
         // Ellipsis
         stack.pop_single();
         stack.push_single(Box::new(FunctionParameters {
-            namelist: None,
+            namelist: VecDeque::new(),
             varargs: true,
         }))
     }
