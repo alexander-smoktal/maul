@@ -37,33 +37,30 @@ fn test_func_args() {
 #[test]
 #[should_panic]
 fn test_invalid_args() {
-    assert_eq!(parse_string("one, two,", rules::parlist), "[Single(Nil)]");
+    parse_string("one, two,", rules::parlist);
 }
 
 #[test]
 #[should_panic]
 fn test_multiple_varargs() {
-    assert_eq!(
-        parse_string("one, two, ..., ...", rules::parlist),
-        "[Single(Nil)]"
-    );
+    parse_string("one, two, ..., ...", rules::parlist);
 }
 
 #[test]
 #[should_panic]
 fn test_invalid_functions0() {
-    assert_eq!(parse_string("a.", rules::funcname), "");
+    parse_string("a.", rules::funcname);
 }
 #[test]
 #[should_panic]
 fn test_invalid_functions1() {
-    assert_eq!(parse_string("a.:c", rules::funcname), "");
+    parse_string("a.:c", rules::funcname);
 }
 
 #[test]
 #[should_panic]
 fn test_invalid_functions2() {
-    assert_eq!(parse_string("a:", rules::funcname), "");
+    parse_string("a:", rules::funcname);
 }
 
 #[test]
@@ -103,18 +100,18 @@ fn test_functioncall() {
 #[test]
 #[should_panic]
 fn test_invalid_funccall0() {
-    assert_eq!(parse_string("a.b", rules::functioncall), "");
+    parse_string("a.b", rules::functioncall);
 }
 #[test]
 #[should_panic]
 fn test_invalid_funccall1() {
-    assert_eq!(parse_string(r#"a["b"]"#, rules::functioncall), "");
+    parse_string(r#"a["b"]"#, rules::functioncall);
 }
 
 #[test]
 #[should_panic]
 fn test_invalid_funccall2() {
-    assert_eq!(parse_string("a(1).b", rules::functioncall), "");
+    parse_string("a(1).b", rules::functioncall);
 }
 
 #[test]

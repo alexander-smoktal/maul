@@ -30,7 +30,7 @@ fn test_var() {
 #[test]
 #[should_panic]
 fn test_invalid_var() {
-    assert_eq!(parse_string("(nil)", rules::var), "");
+    parse_string("(nil)", rules::var);
 }
 
 #[test]
