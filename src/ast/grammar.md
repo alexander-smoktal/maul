@@ -107,7 +107,8 @@ parlist_suffix ::= ‘,’ parlist_name
 parlist ::= Name [parlist_suffix] | ‘...’
 
 tableconstructor ::= ‘{’ [fieldlist] ‘}’
-fieldlist ::= field {fieldsep field} [fieldsep]
+fieldlist_suffix ::= fieldsep [fieldlist]
+fieldlist ::= field [fieldlist_prefix]
 field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 fieldsep ::= ‘,’ | ‘;’
 binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |

@@ -133,7 +133,7 @@ rule!(explist, and![(
 rule!(exp_suffix, and![(binop, optional!(exp)) => ignore]);
 
 // exp_prefix ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
-//        prefixexp | tableconstructor | unop exp !!!!
+//        prefixexp | tableconstructor | unop exp
 rule!(exp_prefix, or![
     primitives::Nil::rule,
     primitives::Boolean::rule,
@@ -142,6 +142,7 @@ rule!(exp_prefix, or![
     statements::Statement::ellipsis,
     functiondef,
     prefixexp,
+    tableconstructor,
     unop
 ]);
 
@@ -181,6 +182,7 @@ rule!(functioncall, and![(prefixexp_prefix, functioncall_repetition) => ignore])
 // args ::=  ‘(’ [explist] ‘)’ | tableconstructor | LiteralString
 rule!(args, or![
     and![(terminal!(Keyword::LBRACE), optional!(explist), terminal!(Keyword::RBRACE)) => function::Funcall::new_args],
+    tableconstructor,
     primitives::String::rule
 ]);
 
@@ -226,11 +228,30 @@ rule!(parlist, or![
     and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_single_varargs]
 ]);
 
-/*
-tableconstructor ::= ‘{’ [fieldlist] ‘}’
-fieldlist ::= field {fieldsep field} [fieldsep]
-field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
-fieldsep ::= ‘,’ | ‘;’*/
+// tableconstructor ::= ‘{’ [fieldlist] ‘}’
+rule!(tableconstructor, and![(terminal!(Keyword::LCBRACKET), optional!(fieldlist), terminal!(Keyword::RCBRACKET)) => tables::Table::new]);
+
+// fieldlist_suffix ::= fieldsep [fieldlist]
+rule!(fieldlist_suffix, and![(fieldsep, optional!(fieldlist)) => ignore]);
+
+// fieldlist ::= field [fieldlist_prefix]
+rule!(fieldlist, and![(
+    and![(field) => tables::TableField::new_list_name],
+    optional!(fieldlist_suffix)) =>
+    ignore]);
+
+// field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
+rule!(field, or![
+    and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET), terminal!(Keyword::ASSIGN), exp) => tables::TableField::new_table_index],
+    and![(variables::Id::rule, terminal!(Keyword::ASSIGN), exp) => tables::TableField::new_object_index],
+    and![(exp) => tables::TableField::new_value]
+]);
+
+// fieldsep ::= ‘,’ | ‘;’
+rule!(fieldsep, or![
+    and![((terminal!(Keyword::COMMA))) => |stack: &mut stack::Stack| { stack.pop_single() }],
+    and![((terminal!(Keyword::SEMICOLONS))) => |stack: &mut stack::Stack| { stack.pop_single() }]
+]);
 
 // binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
 //        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
