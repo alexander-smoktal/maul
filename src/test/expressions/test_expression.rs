@@ -53,7 +53,7 @@ fn test_exp_binop() {
     );
     assert_eq!(
         parse_string("1 - 3 + 4", rules::exp),
-        "[Single(Binop(MINUS, Number(1.0), Binop(PLUS, Number(3.0), Number(4.0))))]"
+        "[Single(Binop(PLUS, Binop(MINUS, Number(1.0), Number(3.0)), Number(4.0)))]"
     );
     assert_eq!(
         parse_string("-1 - -3", rules::exp),
@@ -61,19 +61,23 @@ fn test_exp_binop() {
     );
 }
 
-/*
 #[test]
-fn test_exp_prefix() {
+fn test_exp_prefixexp() {
     assert_eq!(
-        parse_exp(&mut make_lexer("Hello.world")),
-        Ok(exp!(tables::Indexing {
-            object: exp!(variables::Id(vec!["Hello".to_owned()])),
-            index: exp!(primitives::String("world".to_owned())),
-        }))
-    )
+        parse_string("Hello.world", rules::exp),
+            r#"[Single(Indexing { object: Id("Hello"), index: Id("world") })]"#
+    );
 }
 
 #[test]
+fn test_exp_tableconstructor() {
+    assert_eq!(
+        parse_string("{ [true] = false }", rules::exp),
+            "[Single(Table([TableField { key: Some(Boolean(true)), value: Boolean(false) }]))]"
+    );
+}
+
+/*
 fn test_exp_functiondef() {
     assert_eq!(
         parse_exp(&mut make_lexer("function f () break end")),
@@ -85,17 +89,4 @@ fn test_exp_functiondef() {
             }),
         ))
     )
-}
-
-#[test]
-fn test_exp_table_constructor() {
-    assert_eq!(
-        parse_exp(&mut make_lexer("{ [true] = false }")),
-        Ok(exp!(tables::TableConstructor(vec![
-            exp!(variables::Assignment(
-                exp!(primitives::Boolean(true)),
-                exp!(primitives::Boolean(false)),
-            )),
-        ])))
-    );
 }*/

@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use ast::expressions;
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 #[derive(Debug)]
 pub enum Element {

@@ -85,7 +85,8 @@ explist ::= exp {‘,’ exp}
 exp_suffix ::= binop exp [exp_suffix]
 exp_prefix ::=  nil | false | true | Numeral | LiteralString | ‘...’ | functiondef |
         prefixexp | tableconstructor | unop exp
-exp ::= exp_prefix [exp_suffix]
+-- Ops precedence parser is hidden inside Binop
+exp ::= binop
 
 -- Resolve 3-way recursion (prefixexp, var, functioncall)
 prefixexp_prefix ::= Name | ‘(’ exp ‘)’
@@ -111,6 +112,7 @@ fieldlist_suffix ::= fieldsep [fieldlist]
 fieldlist ::= field [fieldlist_prefix]
 field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 fieldsep ::= ‘,’ | ‘;’
+-- Ops precedence parser is hidden inside Binop
 binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
         ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
         ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |

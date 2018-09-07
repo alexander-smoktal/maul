@@ -146,8 +146,8 @@ rule!(exp_prefix, or![
     unop
 ]);
 
-// exp ::= exp_prefix [exp_suffix]
-rule!(exp, and![(exp_prefix, optional!(exp_suffix)) => ignore]);
+// exp ::= binop
+rule!(exp, binop);
 
 // prefixexp_prefix ::= Name | ‘(’ exp ‘)’
 rule!(prefixexp_prefix, or![
@@ -252,6 +252,10 @@ rule!(fieldsep, or![
     and![((terminal!(Keyword::COMMA))) => |stack: &mut stack::Stack| { stack.pop_single() }],
     and![((terminal!(Keyword::SEMICOLONS))) => |stack: &mut stack::Stack| { stack.pop_single() }]
 ]);
+
+//  Operator precedence in Lua follows the table below, from lower to higher priority:
+
+
 
 // binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
 //        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |
