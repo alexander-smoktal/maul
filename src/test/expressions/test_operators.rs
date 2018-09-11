@@ -37,3 +37,9 @@ fn test_operator_precedence() {
     assert_eq!(parse_string("1 * 5 * 3 - 9", rules::exp), "[Single(Binop(MINUS, Binop(MUL, Binop(MUL, Number(1.0), Number(5.0)), Number(3.0)), Number(9.0)))]");
     assert_eq!(parse_string("1 - 5 ^ 3 * 9", rules::exp), "[Single(Binop(MINUS, Number(1.0), Binop(MUL, Binop(POW, Number(5.0), Number(3.0)), Number(9.0))))]");
 }
+
+#[test]
+#[should_panic]
+fn test_operator_invalid() {
+    parse_string("1 ^ 5 *", rules::exp);
+}

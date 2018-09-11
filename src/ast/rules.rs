@@ -40,28 +40,32 @@ rule!(chunk, block);
 // block ::= {stat} [retstat]
 rule!(block, and![(repetition!(stat), optional!(retstat, nil)) => blocks::Block::new]);
 
-/*stat ::=  ‘;’ |
-        varlist ‘=’ explist |
-        functioncall |
-        label |
-        break |
-        goto Name |
-        do block end |
-        while exp do block end |
-        repeat block until exp |
-        if exp then block {elseif exp then block} [else block] end |
-        for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
-        for namelist in explist do block end |
-        function funcname funcbody |
-        local function Name funcbody |
-        local namelist [‘=’ explist] !!!*/
+// stat ::=  ‘;’ |
+// varlist ‘=’ explist |
+// functioncall |
+// label |
+// break |
+// goto Name |
+// do block end |
+// while exp do block end |
+// repeat block until exp |
+// if exp then block {elseif exp then block} [else block] end |
+// for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
+// for namelist in explist do block end |
+// function funcname funcbody |
+// local function Name funcbody |
+// local namelist [‘=’ explist] !!!
 
 rule!(stat, or![
     and![(terminal!(Keyword::SEMICOLONS)) => ignore],
+    and![(varlist, terminal!(Keyword::ASSIGN), explist) => variables::Assignment::new],
     functioncall,
     label,
     statements::Statement::breakstat,
-    and![(terminal!(Keyword::GOTO), variables::Id::rule) => labels::Goto::new]
+    and![(terminal!(Keyword::GOTO), variables::Id::rule) => labels::Goto::new],
+    and![(terminal!(Keyword::DO), block, terminal!(Keyword::END)) => blocks::DoBlock::new],
+    and![(terminal!(Keyword::WHILE), exp, terminal!(Keyword::DO), block, terminal!(Keyword::END)) => blocks::WhileBlock::new],
+    and![(terminal!(Keyword::REPEAT), block, terminal!(Keyword::UNTIL), exp) => blocks::RepeatBlock::new]
 ]);
 
 // retstat ::= return [explist] [‘;’]
@@ -212,6 +216,7 @@ rule!(parlist_name, or![
 // parlist_suffix ::= ‘,’ parlist_name
 rule!(parlist_suffix, and![(terminal!(Keyword::COMMA), parlist_name) => ignore]);
 
+// TODO: Rewrite to manual parsing. This should be much cleaner
 // parlist ::= Name [parlist_suffix] | ‘...’
 rule!(parlist, or![
     and![(

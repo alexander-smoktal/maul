@@ -6,7 +6,7 @@ use ast::parser;
 use ast::rules;
 use ast::stack;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 macro_rules! make_op_table {
     ($lrec_prec: ident, $([$($lrec: expr), +]), +) => {

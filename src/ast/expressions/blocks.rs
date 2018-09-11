@@ -24,6 +24,14 @@ impl Block {
 pub struct DoBlock(pub Box<expressions::Expression>);
 impl expressions::Expression for DoBlock {}
 
+impl DoBlock {
+    pub fn new(stack: &mut stack::Stack) {
+        let (_end, block, _do) = stack_unpack!(stack, single, single, single);
+
+        stack.push_single(Box::new(DoBlock(block)))
+    }
+}
+
 #[derive(Debug)]
 pub struct WhileBlock {
     pub condition: Box<expressions::Expression>,
@@ -31,12 +39,34 @@ pub struct WhileBlock {
 }
 impl expressions::Expression for WhileBlock {}
 
+impl WhileBlock {
+    pub fn new(stack: &mut stack::Stack) {
+        let (_end, block, _do, condition, _while) = stack_unpack!(stack, single, single, single, single, single);
+
+        stack.push_single(Box::new(WhileBlock {
+            condition,
+            block
+        }))
+    }
+}
+
 #[derive(Debug)]
 pub struct RepeatBlock {
     pub block: Box<expressions::Expression>,
     pub condition: Box<expressions::Expression>,
 }
 impl expressions::Expression for RepeatBlock {}
+
+impl RepeatBlock {
+    pub fn new(stack: &mut stack::Stack) {
+        let (condition, _until, block, _repeat) = stack_unpack!(stack, single, single, single, single);
+
+        stack.push_single(Box::new(RepeatBlock {
+            block,
+            condition
+        }))
+    }
+}
 
 // We could make typedef for 'while' and 'repeat', but can't implement trait for type
 #[derive(Debug)]

@@ -24,15 +24,24 @@ impl Id {
 }
 
 #[derive(Debug)]
-pub struct Varlist {
-    pub head: Box<expressions::Expression>,
-    pub tail: Option<Box<expressions::Expression>>,
-}
-impl expressions::Expression for Varlist {}
-
-#[derive(Debug)]
 pub struct Assignment(
     pub Box<expressions::Expression>,
     pub Box<expressions::Expression>,
 );
 impl expressions::Expression for Assignment {}
+
+impl Assignment {
+    pub fn new(stack: &mut stack::Stack) {
+        let (varlist, _assignment, namelist) = stack_unpack!(stack, repetition, single, repetition);
+
+        if varlist.len() != namelist.len() {
+            panic!("Assignment contains different numbers of names and variables");
+        }
+
+        for (name, var) in namelist.into_iter().zip(varlist) {
+            stack.push_single(Box::new(
+                Assignment(name, var)
+            ))
+        }
+    }
+}
