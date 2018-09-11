@@ -41,12 +41,10 @@ impl expressions::Expression for WhileBlock {}
 
 impl WhileBlock {
     pub fn new(stack: &mut stack::Stack) {
-        let (_end, block, _do, condition, _while) = stack_unpack!(stack, single, single, single, single, single);
+        let (_end, block, _do, condition, _while) =
+            stack_unpack!(stack, single, single, single, single, single);
 
-        stack.push_single(Box::new(WhileBlock {
-            condition,
-            block
-        }))
+        stack.push_single(Box::new(WhileBlock { condition, block }))
     }
 }
 
@@ -59,25 +57,57 @@ impl expressions::Expression for RepeatBlock {}
 
 impl RepeatBlock {
     pub fn new(stack: &mut stack::Stack) {
-        let (condition, _until, block, _repeat) = stack_unpack!(stack, single, single, single, single);
+        let (condition, _until, block, _repeat) =
+            stack_unpack!(stack, single, single, single, single);
 
-        stack.push_single(Box::new(RepeatBlock {
-            block,
-            condition
+        stack.push_single(Box::new(RepeatBlock { block, condition }))
+    }
+}
+
+// TODO: Remove publicity
+#[derive(Debug)]
+pub struct IfCondition {
+    pub condition: Box<expressions::Expression>,
+    pub block: Box<expressions::Expression>,
+}
+impl expressions::Expression for IfCondition {}
+
+impl IfCondition {
+    // {elseif exp then block}
+    pub fn new_elseif(stack: &mut stack::Stack) {
+        let (block, _then, condition, _elseif) =
+            stack_unpack!(stack, single, single, single, single);
+
+        stack.push_single(Box::new(IfCondition {
+            condition,
+            block
         }))
     }
 }
 
-// We could make typedef for 'while' and 'repeat', but can't implement trait for type
-#[derive(Debug)]
-pub struct Condition {
-    pub condition: Box<expressions::Expression>,
-    pub block: Box<expressions::Expression>,
-}
-
 #[derive(Debug)]
 pub struct IfBlock {
-    pub conditions: Vec<Condition>,
-    pub elseblock: Option<Box<expressions::Expression>>,
+    pub conditions: VecDeque<Box<expressions::Expression>>,
+    pub else_block: Option<Box<expressions::Expression>>,
 }
 impl expressions::Expression for IfBlock {}
+
+impl IfBlock {
+    // if exp then block {elseif exp then block} [else block] end |
+    pub fn new(stack: &mut stack::Stack) {
+        let (_end, else_block, mut conditions, block, _then, condition, _if) =
+            stack_unpack!(stack, single, optional, repetition, single, single, single, single);
+
+            let primary_condition = Box::new(IfCondition {
+                condition,
+                block
+            });
+
+            conditions.push_front(primary_condition);
+
+            stack.push_single(Box::new(IfBlock {
+                conditions,
+                else_block
+            }))
+    }
+}

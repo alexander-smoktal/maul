@@ -65,7 +65,20 @@ rule!(stat, or![
     and![(terminal!(Keyword::GOTO), variables::Id::rule) => labels::Goto::new],
     and![(terminal!(Keyword::DO), block, terminal!(Keyword::END)) => blocks::DoBlock::new],
     and![(terminal!(Keyword::WHILE), exp, terminal!(Keyword::DO), block, terminal!(Keyword::END)) => blocks::WhileBlock::new],
-    and![(terminal!(Keyword::REPEAT), block, terminal!(Keyword::UNTIL), exp) => blocks::RepeatBlock::new]
+    and![(terminal!(Keyword::REPEAT), block, terminal!(Keyword::UNTIL), exp) => blocks::RepeatBlock::new],
+    and![(
+        terminal!(Keyword::IF),
+        exp,
+        terminal!(Keyword::THEN),
+        block,
+        repetition!(and![(
+            terminal!(Keyword::ELSEIF),
+            exp,
+            terminal!(Keyword::THEN),
+            block
+            ) => blocks::IfCondition::new_elseif]),
+        optional!(and![(terminal!(Keyword::ELSE), block) => second], nil),
+        terminal!(Keyword::END)) => blocks::IfBlock::new]
 ]);
 
 // retstat ::= return [explist] [‘;’]
