@@ -54,8 +54,7 @@ rule!(block, and![(repetition!(stat), optional!(retstat, nil)) => blocks::Block:
 // for namelist in explist do block end |
 // function funcname funcbody |
 // local function Name funcbody |
-// local namelist [‘=’ explist] !!!
-
+// local namelist [‘=’ explist]
 rule!(stat, or![
     and![(terminal!(Keyword::SEMICOLONS)) => ignore],
     and![(varlist, terminal!(Keyword::ASSIGN), explist) => variables::Assignment::new],
@@ -99,7 +98,12 @@ rule!(stat, or![
                 terminal!(Keyword::DO),
                 block,
                 terminal!(Keyword::END)) => blocks::GenericForBlock::new]
-        ]) => ignore]
+        ]) => ignore],
+    and![(terminal!(Keyword::FUNCTION), funcname, funcbody) => function::Function::new],
+    and![(terminal!(Keyword::LOCAL), or![
+            and![(terminal!(Keyword::FUNCTION), variables::Id::rule, funcbody) => function::Function::new],
+            and![(namelist, variables::Assignment::rule_local) => ignore]
+        ]) => blocks::Local::new]
 ]);
 
 // retstat ::= return [explist] [‘;’]
@@ -291,10 +295,6 @@ rule!(fieldsep, or![
     and![((terminal!(Keyword::COMMA))) => |stack: &mut stack::Stack| { stack.pop_single() }],
     and![((terminal!(Keyword::SEMICOLONS))) => |stack: &mut stack::Stack| { stack.pop_single() }]
 ]);
-
-//  Operator precedence in Lua follows the table below, from lower to higher priority:
-
-
 
 // binop ::=  ‘+’ | ‘-’ | ‘*’ | ‘/’ | ‘//’ | ‘^’ | ‘%’ |
 //        ‘&’ | ‘~’ | ‘|’ | ‘>>’ | ‘<<’ | ‘..’ |

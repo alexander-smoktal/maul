@@ -1,9 +1,10 @@
 use std::collections::VecDeque;
 
 use ast::expressions;
-use ast::lexer::tokens;
+use ast::lexer::tokens::{self, Keyword};
 use ast::parser;
 use ast::stack;
+use ast::rules;
 
 #[derive(Debug, Clone)]
 pub struct Id(pub String);
@@ -40,5 +41,33 @@ impl Assignment {
             varlist,
             explist
         }))
+    }
+
+    pub fn rule_local(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
+        if let Some(Keyword::ASSIGN) = parser.peek().and_then(|token| token.keyword()) {
+            // If we have assignment
+            parser.shift();
+
+            if !rules::explist(parser, stack) {
+                return false;
+            }
+
+            let (explist, varlist) = stack_unpack!(stack, repetition, repetition);
+
+            stack.push_single(Box::new(Assignment {
+                varlist,
+                explist
+            }))
+        } else {
+            // No assignment. Just namelist
+            let varlist = stack.pop_repetition();
+
+            stack.push_single(Box::new(Assignment {
+                varlist,
+                explist: VecDeque::new()
+            }))
+        }
+
+        true
     }
 }

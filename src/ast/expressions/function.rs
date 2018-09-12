@@ -138,3 +138,21 @@ impl Funcall {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct Function {
+    pub name: Box<expressions::Expression>,
+    pub body: Box<expressions::Expression>
+}
+impl expressions::Expression for Function {}
+
+impl Function {
+    pub fn new(stack: &mut stack::Stack) {
+        let (body, name, _function) = stack_unpack!(stack, single, single, single);
+
+        stack.push_single(Box::new(Function {
+            name,
+            body
+        }))
+    }
+}

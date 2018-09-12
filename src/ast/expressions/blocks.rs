@@ -161,3 +161,15 @@ impl GenericForBlock {
         }))
     }
 }
+
+#[derive(Debug)]
+pub struct Local(Box<expressions::Expression>);
+impl expressions::Expression for Local {}
+
+impl Local {
+    pub fn new(stack: &mut stack::Stack) {
+        let (expression, _local) = stack_unpack!(stack, single, single);
+
+        stack.push_single(Box::new(Local(expression)))
+    }
+}

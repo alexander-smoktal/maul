@@ -63,3 +63,28 @@ fn test_varlist_more_vars() {
 fn test_varlist_more_expressions() {
     assert_eq!(parse_string("var1 = 7, false", rules::stat), r#"[Single(Assignment { varlist: [Id("var1")], explist: [Number(7.0), Boolean(false)] })]"#);
 }
+
+#[test]
+fn test_local_assignment() {
+    assert_eq!(parse_string("local var1, var2 = 7, false", rules::stat), r#"[Single(Local(Assignment { varlist: [Id("var1"), Id("var2")], explist: [Number(7.0), Boolean(false)] }))]"#);
+    assert_eq!(parse_string("local var1, var2 = 7", rules::stat), r#"[Single(Local(Assignment { varlist: [Id("var1"), Id("var2")], explist: [Number(7.0)] }))]"#);
+    assert_eq!(parse_string("local var1, var2", rules::stat), r#"[Single(Local(Assignment { varlist: [Id("var1"), Id("var2")], explist: [] }))]"#);
+}
+
+#[test]
+#[should_panic]
+fn test_local_assignment_invalid1() {
+    parse_string("local var1, var2 =, false", rules::stat);
+}
+
+#[test]
+#[should_panic]
+fn test_local_assignment_invalid2() {
+    parse_string("local var1, var2 =", rules::stat);
+}
+
+#[test]
+#[should_panic]
+fn test_local_assignment_invalid3() {
+    parse_string(r#"local var1, var2["key"]"#, rules::block);
+}
