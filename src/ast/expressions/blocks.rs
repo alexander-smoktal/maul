@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 
 use ast::expressions;
+use ast::expressions::variables;
 use ast::stack;
 
 #[derive(Debug)]
@@ -109,5 +110,54 @@ impl IfBlock {
                 conditions,
                 else_block
             }))
+    }
+}
+
+#[derive(Debug)]
+pub struct NumericalForBlock {
+    pub init: Box<expressions::Expression>,
+    pub limit: Box<expressions::Expression>,
+    pub step: Option<Box<expressions::Expression>>,
+    pub block: Box<expressions::Expression>,
+}
+impl expressions::Expression for NumericalForBlock {}
+
+impl NumericalForBlock {
+    // for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
+    pub fn new(stack: &mut stack::Stack) {
+        let (_end, block, _do, step, limit, _comma, init_value, _assign, init_name, _for)
+            = stack_unpack!(stack, single, single, single, optional, single, single, single, single, single, single);
+
+        stack.push_single(Box::new(NumericalForBlock {
+            init: Box::new(variables::Assignment {
+                varlist: VecDeque::from(vec![init_name]),
+                explist: VecDeque::from(vec![init_value])
+            }),
+            limit,
+            step,
+            block
+        }))
+    }
+}
+
+#[derive(Debug)]
+pub struct GenericForBlock {
+    pub namelist: VecDeque<Box<expressions::Expression>>,
+    pub explist: VecDeque<Box<expressions::Expression>>,
+    pub block: Box<expressions::Expression>
+}
+impl expressions::Expression for GenericForBlock {}
+
+impl GenericForBlock {
+    // for namelist in explist do block end |
+    pub fn new(stack: &mut stack::Stack) {
+        let (_end, block, _do, explist, _in, namelist, _for)
+            = stack_unpack!(stack, single, single, single, repetition, single, repetition, single);
+
+        stack.push_single(Box::new(GenericForBlock {
+            namelist,
+            explist,
+            block
+        }))
     }
 }

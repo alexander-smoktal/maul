@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use ast::expressions;
 use ast::lexer::tokens;
 use ast::parser;
@@ -24,24 +26,19 @@ impl Id {
 }
 
 #[derive(Debug)]
-pub struct Assignment(
-    pub Box<expressions::Expression>,
-    pub Box<expressions::Expression>,
-);
+pub struct Assignment {
+    pub varlist: VecDeque<Box<expressions::Expression>>,
+    pub explist: VecDeque<Box<expressions::Expression>>,
+}
 impl expressions::Expression for Assignment {}
 
 impl Assignment {
     pub fn new(stack: &mut stack::Stack) {
-        let (varlist, _assignment, namelist) = stack_unpack!(stack, repetition, single, repetition);
+        let (explist, _assignment, varlist) = stack_unpack!(stack, repetition, single, repetition);
 
-        if varlist.len() != namelist.len() {
-            panic!("Assignment contains different numbers of names and variables");
-        }
-
-        for (name, var) in namelist.into_iter().zip(varlist) {
-            stack.push_single(Box::new(
-                Assignment(name, var)
-            ))
-        }
+        stack.push_single(Box::new(Assignment {
+            varlist,
+            explist
+        }))
     }
 }

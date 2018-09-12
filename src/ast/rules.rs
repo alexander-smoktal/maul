@@ -78,7 +78,28 @@ rule!(stat, or![
             block
             ) => blocks::IfCondition::new_elseif]),
         optional!(and![(terminal!(Keyword::ELSE), block) => second], nil),
-        terminal!(Keyword::END)) => blocks::IfBlock::new]
+        terminal!(Keyword::END)) => blocks::IfBlock::new],
+    and![(
+        terminal!(Keyword::FOR),
+        variables::Id::rule,
+        or![
+            and![(
+                terminal!(Keyword::ASSIGN),
+                exp,
+                terminal!(Keyword::COMMA),
+                exp,
+                optional!(and![(terminal!(Keyword::COMMA), exp) => second], nil),
+                terminal!(Keyword::DO),
+                block,
+                terminal!(Keyword::END)) => blocks::NumericalForBlock::new],
+            and![(
+                and![(repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule) => second])) => prepend_vector_prefix],
+                terminal!(Keyword::IN),
+                explist,
+                terminal!(Keyword::DO),
+                block,
+                terminal!(Keyword::END)) => blocks::GenericForBlock::new]
+        ]) => ignore]
 ]);
 
 // retstat ::= return [explist] [‘;’]
