@@ -1,5 +1,8 @@
 # maul
-Lua interpreter implemented in Rust
+Lua interpreter to be implemented in Rust
+
+# Status
+Currently project contains only lexer and parser
 
 Copyright (c) 2015-2017, Alexander cosm Smoktal under __BSD License__
 
