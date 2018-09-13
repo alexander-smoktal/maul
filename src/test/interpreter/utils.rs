@@ -5,6 +5,7 @@ use ast::rules;
 use interpreter::types;
 use interpreter::environment;
 
+#[allow(dead_code)]
 pub fn interpret(source_code: &str) -> (types::Type, environment::Environment)
 {
     interpret_rule(source_code, rules::chunk)

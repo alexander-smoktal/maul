@@ -6,8 +6,6 @@ use ast::parser;
 use ast::rules;
 use ast::stack;
 
-use interpreter;
-
 const DEBUG: bool = false;
 
 macro_rules! make_op_table {
@@ -35,7 +33,6 @@ pub struct Binop(
     pub Box<expressions::Expression>,
     pub Box<expressions::Expression>,
 );
-impl interpreter::Eval for Binop {}
 impl expressions::Expression for Binop {}
 
 impl Binop {
@@ -151,7 +148,6 @@ impl Binop {
 // unop ::= ‘-’ | not | ‘#’ | ‘~’
 #[derive(Debug)]
 pub struct Unop(pub Keyword, pub Box<expressions::Expression>);
-impl interpreter::Eval for Unop {}
 impl expressions::Expression for Unop {}
 
 impl Unop {
@@ -189,7 +185,6 @@ impl Unop {
 
 #[derive(Debug)]
 pub struct Noop;
-impl interpreter::Eval for Noop {}
 impl expressions::Expression for Noop {}
 
 impl Noop {

@@ -6,7 +6,7 @@ pub enum Type {
     Boolean(bool),
     Number(f64),
     String(String),
-    Table(HashMap<String, Type>),
+    Table(HashMap<String, Type>, usize),
     Vector(Vec<Type>),
     Function(u32)
 }
