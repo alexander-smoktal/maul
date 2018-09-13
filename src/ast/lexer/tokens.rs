@@ -43,6 +43,7 @@ pub enum Keyword {
     SOR,
     SHLEFT,
     SHRIGHT,
+    FLOORDIV,
     EQ,
     NEQ,
     LEQ,
@@ -91,6 +92,7 @@ impl Keyword {
             | Keyword::SOR
             | Keyword::SHRIGHT
             | Keyword::SHLEFT
+            | Keyword::FLOORDIV
             | Keyword::DOT2
             | Keyword::LESS
             | Keyword::LEQ
@@ -152,6 +154,7 @@ pub fn get_operator_table() -> HashMap<String, Keyword> {
         ("|", Keyword::SOR),
         ("<<", Keyword::SHLEFT),
         (">>", Keyword::SHRIGHT),
+        ("//", Keyword::FLOORDIV),
         ("==", Keyword::EQ),
         ("~=", Keyword::NEQ),
         ("<=", Keyword::LEQ),

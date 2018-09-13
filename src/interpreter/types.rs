@@ -1,14 +1,30 @@
 use std::collections::HashMap;
 
+use ast::expressions;
+
 #[derive(Debug)]
 pub enum Type {
     Nil,
     Boolean(bool),
     Number(f64),
     String(String),
-    Table(HashMap<String, Type>, usize),
+    Table {
+        map: HashMap<String, Type>,
+        metatable: HashMap<String, Type>,
+        border: usize
+    },
     Vector(Vec<Type>),
-    Function(u32)
+    Function {
+        parameters: Vec<String>,
+        varargs: bool,
+        body: Box<expressions::Expression>
+    }
+}
+
+impl Type {
+    pub fn call(&self, _arguments: Vec<&Type>) -> Type {
+        unimplemented!();
+    }
 }
 
 #[cfg(test)]

@@ -90,12 +90,12 @@ impl Binop {
                 Keyword::NEQ
             ],
             [Keyword::SOR],
-            [Keyword::AND],
+            [Keyword::TILDA],
             [Keyword::SAND],
             [Keyword::SHRIGHT, Keyword::SHLEFT],
             [Keyword::DOT2],
             [Keyword::PLUS, Keyword::MINUS],
-            [Keyword::MUL, Keyword::DIV, Keyword::POW, Keyword::MOD],
+            [Keyword::MUL, Keyword::DIV, Keyword::POW, Keyword::FLOORDIV],
             [Keyword::POW]
         );
 
