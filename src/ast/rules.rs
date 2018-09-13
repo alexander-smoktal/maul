@@ -41,20 +41,20 @@ rule!(chunk, block);
 rule!(block, and![(repetition!(stat), optional!(retstat, nil)) => blocks::Block::new]);
 
 // stat ::=  ‘;’ |
-// varlist ‘=’ explist |
-// functioncall |
-// label |
-// break |
-// goto Name |
-// do block end |
-// while exp do block end |
-// repeat block until exp |
-// if exp then block {elseif exp then block} [else block] end |
-// for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
-// for namelist in explist do block end |
-// function funcname funcbody |
-// local function Name funcbody |
-// local namelist [‘=’ explist]
+//      varlist ‘=’ explist |
+//      functioncall |
+//      label |
+//      break |
+//      goto Name |
+//      do block end |
+//      while exp do block end |
+//      repeat block until exp |
+//      if exp then block {elseif exp then block} [else block] end |
+//      for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
+//      for namelist in explist do block end |
+//      function funcname funcbody |
+//      local function Name funcbody |
+//      local namelist [‘=’ explist]
 rule!(stat, or![
     and![(terminal!(Keyword::SEMICOLONS)) => ignore],
     and![(varlist, terminal!(Keyword::ASSIGN), explist) => variables::Assignment::new],

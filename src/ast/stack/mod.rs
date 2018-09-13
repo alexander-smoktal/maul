@@ -92,6 +92,7 @@ impl Stack {
     }
 }
 
+#[cfg(test)]
 impl ::std::cmp::PartialEq<&'static str> for Stack {
     fn eq(&self, other: &&'static str) -> bool {
         format!("{:?}", self.elements) == other.to_string()
