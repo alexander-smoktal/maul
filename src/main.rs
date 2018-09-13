@@ -5,6 +5,7 @@
 pub mod utils;
 #[macro_use]
 pub mod ast;
+pub mod interpreter;
 pub mod error;
 
 #[cfg(test)]

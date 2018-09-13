@@ -2,11 +2,14 @@ use ast::expressions;
 use ast::stack;
 use std::collections::VecDeque;
 
+use interpreter;
+
 #[derive(Debug)]
 pub struct Funcname {
     pub object: VecDeque<Box<expressions::Expression>>,
     pub method: Option<Box<expressions::Expression>>,
 }
+impl interpreter::Eval for Funcname {}
 impl expressions::Expression for Funcname {}
 
 impl Funcname {
@@ -22,6 +25,7 @@ pub struct Closure {
     params: Option<Box<expressions::Expression>>,
     body: Box<expressions::Expression>,
 }
+impl interpreter::Eval for Closure {}
 impl expressions::Expression for Closure {}
 
 impl Closure {
@@ -39,7 +43,9 @@ pub struct FunctionParameters {
     pub namelist: VecDeque<Box<expressions::Expression>>,
     pub varargs: bool,
 }
+impl interpreter::Eval for FunctionParameters {}
 impl expressions::Expression for FunctionParameters {}
+
 impl FunctionParameters {
     /// Each new name in parameters list will append itself to the parameters list
     pub fn new_name(stack: &mut stack::Stack) {
@@ -100,6 +106,7 @@ pub struct Funcall {
     pub args: VecDeque<Box<expressions::Expression>>,
     pub method: Option<Box<expressions::Expression>>,
 }
+impl interpreter::Eval for Funcall {}
 impl expressions::Expression for Funcall {}
 
 impl Funcall {
@@ -144,6 +151,7 @@ pub struct Function {
     pub name: Box<expressions::Expression>,
     pub body: Box<expressions::Expression>
 }
+impl interpreter::Eval for Function {}
 impl expressions::Expression for Function {}
 
 impl Function {

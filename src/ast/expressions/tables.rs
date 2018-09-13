@@ -4,12 +4,14 @@ use ast::expressions;
 use ast::rules;
 use ast::stack;
 
+use interpreter;
+
 #[derive(Debug)]
 pub struct Indexing {
     object: Box<expressions::Expression>,
     index: Box<expressions::Expression>,
 }
-
+impl interpreter::Eval for Indexing {}
 impl expressions::Expression for Indexing {}
 
 impl Indexing {
@@ -40,7 +42,7 @@ pub struct TableField {
     key: Option<Box<expressions::Expression>>,
     value: Box<expressions::Expression>
 }
-
+impl interpreter::Eval for TableField {}
 impl expressions::Expression for TableField {}
 
 impl TableField {
@@ -95,6 +97,7 @@ impl TableField {
 
 #[derive(Debug)]
 pub struct Table(VecDeque<Box<expressions::Expression>>);
+impl interpreter::Eval for Table {}
 impl expressions::Expression for Table {}
 
 impl Table {

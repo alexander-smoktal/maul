@@ -3,10 +3,13 @@ use ast::lexer::tokens;
 use ast::parser;
 use ast::stack;
 
+use interpreter;
+
 use std::string::String as StdString;
 
 #[derive(Debug, Clone)]
 pub struct String(pub StdString);
+impl interpreter::Eval for String {}
 impl expressions::Expression for String {}
 
 impl String {
@@ -27,6 +30,7 @@ impl String {
 
 #[derive(Debug, Clone)]
 pub struct Number(pub f64);
+impl interpreter::Eval for Number {}
 impl expressions::Expression for Number {}
 
 impl Number {
@@ -47,6 +51,7 @@ impl Number {
 
 #[derive(Debug, Clone)]
 pub struct Boolean(pub bool);
+impl interpreter::Eval for Boolean {}
 impl expressions::Expression for Boolean {}
 
 impl Boolean {
@@ -59,6 +64,7 @@ impl Boolean {
 
 #[derive(Debug, Clone)]
 pub struct Nil;
+impl interpreter::Eval for Nil {}
 impl expressions::Expression for Nil {}
 
 impl Nil {

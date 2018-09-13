@@ -1,8 +1,11 @@
 use ast::expressions;
 use ast::stack;
 
+use interpreter;
+
 #[derive(Debug)]
 pub struct Label(pub Box<expressions::Expression>);
+impl interpreter::Eval for Label {}
 impl expressions::Expression for Label {}
 
 impl Label {
@@ -14,6 +17,7 @@ impl Label {
 
 #[derive(Debug)]
 pub struct Goto(pub Box<expressions::Expression>);
+impl interpreter::Eval for Goto {}
 impl expressions::Expression for Goto {}
 
 impl Goto {

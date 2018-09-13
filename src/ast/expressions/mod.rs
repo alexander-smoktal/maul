@@ -15,7 +15,9 @@ pub mod variables;
 use std::cmp::{Eq, PartialEq};
 use std::fmt::Debug;
 
-pub trait Expression: Debug {
+use interpreter;
+
+pub trait Expression: Debug + interpreter::Eval {
     fn clone(&self) -> Box<Expression> {
         panic!("Trying to clone expression, which can't be cloned")
     }
@@ -32,5 +34,5 @@ impl Eq for Box<Expression> {}
 // Struct for debugging. Wraps terminal. Basically Noop
 #[derive(Debug)]
 pub struct Terminal(pub tokens::Keyword);
-
+impl interpreter::Eval for Terminal {}
 impl Expression for Terminal {}

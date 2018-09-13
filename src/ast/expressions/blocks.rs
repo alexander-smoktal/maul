@@ -4,12 +4,16 @@ use ast::expressions;
 use ast::expressions::variables;
 use ast::stack;
 
+use interpreter;
+
 #[derive(Debug)]
 pub struct Block {
     statements: VecDeque<Box<expressions::Expression>>,
     retstat: Option<Box<expressions::Expression>>,
 }
+impl interpreter::Eval for Block {}
 impl expressions::Expression for Block {}
+
 impl Block {
     pub fn new(stack: &mut stack::Stack) {
         let (retstat, statements) = stack_unpack!(stack, optional, repetition);
@@ -23,6 +27,7 @@ impl Block {
 
 #[derive(Debug)]
 pub struct DoBlock(pub Box<expressions::Expression>);
+impl interpreter::Eval for DoBlock {}
 impl expressions::Expression for DoBlock {}
 
 impl DoBlock {
@@ -38,6 +43,7 @@ pub struct WhileBlock {
     pub condition: Box<expressions::Expression>,
     pub block: Box<expressions::Expression>,
 }
+impl interpreter::Eval for WhileBlock {}
 impl expressions::Expression for WhileBlock {}
 
 impl WhileBlock {
@@ -54,6 +60,7 @@ pub struct RepeatBlock {
     pub block: Box<expressions::Expression>,
     pub condition: Box<expressions::Expression>,
 }
+impl interpreter::Eval for RepeatBlock {}
 impl expressions::Expression for RepeatBlock {}
 
 impl RepeatBlock {
@@ -71,6 +78,7 @@ pub struct IfCondition {
     pub condition: Box<expressions::Expression>,
     pub block: Box<expressions::Expression>,
 }
+impl interpreter::Eval for IfCondition {}
 impl expressions::Expression for IfCondition {}
 
 impl IfCondition {
@@ -91,6 +99,7 @@ pub struct IfBlock {
     pub conditions: VecDeque<Box<expressions::Expression>>,
     pub else_block: Option<Box<expressions::Expression>>,
 }
+impl interpreter::Eval for IfBlock {}
 impl expressions::Expression for IfBlock {}
 
 impl IfBlock {
@@ -120,6 +129,7 @@ pub struct NumericalForBlock {
     pub step: Option<Box<expressions::Expression>>,
     pub block: Box<expressions::Expression>,
 }
+impl interpreter::Eval for NumericalForBlock {}
 impl expressions::Expression for NumericalForBlock {}
 
 impl NumericalForBlock {
@@ -146,6 +156,7 @@ pub struct GenericForBlock {
     pub explist: VecDeque<Box<expressions::Expression>>,
     pub block: Box<expressions::Expression>
 }
+impl interpreter::Eval for GenericForBlock {}
 impl expressions::Expression for GenericForBlock {}
 
 impl GenericForBlock {
@@ -164,6 +175,7 @@ impl GenericForBlock {
 
 #[derive(Debug)]
 pub struct Local(Box<expressions::Expression>);
+impl interpreter::Eval for Local {}
 impl expressions::Expression for Local {}
 
 impl Local {

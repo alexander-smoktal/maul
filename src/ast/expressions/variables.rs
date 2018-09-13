@@ -6,8 +6,11 @@ use ast::parser;
 use ast::stack;
 use ast::rules;
 
+use interpreter;
+
 #[derive(Debug, Clone)]
 pub struct Id(pub String);
+impl interpreter::Eval for Id {}
 impl expressions::Expression for Id {}
 
 impl Id {
@@ -31,6 +34,7 @@ pub struct Assignment {
     pub varlist: VecDeque<Box<expressions::Expression>>,
     pub explist: VecDeque<Box<expressions::Expression>>,
 }
+impl interpreter::Eval for Assignment {}
 impl expressions::Expression for Assignment {}
 
 impl Assignment {
