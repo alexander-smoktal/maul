@@ -12,12 +12,18 @@ impl interpreter::Eval for operators::Unop {
         // Keyword
         match self.0 {
             Keyword::MINUS => {
-                if let types::Type::Number(number) = value {
-                    types::Type::Number(-number)
-                } else {
-                    self.runtime_error(format!("Can't negate {:?} value", value));
+                match value {
+                    types::Type::Number(number) => types::Type::Number(-number),
+                    types::Type::Table { ref metatable, .. } => {
+                        if let Some(metamethod) = metatable.get("__unm") {
+                            metamethod.call(vec![&value])
+                        } else {
+                            self.runtime_error(format!("{:?} metatable doesn't contain `__unm` function", value))
+                        }
+                    },
+                    _ => self.runtime_error(format!("Can't negate {:?} value", value))
                 }
-            }
+            },
             Keyword::NOT => {
                 types::Type::Boolean(!value.as_bool())
             },
