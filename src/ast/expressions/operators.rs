@@ -95,7 +95,7 @@ impl Binop {
             [Keyword::SHRIGHT, Keyword::SHLEFT],
             [Keyword::DOT2],
             [Keyword::PLUS, Keyword::MINUS],
-            [Keyword::MUL, Keyword::DIV, Keyword::POW, Keyword::FLOORDIV],
+            [Keyword::MUL, Keyword::DIV, Keyword::MOD, Keyword::FLOORDIV],
             [Keyword::POW]
         );
 

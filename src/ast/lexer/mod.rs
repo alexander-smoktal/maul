@@ -111,7 +111,7 @@ impl Lexer {
             .collect();
         self.advance_pos(number.len());
 
-        TokenType::Number(number.parse::<f64>().unwrap())
+        TokenType::Number(number.parse::<f64>().expect(format!("Failed to parse number '{}'", number).as_str()))
     }
 
     fn parse_operator(&mut self) -> TokenType {

@@ -25,6 +25,14 @@ impl Type {
     pub fn call(&self, _arguments: Vec<&Type>) -> Type {
         unimplemented!();
     }
+
+    pub fn as_bool(&self) -> bool {
+        match self {
+            Type::Nil => false,
+            Type::Boolean(false) => false,
+            _ => true
+        }
+    }
 }
 
 #[cfg(test)]

@@ -19,11 +19,7 @@ impl interpreter::Eval for operators::Unop {
                 }
             }
             Keyword::NOT => {
-                match value {
-                    types::Type::Nil => types::Type::Boolean(true),
-                    types::Type::Boolean(false) => types::Type::Boolean(true),
-                    _ => types::Type::Boolean(false)
-                }
+                types::Type::Boolean(!value.as_bool())
             },
             Keyword::HASH => {
                 match value {
@@ -54,7 +50,7 @@ impl interpreter::Eval for operators::Unop {
 
 
 
-pub fn eval_ariphmetic(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
+fn eval_ariphmetic(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
     // Function to convert value for arithmetic operation
     let normalize = |value, op| -> f64 {
         match value {
@@ -71,50 +67,32 @@ pub fn eval_ariphmetic(exp: &interpreter::Eval, op: &Keyword, left: types::Type,
     };
 
     macro_rules! metatable_binop {
-        ($mt_key: tt, $op: tt, $function: expr) => {
+        ($mt_key: tt, $op: tt, $function: expr) => ({
             if let types::Type::Table { ref metatable, .. } = left {
-                    if let Some(metamethod) = metatable.get($mt_key) {
-                        return metamethod.call(vec![&left, &right])
-                    }
+                if let Some(metamethod) = metatable.get($mt_key) {
+                    return metamethod.call(vec![&left, &right])
                 }
+            }
 
             return types::Type::Number($function(normalize(left, $op), normalize(right, $op)))
-        }
+        })
     }
 
     match op {
-        Keyword::PLUS => {
-            metatable_binop!("__add", "+", |left, right| { left + right });
-        },
-        Keyword::MINUS => {
-            metatable_binop!("__sub", "-", |left, right| { left - right });
-        },
-        Keyword::MUL => {
-            metatable_binop!("__mul", "*", |left, right| { left * right });
-        },
-        Keyword::DIV => {
-            metatable_binop!("__div", "/", |left, right| { left / right });
-        },
-        Keyword::FLOORDIV => {
-            metatable_binop!("__idiv", "//", |left: f64, right: f64| { (left / right).floor() });
-        },
-        Keyword::MOD => {
-            metatable_binop!("__mod", "%", |left: f64, right: f64| { left % right });
-        },
-        Keyword::POW => {
-            metatable_binop!("__pow", "^", |left: f64, right: f64| { left.powf(right) });
-        },
+        Keyword::PLUS => metatable_binop!("__add", "+", |left, right| { left + right }),
+        Keyword::MINUS => metatable_binop!("__sub", "-", |left, right| { left - right }),
+        Keyword::MUL => metatable_binop!("__mul", "*", |left, right| { left * right }),
+        Keyword::DIV => metatable_binop!("__div", "/", |left, right| { left / right }),
+        Keyword::FLOORDIV => metatable_binop!("__idiv", "//", |left: f64, right: f64| { (left / right).floor() }),
+        Keyword::MOD => metatable_binop!("__mod", "%", |left: f64, right: f64| { left % right }),
+        Keyword::POW => metatable_binop!("__pow", "^", |left: f64, right: f64| { left.powf(right) }),
         _ =>  panic!("Should never happen")
     }
 }
 
-pub fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
+fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
     fn not(value: types::Type) -> types::Type {
-        match value {
-            types::Type::Nil => types::Type::Boolean(true),
-            types::Type::Boolean(false) => types::Type::Boolean(true),
-            _ => types::Type::Boolean(false)
-        }
+        types::Type::Boolean(!value.as_bool())
     }
 
     match (&left, &right) {
@@ -141,66 +119,89 @@ pub fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type
             }
         },
         (types::Type::Table { ref metatable, .. }, _) => {
+            macro_rules! metatable_binop {
+                ($mt_key: tt, $op: tt) => {
+                    if let Some(metamethod) = metatable.get($mt_key) {
+                        metamethod.call(vec![&left, &right])
+                    } else {
+                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, $op))
+                    }
+                }
+            }
+
+
             match op {
-                Keyword::LESS => {
-                    if let Some(metamethod) = metatable.get("__lt") {
-                        metamethod.call(vec![&left, &right])
-                    } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, "<"))
-                    }
-                }
-                Keyword::LEQ => {
-                    if let Some(metamethod) = metatable.get("__le") {
-                        metamethod.call(vec![&left, &right])
-                    } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, "<="))
-                    }
-                }
-                Keyword::GREATER => {
-                    if let Some(metamethod) = metatable.get("__le") {
-                        not(metamethod.call(vec![&left, &right]))
-                    } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, "<"))
-                    }
-                }
-                Keyword::GEQ => {
-                    if let Some(metamethod) = metatable.get("__lt") {
-                        not(metamethod.call(vec![&left, &right]))
-                    } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, "<"))
-                    }
-                }
-                Keyword::EQ => {
-                    if let Some(metamethod) = metatable.get("__eq") {
-                        metamethod.call(vec![&left, &right])
-                    } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, "<"))
-                    }
-                }
-                Keyword::NEQ => {
-                    if let Some(metamethod) = metatable.get("__eq") {
-                        not(metamethod.call(vec![&left, &right]))
-                    } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, "<"))
-                    }
-                }
+                Keyword::LESS => metatable_binop!("__lt", "<"),
+                Keyword::LEQ => metatable_binop!("__le", "<="),
+                Keyword::GREATER => not(metatable_binop!("__le", ">")),
+                Keyword::GEQ => not(metatable_binop!("__lt", ">=")),
+                Keyword::EQ => metatable_binop!("__eq", "=="),
+                Keyword::NEQ => not(metatable_binop!("__eq", "~=")),
                 _ => panic!("Should never happen")
             }
         }
-        _ => unimplemented!()
+        // TODO: Function comparison not implemented
+        _ => types::Type::Boolean(false)
     }
 }
 
-pub fn eval_bitwise(exp: &operators::Binop, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
-    types::Type::Nil
+fn eval_bitwise(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
+    macro_rules! metatable_binop {
+        ($mt_key: tt, $op: tt, $function: expr) => ({
+            if let types::Type::Table { ref metatable, .. } = left {
+                if let Some(metamethod) = metatable.get($mt_key) {
+                    return metamethod.call(vec![&left, &right])
+                }
+            }
+
+            if let (types::Type::Number(leftnum), types::Type::Number(rightnum)) = (&left, &right) {
+                return types::Type::Number($function(*leftnum as i64, *rightnum as i64) as f64)
+            } else {
+                exp.runtime_error(format!("Bitwise operator can be applied only to numbers. Got {:?} and {:?}", left, right))
+            }
+        })
+    }
+
+    match op {
+        Keyword::SOR => metatable_binop!("__bor", "+", |left, right| { left | right }),
+        Keyword::SAND => metatable_binop!("__band", "-", |left, right| { left & right }),
+        Keyword::TILDA => metatable_binop!("__bxor", "-", |left, right| { left ^ right }),
+        Keyword::SHRIGHT => metatable_binop!("__bshr", "*", |left, right| { left >> right }),
+        Keyword::SHLEFT => metatable_binop!("__bshl", "/", |left, right| { left << right }),
+        _ =>  panic!("Should never happen")
+    }
 }
 
-pub fn eval_boolean(exp: &operators::Binop, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
-    types::Type::Nil
+// TODO. `or` Lazy evaluation
+fn eval_boolean(_exp: &operators::Binop, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
+    types::Type::Boolean(match op {
+        Keyword::OR => left.as_bool() || right.as_bool(),
+        Keyword::AND => left.as_bool() && right.as_bool(),
+        _ =>  panic!("Should never happen")
+    })
 }
 
-pub fn eval_concat(exp: &operators::Binop, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
-    types::Type::Nil
+fn eval_concat(exp: &interpreter::Eval, _op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
+    fn to_string(value: &types::Type) -> Option<String> {
+        match value {
+            types::Type::Number(num) => Some(num.to_string()),
+            types::Type::String(str) => Some(str.clone()),
+            _ => None
+        }
+    }
+
+    if let (Some(mut leftstr), Some(rightstr)) = (to_string(&left), to_string(&right)) {
+        leftstr.push_str(rightstr.as_str());
+        types::Type::String(leftstr)
+    } else if let types::Type::Table { ref metatable, .. } = left {
+        if let Some(metamethod) = metatable.get("__concat") {
+            metamethod.call(vec![&left, &right])
+        } else {
+            exp.runtime_error(format!("{:?} metatable doesn't contain `__concat` function", left))
+        }
+    } else {
+        exp.runtime_error(format!("Concat operator can be applied only to strings, numbers or table. Got {:?} and {:?}", left, right))
+    }
 }
 
 impl interpreter::Eval for operators::Binop {
@@ -230,6 +231,7 @@ impl interpreter::Eval for operators::Binop {
         let operators::Binop(op, left, right) = self;
 
         let left_value = left.eval(env);
+        // TODO: Lazy evaluation!!!
         let right_value = right.eval(env);
 
         match op {
