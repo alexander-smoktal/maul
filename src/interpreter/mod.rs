@@ -1,6 +1,7 @@
 pub mod environment;
 pub mod operators;
 pub mod primitives;
+pub mod tables;
 pub mod types;
 
 pub trait Eval {

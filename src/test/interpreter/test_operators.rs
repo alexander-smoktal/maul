@@ -57,12 +57,6 @@ fn test_unop_bitwise_not_invalid() {
     interpret_rule("~true", rules::exp);
 }
 
-
-            // Keyword::OR | Keyword::AND => eval_boolean(self, op, left_value, right_value),
-            // Keyword::LESS | Keyword::LEQ | Keyword::GREATER | Keyword::GEQ | Keyword::EQ | Keyword::NEQ => eval_equivalence(self, op, left_value, right_value),
-            // Keyword::SOR | Keyword::TILDA | Keyword::SAND | Keyword::SHRIGHT | Keyword::SHLEFT => eval_bitwise(self, op, left_value, right_value),
-            // Keyword::DOT2 => eval_concat(self, op, left_value, right_value),
-
 // TODO: Test metatables operators
 // Keyword::PLUS | Keyword::MINUS | Keyword::MUL | Keyword::DIV | Keyword::FLOORDIV | Keyword::MOD | Keyword::POW
 #[test]
@@ -89,6 +83,7 @@ fn test_binop_arithmetic_invalid_conversion() {
     let (val, mut _env) = interpret_rule(r#"1 + "Hello""#, rules::exp); assert_eq!(val, "Number(4.0)");
 }
 
+// Keyword::LESS | Keyword::LEQ | Keyword::GREATER | Keyword::GEQ | Keyword::EQ | Keyword::NEQ
 #[test]
 fn test_binop_comparison_numbers() {
     let (val, mut _env) = interpret_rule("1 < 3", rules::exp); assert_eq!(val, "Boolean(true)");
@@ -145,6 +140,7 @@ fn test_binop_comparison_diff_types() {
     let (val, mut _env) = interpret_rule(r#""1" ~= 1"#, rules::exp); assert_eq!(val, "Boolean(false)");
 }
 
+// Keyword::SOR | Keyword::TILDA | Keyword::SAND | Keyword::SHRIGHT | Keyword::SHLEFT
 #[test]
 fn test_binop_bitwise() {
     let (val, mut _env) = interpret_rule("1 | 3", rules::exp); assert_eq!(val, "Number(3.0)");
@@ -169,6 +165,7 @@ fn test_binop_bitwise_invalid() {
     interpret_rule(r#""1" | 3"#, rules::exp);
 }
 
+// Keyword::OR | Keyword::AND
 #[test]
 fn test_binop_boolean() {
     let (val, mut _env) = interpret_rule("true or false", rules::exp); assert_eq!(val, "Boolean(true)");
@@ -194,6 +191,7 @@ fn test_binop_boolean() {
     let (val, mut _env) = interpret_rule(r#"true and "nil""#, rules::exp); assert_eq!(val, "Boolean(true)");
 }
 
+// Keyword::DOT2
 #[test]
 fn test_binop_concat() {
     let (val, mut _env) = interpret_rule(r#""Hello ".."world""#, rules::exp); assert_eq!(val, r#"String("Hello world")"#);
