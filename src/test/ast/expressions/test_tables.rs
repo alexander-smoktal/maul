@@ -7,7 +7,7 @@ fn test_table_fields() {
         parse_string(r#"["Key"] = true"#, rules::field), r#"[Single(TableField { key: Some(String("Key")), value: Boolean(true) })]"#
     );
     assert_eq!(
-        parse_string("Key = false", rules::field), r#"[Single(TableField { key: Some(Id("Key")), value: Boolean(false) })]"#
+        parse_string("Key = false", rules::field), r#"[Single(TableField { key: Some(String("Key")), value: Boolean(false) })]"#
     );
     assert_eq!(
         parse_string("7", rules::field), "[Single(TableField { key: None, value: Number(7.0) })]"
@@ -17,17 +17,17 @@ fn test_table_fields() {
 #[test]
 fn test_table() {
     assert_eq!(parse_string(r#"{["Key"] = true, Key = false, 7}"#, rules::tableconstructor),
-        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(Id("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
+        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(String("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
     assert_eq!(parse_string(r#"{["Key"] = true, Key = false, 7,}"#, rules::tableconstructor),
-        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(Id("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
+        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(String("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
     assert_eq!(parse_string(r#"{["Key"] = true; Key = false; 7}"#, rules::tableconstructor),
-        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(Id("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
+        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(String("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
     assert_eq!(parse_string(r#"{["Key"] = true; Key = false; 7;}"#, rules::tableconstructor),
-        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(Id("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
+        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(String("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
     assert_eq!(parse_string(r#"{["Key"] = true; Key = false, 7}"#, rules::tableconstructor),
-        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(Id("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
+        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(String("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
     assert_eq!(parse_string(r#"{["Key"] = true, Key = false; 7}"#, rules::tableconstructor),
-        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(Id("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
+        r#"[Single(Table([TableField { key: Some(String("Key")), value: Boolean(true) }, TableField { key: Some(String("Key")), value: Boolean(false) }, TableField { key: None, value: Number(7.0) }]))]"#);
 }
 
 #[test]
