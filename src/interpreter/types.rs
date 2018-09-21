@@ -42,6 +42,7 @@ impl Type {
     }
 
     /// Unwrap value from reference
+    /// This is dangerous function. Use it only in case thre is more copies of the reference
     pub fn unwrap(&self) -> &Self {
         if let Type::Reference(value) = self {
             unsafe {

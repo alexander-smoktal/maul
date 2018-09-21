@@ -1,8 +1,10 @@
 use std::collections::VecDeque;
 
-use ast::expressions;
+use ast::expressions::{self, primitives};
 use ast::rules;
 use ast::stack;
+use ast::parser;
+use ast::lexer::tokens;
 
 #[derive(Debug)]
 pub struct Indexing {
@@ -42,6 +44,20 @@ pub struct TableField {
 impl expressions::Expression for TableField {}
 
 impl TableField {
+    pub fn name_rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
+        if let Some(tokens::Token {
+            token: tokens::TokenType::Id(string),
+            ..
+        }) = parser.peek().cloned()
+        {
+            parser.shift();
+            stack.push_single(Box::new(primitives::String(string)));
+            true
+        } else {
+            false
+        }
+    }
+
     // terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET), terminal!(Keyword::EQUAL), exp
     pub fn new_table_index(stack: &mut stack::Stack) {
         let (value, _assign, _rb, key, _lb) = stack_unpack!(stack, single, single, single, single, single);

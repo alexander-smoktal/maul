@@ -286,7 +286,7 @@ rule!(fieldlist, and![(
 // field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
 rule!(field, or![
     and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET), terminal!(Keyword::ASSIGN), exp) => tables::TableField::new_table_index],
-    and![(variables::Id::rule, terminal!(Keyword::ASSIGN), exp) => tables::TableField::new_object_index],
+    and![(tables::TableField::name_rule, terminal!(Keyword::ASSIGN), exp) => tables::TableField::new_object_index],
     and![(exp) => tables::TableField::new_value]
 ]);
 

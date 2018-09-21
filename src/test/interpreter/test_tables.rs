@@ -1,0 +1,75 @@
+use std::ops::Deref;
+
+use ast::rules;
+use interpreter::types::{Type::{self, Table}};
+
+use super::utils::interpret_rule;
+
+// tableconstructor ::= ‘{’ [fieldlist] ‘}’
+// fieldlist ::= field [fieldlist_prefix]
+// field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
+#[test]
+fn test_simple_table() {
+    if let (Table { border, .. }, _) = interpret_rule("{}", rules::tableconstructor) {
+        assert_eq!(border, 0);
+    } else {
+        panic!()
+    }
+
+    if let (Table { border, map, .. }, _) = interpret_rule("{1}", rules::tableconstructor) {
+        assert_eq!(border, 1);
+        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
+    } else {
+        panic!()
+    }
+
+    if let (Table { border, map, .. }, _) = interpret_rule("{1, 2}", rules::tableconstructor) {
+        assert_eq!(border, 2);
+        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(map.get(&Type::Number(2f64)).unwrap().borrow().deref(), &Type::Number(2f64));
+    } else {
+        panic!()
+    }
+
+    if let (Table { border, map, .. }, _) = interpret_rule("{1; 3}", rules::tableconstructor) {
+        assert_eq!(border, 2);
+        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(map.get(&Type::Number(2f64)).unwrap().borrow().deref(), &Type::Number(3f64));
+    } else {
+        panic!()
+    }
+}
+
+#[test]
+fn test_name_table() {
+    let (val, _) = interpret_rule(r#"{Hello = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, map, .. } = val {
+        assert_eq!(border, 0);
+        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{Hello = 1, 2}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, map, .. } = val {
+        assert_eq!(border, 1);
+        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(2f64));
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{Hello = 1; world = false}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, map, .. } = val {
+        assert_eq!(border, 0);
+        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(map.get(&Type::String("world".to_string())).unwrap().borrow().deref(), &Type::Boolean(false));
+    } else {
+        panic!()
+    }
+}
+
+// ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
