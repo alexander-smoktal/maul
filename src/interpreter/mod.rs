@@ -3,6 +3,7 @@ pub mod operators;
 pub mod primitives;
 pub mod tables;
 pub mod types;
+pub mod variables;
 
 pub trait Eval {
     fn eval(&self, _env: &mut environment::Environment) -> types::Type {

@@ -30,6 +30,10 @@ impl<'e> Environment<'e> {
         *self.global_id_counter.borrow_mut() = value;
         value
     }
+
+    pub fn get(&mut self, varname: &String) -> Option<Rc<RefCell<types::Type>>> {
+        self.data.get(varname).cloned()
+    }
 }
 
 impl<'e> Deref for Environment<'e> {

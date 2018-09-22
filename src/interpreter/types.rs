@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::ops::Deref;
 
 use ast::expressions;
 
@@ -10,8 +11,15 @@ pub enum Type {
     Boolean(bool),
     Number(f64),
     String(String),
+    Id(String),
+    /// Reference to an existing value
     Reference(Rc<RefCell<Type>>),
     Vector(Vec<Type>),
+    /// New table entry. To new value from the assignment
+    NewTableEntry {
+        table: Rc<RefCell<Type>>,
+        key: Rc<RefCell<Type>>
+    },
     Table {
         /// For comparison
         id: u64,
@@ -41,15 +49,11 @@ impl Type {
         }
     }
 
-    /// Unwrap value from reference
-    /// This is dangerous function. Use it only in case thre is more copies of the reference
-    pub fn unwrap(&self) -> &Self {
-        if let Type::Reference(value) = self {
-            unsafe {
-                &(*value.as_ptr())
-            }
-        } else {
-            self
+    /// Create reference to an object or clone reference
+    pub fn as_ref(self) -> Rc<RefCell<Self>> {
+        match self {
+            Type::Reference(typeref) => typeref,
+            _ => Rc::new(RefCell::new(self))
         }
     }
 }
@@ -64,15 +68,17 @@ impl ::std::cmp::PartialEq<&'static str> for Type {
 impl ::std::cmp::PartialEq for Type {
     fn eq(&self, other: &Self) -> bool {
        match (self, other) {
-            (Type::Nil, Type::Nil) => true,
-            (Type::Boolean(left), Type::Boolean(right)) => left == right,
-            (Type::Number(left), Type::Number(right)) => left == right,
-            (Type::String(left), Type::String(right)) => left == right,
-            (Type::Reference(left), Type::Reference(right)) => left == right,
-            (Type::Vector(left), Type::Vector(right)) => left == right,
-            (Type::Table{ id: left, .. }, Type::Table{ id: right, .. }) => left == right,
-            (Type::Function{ id: left, .. }, Type::Function{ id: right, .. }) => left == right,
-            _ => false
+           (Type::Nil, Type::Nil) => true,
+           (Type::Boolean(left), Type::Boolean(right)) => left == right,
+           (Type::Number(left), Type::Number(right)) => left == right,
+           (Type::String(left), Type::String(right)) => left == right,
+           (Type::Id(left), Type::Id(right)) => left == right,
+           (Type::Reference(left), right) => right.eq(left.borrow().deref()),
+           (left, Type::Reference(right)) => left.eq(right.borrow().deref()),
+           (Type::Vector(left), Type::Vector(right)) => left == right,
+           (Type::Table{ id: left, .. }, Type::Table{ id: right, .. }) => left == right,
+           (Type::Function{ id: left, .. }, Type::Function{ id: right, .. }) => left == right,
+           _ => false
        }
     }
 }
@@ -86,10 +92,25 @@ impl ::std::hash::Hash for Type {
             Type::Boolean(value) => value.hash(state),
             Type::Number(value) => value.to_string().hash(state),
             Type::String(value) => value.hash(state),
+            Type::Id(id) => id.hash(state),
             Type::Reference(value) => value.borrow().hash(state),
             Type::Vector(vec) => vec.hash(state),
+            Type::NewTableEntry{..} => (-1).hash(state), // New table entries should never be equal
             Type::Table{ id, .. } => id.hash(state),
             Type::Function{ id, .. } => id.hash(state)
+        }
+    }
+}
+
+/// Display to correctly infor user about runtime errors
+impl ::std::fmt::Display for Type {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        match self {
+            Type::Function { id, .. } => write!(f, "function ({:x})", id),
+            Type::Table { id, .. } => write!(f, "function ({:x})", id),
+            Type::NewTableEntry { .. } => write!(f, "a nil value"),
+            Type::Reference(value) => value.borrow().fmt(f),
+            _ => write!(f, "{:?}", self)
         }
     }
 }

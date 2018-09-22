@@ -146,3 +146,9 @@ fn test_table_border() {
         panic!()
     }
 }
+
+#[test]
+#[should_panic(expected = "Runtime error: Unknown variable 'hello'")]
+fn test_table_invalid_id() {
+    interpret_rule(r#"{[hello] = 1}"#, rules::tableconstructor);
+}

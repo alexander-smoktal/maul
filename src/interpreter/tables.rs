@@ -65,7 +65,16 @@ impl interpreter::Eval for tables::TableField {
         let mut result_vector: Vec<types::Type> = vec![];
 
         if let Some(ref expression) = self.key {
-            result_vector.push(expression.eval(env));
+            match expression.eval(env) {
+                types::Type::Id(id) => {
+                    if let Some (id_value) = env.get(&id) {
+                        result_vector.push(types::Type::Reference(id_value))
+                    } else {
+                        self.runtime_error(format!("Unknown variable '{}'", id))
+                    }
+                }
+                key => result_vector.push(key)
+            }
         }
 
         result_vector.push(self.value.eval(env));
@@ -76,16 +85,24 @@ impl interpreter::Eval for tables::TableField {
 
 impl interpreter::Eval for tables::Indexing {
     fn eval(&self, env: &mut environment::Environment) -> types::Type {
-        if let types::Type::Table { ref map, .. } = self.object.eval(env).unwrap() {
-            let key = self.index.eval(env);
+        let table = self.object.eval(env).as_ref();
+        // This is bullshit. WTF Ref
+        let table_borrow = table.borrow();
 
-            if let Some(result) = map.get(&key) {
+        if let types::Type::Table { ref map, .. } = *table_borrow {
+            let key = self.index.eval(env).as_ref();
+            let key_borrow = key.borrow();
+
+            if let Some(result) = map.get(&*key_borrow) {
                 types::Type::Reference(result.clone())
             } else {
-                self.runtime_error(format!("Can't find {:?} key in a table", key))
+                types::Type::NewTableEntry {
+                    table: table.clone(),
+                    key: key.clone()
+                }
             }
         } else {
-            self.runtime_error(format!("Indexing requested, but object is not a table, but {:?}", self.object))
+            self.runtime_error(format!("Attemp index not a table, but {}", table.borrow()))
         }
     }
 }
