@@ -72,4 +72,77 @@ fn test_name_table() {
     }
 }
 
-// ‘[’ exp ‘]’ [var_suffix] | ‘.’ Name [var_suffix]
+// field ::= ‘[’ exp ‘]’ ‘=’ exp | Name ‘=’ exp | exp
+#[test]
+fn test_bracket_table() {
+    let (val, _) = interpret_rule(r#"{[1] = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, map, .. } = val {
+        assert_eq!(border, 1);
+        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{["Hello"] = 1, 2}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, map, .. } = val {
+        assert_eq!(border, 1);
+        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(2f64));
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{[{}] = 1; world = false}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, map, .. } = val {
+        assert_eq!(border, 0);
+        assert_eq!(map.get(&Type::String("world".to_string())).unwrap().borrow().deref(), &Type::Boolean(false));
+    } else {
+        panic!()
+    }
+}
+
+#[test]
+fn test_table_border() {
+    let (val, _) = interpret_rule(r#"{[1] = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, .. } = val {
+        assert_eq!(border, 1);
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{[1] = 1, [2] = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, .. } = val {
+        assert_eq!(border, 2);
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{[2] = 1, [1] = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, .. } = val {
+        assert_eq!(border, 2);
+    } else {
+        panic!()
+    }
+    
+    let (val, _) = interpret_rule(r#"{[1] = 1, [3] = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, .. } = val {
+        assert_eq!(border, 1);
+    } else {
+        panic!()
+    }
+
+    let (val, _) = interpret_rule(r#"{[1] = 1, [3] = 1, [2] = 1}"#, rules::tableconstructor);
+    println!("{:?}", val);
+    if let Table { border, .. } = val {
+        assert_eq!(border, 3);
+    } else {
+        panic!()
+    }
+}

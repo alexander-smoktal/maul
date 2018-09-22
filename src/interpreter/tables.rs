@@ -7,19 +7,9 @@ use interpreter::{self, environment, types};
 
 type TableHashMap = HashMap<types::Type, Rc<RefCell<types::Type>>>;
 
-fn update_table_border(table: &TableHashMap, key: &types::Type, border: &mut usize) {
-    if let types::Type::Number(keynum) = key {
-        // If we've filled element at border, our border moved
-        if (*border + 1) as f64 == *keynum {
-            loop {
-                *border = *border + 1;
-                if !table.contains_key(&types::Type::Number(*border as f64)) {
-                    break
-                }
-            }
-        }
-    } else {
-        panic!("Not a number as a key for table. Something is terribly wrong");
+fn update_table_border(table: &TableHashMap, border: &mut usize) {
+    while table.contains_key(&types::Type::Number((*border + 1) as f64)) {
+        *border = *border + 1;
     }
 }
 
@@ -35,11 +25,8 @@ impl interpreter::Eval for tables::Table {
                     let value = key_value.pop().unwrap();
                     let key = key_value.pop().unwrap();
 
-                    if let types::Type::Number(_) = key {
-                        update_table_border(&map, &key, &mut border);
-                    }
-
                     map.insert(key, Rc::new(RefCell::new(value)));
+                    update_table_border(&map, &mut border);
                 // Only key
                 } else if key_value.len() == 1 {
                     let mut key: types::Type;
@@ -54,9 +41,8 @@ impl interpreter::Eval for tables::Table {
                         }
                     }
 
-
-                    update_table_border(&map, &key, &mut border);
                     map.insert(key, Rc::new(RefCell::new(value)));
+                    update_table_border(&map, &mut border);
                 } else {
                     panic!("Internal interpreter error. Table constructor returns invalid number of elements: {}", key_value.len());
                 }
