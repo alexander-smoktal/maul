@@ -34,6 +34,13 @@ impl<'e> Environment<'e> {
     pub fn get(&mut self, varname: &String) -> Option<Rc<RefCell<types::Type>>> {
         self.data.get(varname).cloned()
     }
+
+    pub fn add_variable(&mut self, id: String, value: types::Type) {
+        match value {
+            types::Type::Reference(value) => self.data.insert(id, value.clone()),
+            value => self.data.insert(id, Rc::new(RefCell::new(value))),
+        };
+    }
 }
 
 impl<'e> Deref for Environment<'e> {

@@ -15,11 +15,6 @@ pub enum Type {
     /// Reference to an existing value
     Reference(Rc<RefCell<Type>>),
     Vector(Vec<Type>),
-    /// New table entry. To new value from the assignment
-    NewTableEntry {
-        table: Rc<RefCell<Type>>,
-        key: Rc<RefCell<Type>>
-    },
     Table {
         /// For comparison
         id: u64,
@@ -95,7 +90,6 @@ impl ::std::hash::Hash for Type {
             Type::Id(id) => id.hash(state),
             Type::Reference(value) => value.borrow().hash(state),
             Type::Vector(vec) => vec.hash(state),
-            Type::NewTableEntry{..} => (-1).hash(state), // New table entries should never be equal
             Type::Table{ id, .. } => id.hash(state),
             Type::Function{ id, .. } => id.hash(state)
         }
@@ -108,7 +102,6 @@ impl ::std::fmt::Display for Type {
         match self {
             Type::Function { id, .. } => write!(f, "function ({:x})", id),
             Type::Table { id, .. } => write!(f, "function ({:x})", id),
-            Type::NewTableEntry { .. } => write!(f, "a nil value"),
             Type::Reference(value) => value.borrow().fmt(f),
             _ => write!(f, "{:?}", self)
         }

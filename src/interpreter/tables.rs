@@ -87,22 +87,27 @@ impl interpreter::Eval for tables::Indexing {
     fn eval(&self, env: &mut environment::Environment) -> types::Type {
         let table = self.object.eval(env).as_ref();
         // This is bullshit. WTF Ref
-        let table_borrow = table.borrow();
+        let mut table_borrow = table.borrow_mut();
 
-        if let types::Type::Table { ref map, .. } = *table_borrow {
-            let key = self.index.eval(env).as_ref();
-            let key_borrow = key.borrow();
+        // We can index only tables
+        if let types::Type::Table { ref mut map, ref mut border, .. } = *table_borrow {
+            let key = self.index.eval(env);
 
-            if let Some(result) = map.get(&*key_borrow) {
-                types::Type::Reference(result.clone())
+            // If we have this entry, return reference to it
+            if let Some(result) = map.get(&key).cloned() {
+                types::Type::Reference(result)
+            // If we have no such entry in the table, we add new entry with Nil value
+            // In case of chaind indexing, we must get an error about indexing Nil value
             } else {
-                types::Type::NewTableEntry {
-                    table: table.clone(),
-                    key: key.clone()
-                }
+                let new_entry = Rc::new(RefCell::new(types::Type::Nil));
+
+                map.insert(key, new_entry.clone());
+                update_table_border(&map, border);
+
+                types::Type::Reference(new_entry)
             }
         } else {
-            self.runtime_error(format!("Attemp index not a table, but {}", table.borrow()))
+            self.runtime_error(format!("Attemp to index not a table, but {}", table.borrow()))
         }
     }
 }
