@@ -42,13 +42,13 @@ impl interpreter::Eval for variables::Assignment {
             let value = if exp_typevec.is_empty() {
                 types::Type::Nil
             } else {
-                exp_typevec.pop_front().unwrap();
+                exp_typevec.pop_front().unwrap()
             };
 
             // We can only add variable by name, this should be an Id or change reference. Everything else is an error
             match key {
                 types::Type::Id(var_id) => env.add_variable(var_id, value),
-                types::Type::Reference(reference) => reference.replace(value),
+                types::Type::Reference(reference) => { reference.replace(value); },
                 _ => self.runtime_error(format!("Can't use '{}' as a lvalue", key))
             }
         }

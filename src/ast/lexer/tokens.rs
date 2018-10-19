@@ -69,7 +69,7 @@ pub enum Keyword {
 impl Keyword {
     // unop ::= ‘-’ | not | ‘#’ | ‘~’
     pub fn is_unop(&self) -> bool {
-        match self.clone() {
+        match *self {
             Keyword::MINUS | Keyword::NOT | Keyword::HASH | Keyword::TILDA => true,
             _ => false,
         }
@@ -80,7 +80,7 @@ impl Keyword {
     //            ‘<’ | ‘<=’ | ‘>’ | ‘>=’ | ‘==’ | ‘~=’ |
     //            and | or
     pub fn is_binop(&self) -> bool {
-        match self.clone() {
+        match *self {
             Keyword::PLUS
             | Keyword::MINUS
             | Keyword::MUL
