@@ -25,3 +25,18 @@ pub fn interpret_rule<F>(source_code: &str, func: F) -> (types::Type, environmen
 
     (stack.pop_single().eval(&mut env), env)
 }
+
+pub fn interpret_rule_env<'e, F>(source_code: &str, func: F, mut env: environment::Environment<'e>) ->
+    (types::Type, environment::Environment<'e>) where
+    F: Fn(&mut parser::Parser, &mut stack::Stack) -> bool
+{
+    let mut parser = parser::Parser::new(source_code.to_string());
+    let mut stack = stack::Stack::new();
+
+    func(&mut parser, &mut stack);
+
+    assert!(parser.peek().is_none(), format!("Parser contains tokens after parsing: {:?}", parser));
+    let result = stack.pop_single().eval(&mut env);
+
+    (result, env)
+}

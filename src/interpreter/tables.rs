@@ -94,7 +94,7 @@ impl interpreter::Eval for tables::Indexing {
             let key = self.index.eval(env);
 
             // If we have this entry, return reference to it
-            if let Some(result) = map.get(&key).cloned() {
+            return if let Some(result) = map.get(&key).cloned() {
                 types::Type::Reference(result)
             // If we have no such entry in the table, we add new entry with Nil value
             // In case of chaind indexing, we must get an error about indexing Nil value
@@ -106,8 +106,9 @@ impl interpreter::Eval for tables::Indexing {
 
                 types::Type::Reference(new_entry)
             }
-        } else {
-            self.runtime_error(format!("Attemp to index not a table, but {}", table.borrow()))
         }
+
+        // Because of NLL
+        self.runtime_error(format!("Attemp to index not a table, but {}", table_borrow))
     }
 }

@@ -41,6 +41,29 @@ impl<'e> Environment<'e> {
             value => self.data.insert(id, Rc::new(RefCell::new(value))),
         };
     }
+
+
+}
+
+impl<'e> std::fmt::Display for Environment<'e> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let mut keys: Vec<&String> = self.data.keys().collect();
+        keys.sort();
+
+        let mut result = "{".to_string();
+        for ref key in keys.into_iter() {
+            result += format!("{:?}: {:?}, ", key, self.data.get(*key).unwrap()).as_str();
+        }
+
+        if self.data.len() > 0 {
+            result.pop();
+            result.pop();
+        }
+
+        result += "}";
+
+        write!(formatter, "{}", result)
+    }
 }
 
 impl<'e> Deref for Environment<'e> {
@@ -54,6 +77,6 @@ impl<'e> Deref for Environment<'e> {
 #[cfg(test)]
 impl<'e> ::std::cmp::PartialEq<&'static str> for Environment<'e> {
     fn eq(&self, other: &&'static str) -> bool {
-        format!("{:?}", self.data) == other.to_string()
+        format!("{}", self) == other.to_string()
     }
 }

@@ -8,6 +8,15 @@ use interpreter::{self, environment, types};
 // pub struct Id(pub String);
 impl interpreter::Eval for variables::Id {
     fn eval(&self, _env: &mut environment::Environment) -> types::Type {
+        /*
+        let result = env.get(&self.0);
+
+        match result {
+            Some(refcell) => types::Type::Reference(refcell),
+            _ => self.runtime_error(format!("Cannot find variable '{}'", self.0))
+        }
+        */
+
         types::Type::Id(self.0.clone())
     }
 }
