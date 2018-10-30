@@ -11,7 +11,6 @@ pub enum Type {
     Boolean(bool),
     Number(f64),
     String(String),
-    Id(String),
     /// Reference to an existing value
     Reference(Rc<RefCell<Type>>),
     Vector(Vec<Type>),
@@ -44,6 +43,15 @@ impl Type {
         }
     }
 
+    /// Check if type is nil. We often have special cases for nils
+    pub fn is_nil(&self) -> bool {
+        match self {
+            Type::Nil => true,
+            Type::Reference(typeref) => typeref.borrow().is_nil(),
+            _ => false
+        }
+    }
+
     /// Create reference to an object or clone reference
     pub fn as_ref(self) -> Rc<RefCell<Self>> {
         match self {
@@ -67,7 +75,6 @@ impl ::std::cmp::PartialEq for Type {
            (Type::Boolean(left), Type::Boolean(right)) => left == right,
            (Type::Number(left), Type::Number(right)) => left == right,
            (Type::String(left), Type::String(right)) => left == right,
-           (Type::Id(left), Type::Id(right)) => left == right,
            (Type::Reference(left), right) => right.eq(left.borrow().deref()),
            (left, Type::Reference(right)) => left.eq(right.borrow().deref()),
            (Type::Vector(left), Type::Vector(right)) => left == right,
@@ -87,7 +94,6 @@ impl ::std::hash::Hash for Type {
             Type::Boolean(value) => value.hash(state),
             Type::Number(value) => value.to_string().hash(state),
             Type::String(value) => value.hash(state),
-            Type::Id(id) => id.hash(state),
             Type::Reference(value) => value.borrow().hash(state),
             Type::Vector(vec) => vec.hash(state),
             Type::Table{ id, .. } => id.hash(state),

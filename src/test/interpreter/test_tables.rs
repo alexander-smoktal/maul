@@ -129,7 +129,7 @@ fn test_table_border() {
     } else {
         panic!()
     }
-    
+
     let (val, _) = interpret_rule(r#"{[1] = 1, [3] = 1}"#, rules::tableconstructor);
     println!("{:?}", val);
     if let Table { border, .. } = val {
@@ -148,7 +148,7 @@ fn test_table_border() {
 }
 
 #[test]
-#[should_panic(expected = "Runtime error: Unknown variable 'hello'")]
+#[should_panic(expected = "Runtime error: Cannot use `nil` as a table key")]
 fn test_table_invalid_id() {
     interpret_rule(r#"{[hello] = 1}"#, rules::tableconstructor);
 }

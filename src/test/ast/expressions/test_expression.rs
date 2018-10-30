@@ -65,7 +65,7 @@ fn test_exp_binop() {
 fn test_exp_prefixexp() {
     assert_eq!(
         parse_string("Hello.world", rules::exp),
-            r#"[Single(Indexing { object: Id("Hello"), index: Id("world") })]"#
+            r#"[Single(Indexing { object: Id("Hello"), index: String("world") })]"#
     );
 }
 

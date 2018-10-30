@@ -27,14 +27,14 @@ fn test_variable_table() {
     println!("YOBA: {}", env);
 
     let (val, env) = interpret_rule_env("x.y", rules::var, env);
-    assert_eq!(val, "");
+    assert_eq!(val, "Reference(RefCell { value: Number(5.0) })");
 
     let (val, _env) = interpret_rule_env("x[5]", rules::var, env);
-    assert_eq!(val, "");
+    assert_eq!(val, "Reference(RefCell { value: Boolean(false) })");
 }
 
-/*#[test]
-#[should_panic(expected = "Runtime error: Unknown variable 'hello'")]
+#[test]
+#[should_panic(expected = "Runtime error: Attempt to index `Nil` value")]
 fn test_variable_non_id() {
-    let (_val, _env) = interpret_rule("x = 3", rules::stat);
-}*/
+    let (_val, _env) = interpret_rule("x.y", rules::var);
+}

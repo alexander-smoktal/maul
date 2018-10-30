@@ -65,16 +65,13 @@ impl interpreter::Eval for tables::TableField {
         let mut result_vector: Vec<types::Type> = vec![];
 
         if let Some(ref expression) = self.key {
-            match expression.eval(env) {
-                types::Type::Id(id) => {
-                    if let Some (id_value) = env.get(&id) {
-                        result_vector.push(types::Type::Reference(id_value))
-                    } else {
-                        self.runtime_error(format!("Unknown variable '{}'", id))
-                    }
-                }
-                key => result_vector.push(key)
+            let key =  expression.eval(env);
+
+            if key.is_nil() {
+                self.runtime_error(format!("Cannot use `nil` as a table key"))
             }
+
+            result_vector.push(key);
         }
 
         result_vector.push(self.value.eval(env));
@@ -109,6 +106,6 @@ impl interpreter::Eval for tables::Indexing {
         }
 
         // Because of NLL
-        self.runtime_error(format!("Attemp to index not a table, but {}", table_borrow))
+        self.runtime_error(format!("Attempt to index `{}` value", table_borrow))
     }
 }

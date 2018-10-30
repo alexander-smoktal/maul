@@ -9,11 +9,11 @@ fn test_funcname() {
     );
     assert_eq!(
         parse_string("a.b", rules::funcname),
-        r#"[Single(Funcname { object: [Id("a"), Id("b")], method: None })]"#
+        r#"[Single(Funcname { object: [Id("a"), String("b")], method: None })]"#
     );
     assert_eq!(
         parse_string("a.b:c", rules::funcname),
-        r#"[Single(Funcname { object: [Id("a"), Id("b")], method: Some(Id("c")) })]"#
+        r#"[Single(Funcname { object: [Id("a"), String("b")], method: Some(String("c")) })]"#
     );
 }
 
@@ -21,15 +21,15 @@ fn test_funcname() {
 fn test_func_args() {
     assert_eq!(
         parse_string("one", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [Id("one")], varargs: false })]"#
+        r#"[Single(FunctionParameters { namelist: [String("one")], varargs: false })]"#
     );
     assert_eq!(
         parse_string("one, two", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [Id("one"), Id("two")], varargs: false })]"#
+        r#"[Single(FunctionParameters { namelist: [String("one"), String("two")], varargs: false })]"#
     );
     assert_eq!(
         parse_string("one, two, ...", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [Id("one"), Id("two")], varargs: true })]"#
+        r#"[Single(FunctionParameters { namelist: [String("one"), String("two")], varargs: true })]"#
     );
     assert_eq!(
         parse_string("...", rules::parlist),
@@ -77,21 +77,21 @@ fn test_functioncall() {
     );
 
     assert_eq!(parse_string("obj.func()()", rules::functioncall),
-        r#"[Single(Funcall { object: Funcall { object: Indexing { object: Id("obj"), index: Id("func") }, args: [], method: None }, args: [], method: None })]"#);
+        r#"[Single(Funcall { object: Funcall { object: Indexing { object: Id("obj"), index: String("func") }, args: [], method: None }, args: [], method: None })]"#);
 
     assert_eq!(parse_string("obj:method(1, 5)", rules::functioncall),
-        r#"[Single(Funcall { object: Id("obj"), args: [Number(1.0), Number(5.0)], method: Some(Id("method")) })]"#);
+        r#"[Single(Funcall { object: Id("obj"), args: [Number(1.0), Number(5.0)], method: Some(String("method")) })]"#);
 
     assert_eq!(
         parse_string("obj:method()", rules::functioncall),
-        r#"[Single(Funcall { object: Id("obj"), args: [], method: Some(Id("method")) })]"#
+        r#"[Single(Funcall { object: Id("obj"), args: [], method: Some(String("method")) })]"#
     );
 
     assert_eq!(parse_string("obj.func(1, 5)", rules::functioncall),
-        r#"[Single(Funcall { object: Indexing { object: Id("obj"), index: Id("func") }, args: [Number(1.0), Number(5.0)], method: None })]"#);
+        r#"[Single(Funcall { object: Indexing { object: Id("obj"), index: String("func") }, args: [Number(1.0), Number(5.0)], method: None })]"#);
 
     assert_eq!(parse_string("obj.func()", rules::functioncall),
-        r#"[Single(Funcall { object: Indexing { object: Id("obj"), index: Id("func") }, args: [], method: None })]"#);
+        r#"[Single(Funcall { object: Indexing { object: Id("obj"), index: String("func") }, args: [], method: None })]"#);
 
     assert_eq!(parse_string(r#"obj["func"](1, 5)"#, rules::functioncall),
         r#"[Single(Funcall { object: Indexing { object: Id("obj"), index: String("func") }, args: [Number(1.0), Number(5.0)], method: None })]"#);
@@ -128,13 +128,13 @@ fn test_functioncall_rec_prefixexp() {
     );
 
     assert_eq!(parse_string("(true).func(1, 5)", rules::functioncall),
-        r#"[Single(Funcall { object: Indexing { object: Boolean(true), index: Id("func") }, args: [Number(1.0), Number(5.0)], method: None })]"#);
+        r#"[Single(Funcall { object: Indexing { object: Boolean(true), index: String("func") }, args: [Number(1.0), Number(5.0)], method: None })]"#);
 
     assert_eq!(parse_string(r#"(true)["func"]()"#, rules::functioncall),
         r#"[Single(Funcall { object: Indexing { object: Boolean(true), index: String("func") }, args: [], method: None })]"#);
 
     assert_eq!(parse_string("(true):method(1, 5)", rules::functioncall),
-        r#"[Single(Funcall { object: Boolean(true), args: [Number(1.0), Number(5.0)], method: Some(Id("method")) })]"#);
+        r#"[Single(Funcall { object: Boolean(true), args: [Number(1.0), Number(5.0)], method: Some(String("method")) })]"#);
 }
 
 #[test]
@@ -146,16 +146,16 @@ fn test_functioncall_rec_args() {
         r#"[Single(Funcall { object: Funcall { object: Id("func"), args: [], method: None }, args: [Number(3.0)], method: None })]"#);
 
     assert_eq!(parse_string("obj:method(1, 5)(3)", rules::functioncall),
-        r#"[Single(Funcall { object: Funcall { object: Id("obj"), args: [Number(1.0), Number(5.0)], method: Some(Id("method")) }, args: [Number(3.0)], method: None })]"#);
+        r#"[Single(Funcall { object: Funcall { object: Id("obj"), args: [Number(1.0), Number(5.0)], method: Some(String("method")) }, args: [Number(3.0)], method: None })]"#);
 
     assert_eq!(parse_string("obj:method()(3)", rules::functioncall),
-        r#"[Single(Funcall { object: Funcall { object: Id("obj"), args: [], method: Some(Id("method")) }, args: [Number(3.0)], method: None })]"#);
+        r#"[Single(Funcall { object: Funcall { object: Id("obj"), args: [], method: Some(String("method")) }, args: [Number(3.0)], method: None })]"#);
 
     assert_eq!(parse_string("obj.func1(1, 5).func2(3)", rules::functioncall),
-        r#"[Single(Funcall { object: Indexing { object: Funcall { object: Indexing { object: Id("obj"), index: Id("func1") }, args: [Number(1.0), Number(5.0)], method: None }, index: Id("func2") }, args: [Number(3.0)], method: None })]"#);
+        r#"[Single(Funcall { object: Indexing { object: Funcall { object: Indexing { object: Id("obj"), index: String("func1") }, args: [Number(1.0), Number(5.0)], method: None }, index: String("func2") }, args: [Number(3.0)], method: None })]"#);
 
     assert_eq!(parse_string("obj:method1():method2(3)", rules::functioncall),
-        r#"[Single(Funcall { object: Funcall { object: Id("obj"), args: [], method: Some(Id("method1")) }, args: [Number(3.0)], method: Some(Id("method2")) })]"#);
+        r#"[Single(Funcall { object: Funcall { object: Id("obj"), args: [], method: Some(String("method1")) }, args: [Number(3.0)], method: Some(String("method2")) })]"#);
 }
 
 #[test]
@@ -165,11 +165,11 @@ fn test_closure() {
     assert_eq!(parse_string("function (...) break; end", rules::functiondef),
         "[Single(Closure { params: Some(FunctionParameters { namelist: [], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
     assert_eq!(parse_string("function (t, a, b, c) end", rules::functiondef),
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [Id("t"), Id("a"), Id("b"), Id("c")], varargs: false }), body: Block { statements: [], retstat: None } })]"#);
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [String("t"), String("a"), String("b"), String("c")], varargs: false }), body: Block { statements: [], retstat: None } })]"#);
     assert_eq!(parse_string("function (b, c, ...) break; end", rules::functiondef),
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [Id("b"), Id("c")], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [String("b"), String("c")], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
     assert_eq!(parse_string("function (t, a, b, c) return 7; end", rules::functiondef),
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [Id("t"), Id("a"), Id("b"), Id("c")], varargs: false }), body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
+        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [String("t"), String("a"), String("b"), String("c")], varargs: false }), body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
 }
 
 #[test]
@@ -177,11 +177,11 @@ fn test_functiondef() {
     assert_eq!(parse_string("function f () break; end", rules::stat),
         r#"[Single(Function { name: Funcname { object: [Id("f")], method: None }, body: Closure { params: None, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } } })]"#);
     assert_eq!(parse_string("function t.a.b.c.f (...) break end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("t"), Id("a"), Id("b"), Id("c"), Id("f")], method: None }, body: Closure { params: Some(FunctionParameters { namelist: [], varargs: true }), body: Block { statements: [Break], retstat: None } } })]"#);
+        r#"[Single(Function { name: Funcname { object: [Id("t"), String("a"), String("b"), String("c"), String("f")], method: None }, body: Closure { params: Some(FunctionParameters { namelist: [], varargs: true }), body: Block { statements: [Break], retstat: None } } })]"#);
     assert_eq!(parse_string("function f (t, a, b, c) break end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("f")], method: None }, body: Closure { params: Some(FunctionParameters { namelist: [Id("t"), Id("a"), Id("b"), Id("c")], varargs: false }), body: Block { statements: [Break], retstat: None } } })]"#);
+        r#"[Single(Function { name: Funcname { object: [Id("f")], method: None }, body: Closure { params: Some(FunctionParameters { namelist: [String("t"), String("a"), String("b"), String("c")], varargs: false }), body: Block { statements: [Break], retstat: None } } })]"#);
     assert_eq!(parse_string("function t.a:f(b, c, ...) break end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("t"), Id("a")], method: Some(Id("f")) }, body: Closure { params: Some(FunctionParameters { namelist: [Id("b"), Id("c")], varargs: true }), body: Block { statements: [Break], retstat: None } } })]"#);
+        r#"[Single(Function { name: Funcname { object: [Id("t"), String("a")], method: Some(String("f")) }, body: Closure { params: Some(FunctionParameters { namelist: [String("b"), String("c")], varargs: true }), body: Block { statements: [Break], retstat: None } } })]"#);
 }
 
 #[test]
@@ -209,5 +209,5 @@ fn test_fib() {
          return a.b.fib(n-1) + a.b.fib(n-2) \
        end \
      end", rules::chunk),
-       r#"[Single(Block { statements: [Function { name: Funcname { object: [Id("a"), Id("b")], method: Some(Id("fib")) }, body: Closure { params: Some(FunctionParameters { namelist: [Id("n")], varargs: false }), body: Block { statements: [Assignment { varlist: [Id("N")], explist: [Binop(PLUS, Id("N"), Number(1.0))] }, IfBlock { conditions: [IfCondition { condition: Binop(LESS, Id("n"), Number(2.0)), block: Block { statements: [], retstat: Some(Return(Some(Expressions([Id("n")])))) } }], else_block: Some(Block { statements: [], retstat: Some(Return(Some(Expressions([Binop(PLUS, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: Id("b") }, index: Id("fib") }, args: [Binop(MINUS, Id("n"), Number(1.0))], method: None }, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: Id("b") }, index: Id("fib") }, args: [Binop(MINUS, Id("n"), Number(2.0))], method: None })])))) }) }], retstat: None } } }], retstat: None })]"#);
+       r#"[Single(Block { statements: [Function { name: Funcname { object: [Id("a"), String("b")], method: Some(String("fib")) }, body: Closure { params: Some(FunctionParameters { namelist: [String("n")], varargs: false }), body: Block { statements: [Assignment { varlist: [Id("N")], explist: [Binop(PLUS, Id("N"), Number(1.0))] }, IfBlock { conditions: [IfCondition { condition: Binop(LESS, Id("n"), Number(2.0)), block: Block { statements: [], retstat: Some(Return(Some(Expressions([Id("n")])))) } }], else_block: Some(Block { statements: [], retstat: Some(Return(Some(Expressions([Binop(PLUS, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }, args: [Binop(MINUS, Id("n"), Number(1.0))], method: None }, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }, args: [Binop(MINUS, Id("n"), Number(2.0))], method: None })])))) }) }], retstat: None } } }], retstat: None })]"#);
 }

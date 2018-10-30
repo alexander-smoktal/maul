@@ -1,5 +1,5 @@
 use std::rc::Rc;
-// use std::cell::RefCell;
+use std::cell::RefCell;
 
 use std::collections::VecDeque;
 use ast::expressions::{ self, variables };
@@ -7,17 +7,15 @@ use interpreter::{self, environment, types};
 
 // pub struct Id(pub String);
 impl interpreter::Eval for variables::Id {
-    fn eval(&self, _env: &mut environment::Environment) -> types::Type {
-        /*
-        let result = env.get(&self.0);
-
-        match result {
-            Some(refcell) => types::Type::Reference(refcell),
-            _ => self.runtime_error(format!("Cannot find variable '{}'", self.0))
+    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+        if let Some(refcell) = env.get(&self.0).clone() {
+            types::Type::Reference(refcell)
+        } else {
+            let new_entry = Rc::new(RefCell::new(types::Type::Nil));
+            env.add_variable(self.0.clone(), types::Type::Reference(new_entry.clone()));
+            types::Type::Reference(new_entry)
+            // self.runtime_error(format!("Cannot find variable '{}' in current scope", self.0))
         }
-        */
-
-        types::Type::Id(self.0.clone())
     }
 }
 
@@ -46,7 +44,7 @@ impl interpreter::Eval for variables::Assignment {
         self.explist.iter().for_each(|exp| { fill_out_typevec(exp, env, &mut exp_typevec) });
 
         while !var_typevec.is_empty() {
-            let key = Rc::try_unwrap(var_typevec.pop_front().unwrap().as_ref()).unwrap().into_inner();
+            let key = var_typevec.pop_front().unwrap();
 
             let value = if exp_typevec.is_empty() {
                 types::Type::Nil
@@ -56,7 +54,7 @@ impl interpreter::Eval for variables::Assignment {
 
             // We can only add variable by name, this should be an Id or change reference. Everything else is an error
             match key {
-                types::Type::Id(var_id) => env.add_variable(var_id, value),
+                types::Type::String(var_id) => env.add_variable(var_id, value),
                 types::Type::Reference(reference) => { reference.replace(value); },
                 _ => self.runtime_error(format!("Can't use '{}' as a lvalue", key))
             }

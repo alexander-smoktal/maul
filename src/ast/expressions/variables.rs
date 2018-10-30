@@ -24,6 +24,20 @@ impl Id {
             false
         }
     }
+
+    pub fn rule_string_id(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
+        if let Some(tokens::Token {
+            token: tokens::TokenType::Id(string),
+            ..
+        }) = parser.peek().cloned()
+        {
+            parser.shift();
+            stack.push_single(Box::new(expressions::primitives::String(string)));
+            true
+        } else {
+            false
+        }
+    }
 }
 
 #[derive(Debug)]

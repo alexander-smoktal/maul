@@ -122,8 +122,8 @@ rule!(label, and![(terminal!(Keyword::PATH), variables::Id::rule, terminal!(Keyw
 rule!(funcname,
     and![(
         and![(variables::Id::rule,
-            repetition!(and![(terminal!(Keyword::DOT), variables::Id::rule) => second])) => prepend_vector_prefix],
-        optional!(and![(terminal!(Keyword::COLONS), variables::Id::rule) => second], nil)) =>
+            repetition!(and![(terminal!(Keyword::DOT), variables::Id::rule_string_id) => second])) => prepend_vector_prefix],
+        optional!(and![(terminal!(Keyword::COLONS), variables::Id::rule_string_id) => second], nil)) =>
         function::Funcname::new]);
 
 // varlist ::= var {‘,’ var}
@@ -137,7 +137,7 @@ rule!(varlist, and![(
 rule!(var_suffix, or![
     and![(and![(terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET)) =>
         tables::Indexing::new_table], optional!(var_suffix)) => ignore],
-    and![(and![(terminal!(Keyword::DOT), variables::Id::rule) =>
+    and![(and![(terminal!(Keyword::DOT), variables::Id::rule_string_id) =>
         tables::Indexing::new_object], optional!(var_suffix)) => ignore]
 ]);
 
@@ -158,8 +158,8 @@ rule!(var, or![
 // namelist ::= Name {‘,’ Name}
 // We push vector not expression on top to check assignment parity
 rule!(namelist, and![(
-    variables::Id::rule,
-    repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule) => second])) =>
+    variables::Id::rule_string_id,
+    repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule_string_id) => second])) =>
     prepend_vector_prefix]);
 
 // explist ::= exp {‘,’ exp}
@@ -209,7 +209,7 @@ rule!(prefixexp, and![(prefixexp_prefix, optional!(prefixexp_suffix)) => ignore]
 // functioncall_suffix ::= args [functioncall_suffix] | ‘:’ Name args [functioncall_suffix]
 rule!(functioncall_suffix, or![
     and![(and![(args) => function::Funcall::new], optional!(functioncall_suffix)) => ignore],
-    and![(and![(terminal!(Keyword::COLONS), variables::Id::rule, args) => function::Funcall::new_self], optional!(functioncall_suffix)) => ignore]
+    and![(and![(terminal!(Keyword::COLONS), variables::Id::rule_string_id, args) => function::Funcall::new_self], optional!(functioncall_suffix)) => ignore]
 ]);
 
 // functioncall_repetition ::= functioncall_suffix [functioncall_repetition] | var_suffix [var_suffix] functioncall_suffix [functioncall_repetition]
@@ -247,7 +247,7 @@ rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE),
 // See FunctionParameters::new* function for further documentation
 // parlist_name ::= Name [parlist_suffix] | ‘...’
 rule!(parlist_name, or![
-    and![(and![(variables::Id::rule) => function::FunctionParameters::new_name], optional!(parlist_suffix)) => ignore],
+    and![(and![(variables::Id::rule_string_id) => function::FunctionParameters::new_name], optional!(parlist_suffix)) => ignore],
     and![(and![(terminal!(Keyword::DOT3)) => function::FunctionParameters::new_namelist_varargs], optional!(parlist_suffix)) => ignore]
 ]);
 
@@ -258,7 +258,7 @@ rule!(parlist_suffix, and![(terminal!(Keyword::COMMA), parlist_name) => ignore])
 // parlist ::= Name [parlist_suffix] | ‘...’
 rule!(parlist, or![
     and![(
-        and![(variables::Id::rule) =>
+        and![(variables::Id::rule_string_id) =>
             |stack: &mut stack::Stack| {
                 // Each name inside parameters list will produce repetition. Hence we do this with the first name too
                 let name = stack.pop_single();
