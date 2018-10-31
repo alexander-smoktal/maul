@@ -24,13 +24,24 @@ fn test_variable_table() {
 
     let (_val, env) = interpret_rule("x = {y = 5, [5] = false}", rules::stat);
 
-    println!("YOBA: {}", env);
-
     let (val, env) = interpret_rule_env("x.y", rules::var, env);
     assert_eq!(val, "Reference(RefCell { value: Number(5.0) })");
 
     let (val, _env) = interpret_rule_env("x[5]", rules::var, env);
     assert_eq!(val, "Reference(RefCell { value: Boolean(false) })");
+}
+
+#[test]
+fn test_variable_table_change() {
+    let (_val, env) = interpret_rule("x = {y = 5}", rules::stat);
+
+    let (val, env) = interpret_rule_env("x.y", rules::var, env);
+    assert_eq!(val, "Reference(RefCell { value: Number(5.0) })");
+
+    let (_val, env) = interpret_rule_env("x.y = 7", rules::stat, env);
+    let (val, _env) = interpret_rule_env("x.y", rules::var, env);
+    assert_eq!(val, "Reference(RefCell { value: Number(7.0) })");
+
 }
 
 #[test]

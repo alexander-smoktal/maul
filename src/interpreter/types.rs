@@ -107,7 +107,7 @@ impl ::std::fmt::Display for Type {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         match self {
             Type::Function { id, .. } => write!(f, "function ({:x})", id),
-            Type::Table { id, .. } => write!(f, "function ({:x})", id),
+            Type::Table { id, .. } => write!(f, "table ({:x})", id),
             Type::Reference(value) => value.borrow().fmt(f),
             _ => write!(f, "{:?}", self)
         }
