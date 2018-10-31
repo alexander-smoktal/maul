@@ -8,10 +8,9 @@ use interpreter;
 
 #[derive(Debug)]
 pub struct Block {
-    statements: VecDeque<Box<expressions::Expression>>,
-    retstat: Option<Box<expressions::Expression>>,
+    pub statements: VecDeque<Box<expressions::Expression>>,
+    pub retstat: Option<Box<expressions::Expression>>,
 }
-impl interpreter::Eval for Block {}
 impl expressions::Expression for Block {}
 
 impl Block {
@@ -27,7 +26,6 @@ impl Block {
 
 #[derive(Debug)]
 pub struct DoBlock(pub Box<expressions::Expression>);
-impl interpreter::Eval for DoBlock {}
 impl expressions::Expression for DoBlock {}
 
 impl DoBlock {

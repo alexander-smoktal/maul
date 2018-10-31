@@ -71,7 +71,6 @@ impl ::std::cmp::PartialEq<&'static str> for Type {
 impl ::std::cmp::PartialEq for Type {
     fn eq(&self, other: &Self) -> bool {
        match (self, other) {
-           (Type::Nil, Type::Nil) => true,
            (Type::Boolean(left), Type::Boolean(right)) => left == right,
            (Type::Number(left), Type::Number(right)) => left == right,
            (Type::String(left), Type::String(right)) => left == right,

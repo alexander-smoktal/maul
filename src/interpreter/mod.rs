@@ -4,9 +4,10 @@ pub mod primitives;
 pub mod tables;
 pub mod types;
 pub mod variables;
+pub mod blocks;
 
 pub trait Eval {
-    fn eval(&self, _env: &mut environment::Environment) -> types::Type {
+    fn eval<'this>(&'this self, _env: &'this mut environment::Environment) -> types::Type {
         unimplemented!();
     }
 
