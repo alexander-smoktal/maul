@@ -5,8 +5,10 @@ pub mod tables;
 pub mod types;
 pub mod variables;
 
+use utils;
+
 pub trait Eval {
-    fn eval(&self, _env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, _env: utils::Shared<environment::Environment>) -> types::Type {
         unimplemented!();
     }
 

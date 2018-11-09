@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::clone::Clone;
 
 use ast::expressions::tables;
 use interpreter::{self, environment, types};
+use utils;
 
 type TableHashMap = HashMap<types::Type, Rc<RefCell<types::Type>>>;
 
@@ -14,12 +16,12 @@ fn update_table_border(table: &TableHashMap, border: &mut usize) {
 }
 
 impl interpreter::Eval for tables::Table {
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: utils::Shared<environment::Environment>) -> types::Type {
         let mut map: TableHashMap = HashMap::new();
         let mut border: usize = 0;
 
         for ref field_expression in &self.0 {
-            if let types::Type::Vector(mut key_value) = field_expression.eval(env) {
+            if let types::Type::Vector(mut key_value) = field_expression.eval(env.clone()) {
                 // Key AND value
                 if key_value.len() == 2 {
                     let value = key_value.pop().unwrap();
@@ -52,7 +54,7 @@ impl interpreter::Eval for tables::Table {
         }
 
         types::Type::Table {
-            id: env.next_global_id(),
+            id: env.borrow_mut().next_global_id(),
             map,
             metatable: HashMap::new(),
             border
@@ -61,13 +63,13 @@ impl interpreter::Eval for tables::Table {
 }
 
 impl interpreter::Eval for tables::TableField {
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: utils::Shared<environment::Environment>) -> types::Type {
         let mut result_vector: Vec<types::Type> = vec![];
 
         if let Some(ref expression) = self.key {
-            match expression.eval(env) {
+            match expression.eval(env.clone()) {
                 types::Type::Id(id) => {
-                    if let Some (id_value) = env.get(&id) {
+                    if let Some (id_value) = env.borrow_mut().get(&id) {
                         result_vector.push(types::Type::Reference(id_value))
                     } else {
                         self.runtime_error(format!("Unknown variable '{}'", id))
@@ -84,8 +86,8 @@ impl interpreter::Eval for tables::TableField {
 }
 
 impl interpreter::Eval for tables::Indexing {
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
-        let table = self.object.eval(env).as_ref();
+    fn eval(&self, env: utils::Shared<environment::Environment>) -> types::Type {
+        let table = self.object.eval(env.clone()).as_ref();
         // This is bullshit. WTF Ref
         let mut table_borrow = table.borrow_mut();
 

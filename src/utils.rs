@@ -1,6 +1,9 @@
 #![macro_use]
 
 use std::iter::Peekable;
+use std::rc::Rc;
+use std::cell::{RefCell, Ref, RefMut};
+use std::clone::Clone;
 
 macro_rules! log_debug {
     ($fmt:expr) => (
@@ -72,3 +75,33 @@ where
         }
     }
 }
+
+#[derive(Debug)]
+pub struct Shared<T> {
+    data: Rc<RefCell<T>>
+}
+
+impl<T> Clone for Shared<T> {
+    fn clone(&self) -> Self {
+        Shared {
+            data: self.data.clone()
+        }
+    }
+}
+
+impl<T> Shared<T> {
+    pub fn new(data: T) -> Self {
+        Shared {
+            data: Rc::new(RefCell::new(data))
+        }
+    }
+
+    pub fn borrow(&self) -> Ref<T> {
+        self.data.borrow()
+    }
+
+    pub fn borrow_mut(&self) -> RefMut<T> {
+        self.data.borrow_mut()
+    }
+}
+
