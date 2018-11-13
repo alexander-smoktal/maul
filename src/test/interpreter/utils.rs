@@ -1,17 +1,18 @@
 use ast::parser;
 use ast::stack;
 use ast::rules;
+use utils;
 
 use interpreter::types;
 use interpreter::environment;
 
 #[allow(dead_code)]
-pub fn interpret(source_code: &str) -> (types::Type, environment::Environment)
+pub fn interpret(source_code: &str) -> (types::Type, utils::Shared<environment::Environment>)
 {
     interpret_rule(source_code, rules::chunk)
 }
 
-pub fn interpret_rule<F>(source_code: &str, func: F) -> (types::Type, environment::Environment) where
+pub fn interpret_rule<F>(source_code: &str, func: F) -> (types::Type, utils::Shared<environment::Environment>) where
     F: Fn(&mut parser::Parser, &mut stack::Stack) -> bool
 {
     let mut parser = parser::Parser::new(source_code.to_string());
@@ -21,13 +22,13 @@ pub fn interpret_rule<F>(source_code: &str, func: F) -> (types::Type, environmen
 
     assert!(parser.peek().is_none(), format!("Parser contains tokens after parsing: {:?}", parser));
 
-    let mut env = environment::Environment::new(None);
+    let mut env = utils::Shared::new(environment::Environment::new(None));
 
     (stack.pop_single().eval(&mut env), env)
 }
 
-pub fn interpret_rule_env<'e, F>(source_code: &str, func: F, mut env: environment::Environment<'e>) ->
-    (types::Type, environment::Environment<'e>) where
+pub fn interpret_rule_env<F>(source_code: &str, func: F, env: &mut utils::Shared<environment::Environment>) ->
+    (types::Type, utils::Shared<environment::Environment>) where
     F: Fn(&mut parser::Parser, &mut stack::Stack) -> bool
 {
     let mut parser = parser::Parser::new(source_code.to_string());
@@ -36,7 +37,7 @@ pub fn interpret_rule_env<'e, F>(source_code: &str, func: F, mut env: environmen
     func(&mut parser, &mut stack);
 
     assert!(parser.peek().is_none(), format!("Parser contains tokens after parsing: {:?}", parser));
-    let result = stack.pop_single().eval(&mut env);
+    let result = stack.pop_single().eval(env);
 
-    (result, env)
+    (result, env.clone())
 }

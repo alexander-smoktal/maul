@@ -1,8 +1,10 @@
+
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use utils::Shared;
 use interpreter::types;
 
 /// Flag, which marks block env as interruptible and contains break type.
@@ -29,22 +31,22 @@ pub enum BreakFlag {
 
 /// Environment structure. Each block starts new environment, settings current as a parent
 #[derive(Debug)]
-pub struct Environment<'e> {
+pub struct Environment {
     /// Global counter across all environments to set object ID's
     global_id_counter: Rc<RefCell<u64>>,
     /// Variables registry from current environment
     data: HashMap<String, Rc<RefCell<types::Type>>>,
     /// Parent environment. Used to reference to a calling code
-    parent: Option<&'e mut Environment<'e>>,
+    parent: Option<Shared<Environment>>,
     /// Block execution break flag. See BreakFlag documentation
     break_flag: BreakFlag,
 }
 
-impl<'e> Environment<'e> {
-    pub fn new(parent: Option<&'e mut Environment<'e>>) -> Self {
+impl Environment {
+    pub fn new(parent: Option<Shared<Environment>>) -> Self {
         Environment {
             global_id_counter: if let Some(ref parent) = parent {
-                parent.global_id_counter.clone()
+                parent.borrow_mut().global_id_counter.clone()
             } else {
                 Rc::new(RefCell::new(0))
             },
@@ -67,7 +69,7 @@ impl<'e> Environment<'e> {
             Some(value.clone())
         } else {
             match self.parent {
-                Some(ref mut parent) => parent.get(varname),
+                Some(ref mut parent) => parent.borrow_mut().get(varname),
                 _ => None
             }
         }
@@ -91,7 +93,7 @@ impl<'e> Environment<'e> {
                     BreakFlag::None => {
                         if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
-                            parent.brake_execution(flag)
+                            parent.borrow_mut().brake_execution(flag)
                         } else {
                             // Didn't find breakable block
                             false
@@ -110,7 +112,7 @@ impl<'e> Environment<'e> {
                     BreakFlag::None => {
                         if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
-                            parent.brake_execution(flag)
+                            parent.borrow_mut().brake_execution(flag)
                         } else {
                             // Didn't find returnable block
                             false
@@ -120,7 +122,7 @@ impl<'e> Environment<'e> {
                     BreakFlag::Break(_) => {
                          if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
-                            parent.brake_execution(flag)
+                            parent.borrow_mut().brake_execution(flag)
                         } else {
                             // Didn't find returnable block
                             false
@@ -146,7 +148,7 @@ impl<'e> Environment<'e> {
     }
 }
 
-impl<'e> std::fmt::Display for Environment<'e> {
+impl std::fmt::Display for Environment {
     fn fmt(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut keys: Vec<&String> = self.data.keys().collect();
         keys.sort();
@@ -167,7 +169,7 @@ impl<'e> std::fmt::Display for Environment<'e> {
     }
 }
 
-impl<'e> Deref for Environment<'e> {
+impl Deref for Environment {
     type Target = HashMap<String, Rc<RefCell<types::Type>>>;
 
     fn deref(&self) -> &HashMap<String, Rc<RefCell<types::Type>>> {
@@ -176,8 +178,15 @@ impl<'e> Deref for Environment<'e> {
 }
 
 #[cfg(test)]
-impl<'e> ::std::cmp::PartialEq<&'static str> for Environment<'e> {
+impl ::std::cmp::PartialEq<&'static str> for Environment {
     fn eq(&self, other: &&'static str) -> bool {
         format!("{}", self) == other.to_string()
+    }
+}
+
+#[cfg(test)]
+impl ::std::cmp::PartialEq<&'static str> for Shared<Environment> {
+    fn eq(&self, other: &&'static str) -> bool {
+        format!("{}", self.borrow()) == other.to_string()
     }
 }

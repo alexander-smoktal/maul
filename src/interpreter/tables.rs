@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::clone::Clone;
 
 use ast::expressions::tables;
 use interpreter::{self, environment, types};
+use utils;
 
 type TableHashMap = HashMap<types::Type, Rc<RefCell<types::Type>>>;
 
@@ -14,7 +16,7 @@ fn update_table_border(table: &TableHashMap, border: &mut usize) {
 }
 
 impl interpreter::Eval for tables::Table {
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let mut map: TableHashMap = HashMap::new();
         let mut border: usize = 0;
 
@@ -52,7 +54,7 @@ impl interpreter::Eval for tables::Table {
         }
 
         types::Type::Table {
-            id: env.next_global_id(),
+            id: env.borrow_mut().next_global_id(),
             map,
             metatable: HashMap::new(),
             border
@@ -61,7 +63,7 @@ impl interpreter::Eval for tables::Table {
 }
 
 impl interpreter::Eval for tables::TableField {
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let mut result_vector: Vec<types::Type> = vec![];
 
         if let Some(ref expression) = self.key {
@@ -81,7 +83,7 @@ impl interpreter::Eval for tables::TableField {
 }
 
 impl interpreter::Eval for tables::Indexing {
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let table = self.object.eval(env).as_ref();
         // This is bullshit. WTF Ref
         let mut table_borrow = table.borrow_mut();

@@ -1,12 +1,15 @@
+use std::clone::Clone;
+
 use ast::expressions::operators;
 use ast::lexer::tokens::Keyword;
 
 use interpreter::{self, environment, types};
+use utils;
 
 impl interpreter::Eval for operators::Unop {
     // unop ::= ‘-’ | not | ‘#’ | ‘~’
     // Keyword::MINUS, Keyword::NOT, Keyword::HASH, Keyword::TILDA
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let value = self.1.eval(env);
 
         // Keyword
@@ -233,7 +236,7 @@ impl interpreter::Eval for operators::Binop {
     // [Keyword::PLUS, Keyword::MINUS],
     // [Keyword::MUL, Keyword::DIV, Keyword::FLOOR_DIV, Keyword::MOD],
     // [Keyword::POW]
-    fn eval(&self, env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let operators::Binop(op, left, right) = self;
 
         let left_value = left.eval(env);
@@ -252,7 +255,7 @@ impl interpreter::Eval for operators::Binop {
 }
 
 impl interpreter::Eval for operators::Noop {
-    fn eval(&self, _env: &mut environment::Environment) -> types::Type {
+    fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {
         types::Type::Nil
     }
 }

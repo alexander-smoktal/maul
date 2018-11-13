@@ -6,8 +6,10 @@ pub mod types;
 pub mod variables;
 pub mod blocks;
 
+use utils;
+
 pub trait Eval {
-    fn eval<'this>(&'this self, _env: &'this mut environment::Environment) -> types::Type {
+    fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {
         unimplemented!();
     }
 

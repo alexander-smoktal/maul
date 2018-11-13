@@ -22,24 +22,24 @@ fn test_variable_table() {
     let (_val, env) = interpret_rule("x = {}", rules::stat);
     assert_eq!(env, r#"{"x": RefCell { value: Table { id: 0, map: {}, metatable: {}, border: 0 } }}"#);
 
-    let (_val, env) = interpret_rule("x = {y = 5, [5] = false}", rules::stat);
+    let (_val, mut env) = interpret_rule("x = {y = 5, [5] = false}", rules::stat);
 
-    let (val, env) = interpret_rule_env("x.y", rules::var, env);
+    let (val, mut env) = interpret_rule_env("x.y", rules::var, &mut env);
     assert_eq!(val, "Reference(RefCell { value: Number(5.0) })");
 
-    let (val, _env) = interpret_rule_env("x[5]", rules::var, env);
+    let (val, _env) = interpret_rule_env("x[5]", rules::var, &mut env);
     assert_eq!(val, "Reference(RefCell { value: Boolean(false) })");
 }
 
 #[test]
 fn test_variable_table_change() {
-    let (_val, env) = interpret_rule("x = {y = 5}", rules::stat);
+    let (_val, mut env) = interpret_rule("x = {y = 5}", rules::stat);
 
-    let (val, env) = interpret_rule_env("x.y", rules::var, env);
+    let (val, mut env) = interpret_rule_env("x.y", rules::var, &mut env);
     assert_eq!(val, "Reference(RefCell { value: Number(5.0) })");
 
-    let (_val, env) = interpret_rule_env("x.y = 7", rules::stat, env);
-    let (val, _env) = interpret_rule_env("x.y", rules::var, env);
+    let (_val, mut env) = interpret_rule_env("x.y = 7", rules::stat, &mut env);
+    let (val, _env) = interpret_rule_env("x.y", rules::var, &mut env);
     assert_eq!(val, "Reference(RefCell { value: Number(7.0) })");
 
 }
