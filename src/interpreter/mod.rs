@@ -6,10 +6,12 @@ pub mod types;
 pub mod variables;
 pub mod blocks;
 
+use ast::expressions;
 use utils;
 
-pub trait Eval {
+pub trait Eval: std::fmt::Debug {
     fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        println!("{:?} `eval` unimplemented", self);
         unimplemented!();
     }
 
@@ -22,5 +24,11 @@ pub trait Eval {
     fn runtime_error(&self, error: String) -> ! {
         println!("Runtime error: {}", error);
         ::std::process::exit(1)
+    }
+}
+
+impl Eval for expressions::Terminal {
+    fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        types::Type::Nil
     }
 }

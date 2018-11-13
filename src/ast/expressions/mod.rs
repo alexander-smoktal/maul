@@ -34,5 +34,4 @@ impl Eq for Box<Expression> {}
 // Struct for debugging. Wraps terminal. Basically Noop
 #[derive(Debug)]
 pub struct Terminal(pub tokens::Keyword);
-impl interpreter::Eval for Terminal {}
 impl Expression for Terminal {}
