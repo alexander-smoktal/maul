@@ -7,6 +7,8 @@ use crate::ast::expressions::{ self, variables };
 use crate::interpreter::{self, environment, types};
 use crate::utils;
 
+const DEBUG: bool = true;
+
 // pub struct Id(pub String);
 impl interpreter::Eval for variables::Id {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -55,6 +57,10 @@ impl interpreter::Eval for variables::Assignment {
             } else {
                 exp_typevec.pop_front().unwrap()
             };
+
+            if DEBUG {
+                println!("Executing assignment {:?} = {:?}", key, value)
+            }
 
             // We can only add variable by name, this should be an Id or change reference. Everything else is an error
             match key {

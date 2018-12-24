@@ -7,6 +7,16 @@ use std::cell::RefCell;
 use crate::utils::Shared;
 use crate::interpreter::types;
 
+const DEBUG: bool = true;
+
+macro_rules! debug_env {
+    ($($output: expr),+) => {
+        if DEBUG {
+            println!($($output,)+)
+        }
+    };
+}
+
 /// Flag, which marks block env as interruptible and contains break type.
 /// Non-interruptable blocks should check if flag is `None`, because break statements can cross block boundaries.
 ///   - `return` interruption may cross breakable and non-breakable blocks until reached funtion env;
@@ -66,11 +76,18 @@ impl Environment {
     /// Get variable value(reference). If current env doesn't contain the varable, checks in parent environments
     pub fn get(&mut self, varname: &String) -> Option<Rc<RefCell<types::Type>>> {
         if let Some(value) = self.data.get(varname) {
+            debug_env!("Env found variable {}, which is {:?}", varname, value);
             Some(value.clone())
         } else {
             match self.parent {
-                Some(ref mut parent) => parent.borrow_mut().get(varname),
-                _ => None
+                Some(ref mut parent) => {
+                    debug_env!("Env didn't found variable {:?}, asking parent env", varname);
+                    parent.borrow_mut().get(varname)
+                },
+                _ => {
+                    debug_env!("Env didn't found variable {:?}, returning nil", varname);
+                    None
+                }
             }
         }
     }

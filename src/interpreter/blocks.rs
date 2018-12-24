@@ -34,6 +34,49 @@ impl interpreter::Eval for blocks::DoBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let local_env = environment::Environment::new(Some(env.clone()));
 
-        self.0.eval(&mut utils::Shared::new(local_env))
+        self.0.eval(&mut utils::Shared::new(local_env));
+        types::Type::Nil
+    }
+}
+
+// TODO: Do we need another wrapper for local?
+// pub struct Local(Box<expressions::Expression>);
+impl interpreter::Eval for blocks::Local {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        self.0.eval(env)
+    }
+}
+
+// pub struct WhileBlock {
+//     pub condition: Box<expressions::Expression>,
+//     pub block: Box<expressions::Expression>,
+// }
+impl interpreter::Eval for blocks::WhileBlock {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+
+        while self.condition.eval(env).as_bool() {
+            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone())));
+            self.block.eval(&mut local_env);
+        }
+        types::Type::Nil
+    }
+}
+
+// pub struct RepeatBlock {
+//     pub block: Box<expressions::Expression>,
+//     pub condition: Box<expressions::Expression>,
+// }
+impl interpreter::Eval for blocks::RepeatBlock {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        loop {
+            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone())));
+            self.block.eval(&mut local_env);
+
+            if self.condition.eval(env).as_bool() {
+                break
+            }
+        }
+
+        types::Type::Nil
     }
 }

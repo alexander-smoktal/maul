@@ -41,7 +41,6 @@ pub struct WhileBlock {
     pub condition: Box<expressions::Expression>,
     pub block: Box<expressions::Expression>,
 }
-impl interpreter::Eval for WhileBlock {}
 impl expressions::Expression for WhileBlock {}
 
 impl WhileBlock {
@@ -58,7 +57,6 @@ pub struct RepeatBlock {
     pub block: Box<expressions::Expression>,
     pub condition: Box<expressions::Expression>,
 }
-impl interpreter::Eval for RepeatBlock {}
 impl expressions::Expression for RepeatBlock {}
 
 impl RepeatBlock {
@@ -172,8 +170,7 @@ impl GenericForBlock {
 }
 
 #[derive(Debug)]
-pub struct Local(Box<expressions::Expression>);
-impl interpreter::Eval for Local {}
+pub struct Local(pub Box<expressions::Expression>);
 impl expressions::Expression for Local {}
 
 impl Local {

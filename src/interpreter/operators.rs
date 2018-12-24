@@ -104,8 +104,13 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
         types::Type::Boolean(!value.as_bool())
     }
 
-    match (&left, &right) {
+
+    let left_ref = left.as_ref().borrow_mut();
+    let right_ref = right.as_ref().borrow_mut();
+
+    match (*left_ref, *right_ref) {
         (types::Type::Number(leftnum), types::Type::Number(rightnum)) => {
+            println!("Comparing {:?} and {:?}", leftnum, rightnum);
             match op {
                 Keyword::LESS => types::Type::Boolean(leftnum < rightnum),
                 Keyword::LEQ => types::Type::Boolean(leftnum <= rightnum),
@@ -131,9 +136,9 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
             macro_rules! metatable_binop {
                 ($mt_key: tt, $op: tt) => {
                     if let Some(metamethod) = metatable.get($mt_key) {
-                        metamethod.call(vec![&left, &right])
+                        metamethod.call(vec![*left_ref, *right_ref])
                     } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left, right, $op))
+                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left_ref, right_ref, $op))
                     }
                 }
             }
