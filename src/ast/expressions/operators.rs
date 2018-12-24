@@ -1,10 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
-use ast::expressions;
-use ast::lexer::tokens::{self, Keyword};
-use ast::parser;
-use ast::rules;
-use ast::stack;
+use crate::ast::expressions;
+use crate::ast::lexer::tokens::{self, Keyword};
+use crate::ast::parser;
+use crate::ast::rules;
+use crate::ast::stack;
 
 const DEBUG: bool = false;
 

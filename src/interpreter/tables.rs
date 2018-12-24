@@ -3,9 +3,9 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::clone::Clone;
 
-use ast::expressions::tables;
-use interpreter::{self, environment, types};
-use utils;
+use crate::ast::expressions::tables;
+use crate::interpreter::{self, environment, types};
+use crate::utils;
 
 type TableHashMap = HashMap<types::Type, Rc<RefCell<types::Type>>>;
 

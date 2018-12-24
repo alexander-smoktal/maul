@@ -1,5 +1,5 @@
 use super::utils::parse_string;
-use ast::rules;
+use crate::ast::rules;
 
 #[test]
 fn test_table_fields() {

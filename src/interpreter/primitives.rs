@@ -1,6 +1,6 @@
-use ast::expressions::primitives;
-use interpreter::{self, environment, types};
-use utils;
+use crate::ast::expressions::primitives;
+use crate::interpreter::{self, environment, types};
+use crate::utils;
 
 
 impl interpreter::Eval for primitives::Nil {

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use ast::expressions;
+use crate::ast::expressions;
 
 const DEBUG: bool = false;
 

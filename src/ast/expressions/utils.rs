@@ -1,4 +1,4 @@
-use ast::expressions;
+use crate::ast::expressions;
 
 pub fn some_expression<E: expressions::Expression + 'static>(
     expression: E,

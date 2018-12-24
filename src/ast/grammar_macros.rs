@@ -123,7 +123,7 @@ macro_rules! terminal {
                         if keyword == $keyword {
                             parser.shift();
                             debug_parser!("Accepted keyword {:?}", keyword);
-                            stack.push_single(Box::new(::ast::expressions::Terminal(keyword)));
+                            stack.push_single(Box::new(crate::ast::expressions::Terminal(keyword)));
                             true
                         } else {
                             false

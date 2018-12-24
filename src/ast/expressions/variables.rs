@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use ast::expressions;
-use ast::lexer::tokens::{self, Keyword};
-use ast::parser;
-use ast::stack;
-use ast::rules;
+use crate::ast::expressions;
+use crate::ast::lexer::tokens::{self, Keyword};
+use crate::ast::parser;
+use crate::ast::stack;
+use crate::ast::rules;
 
 #[derive(Debug, Clone)]
 pub struct Id(pub String);

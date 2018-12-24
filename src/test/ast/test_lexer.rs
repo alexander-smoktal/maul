@@ -1,7 +1,7 @@
 #![cfg(test)]
 
-use ast::lexer::tokens::*;
-use ast::parser;
+use crate::ast::lexer::tokens::*;
+use crate::ast::parser;
 
 struct ParseWrapper {
     parser: parser::Parser,

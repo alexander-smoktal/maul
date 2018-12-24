@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
 
-use ast::expressions;
+use crate::ast::expressions;
 
 #[derive(Debug)]
 pub enum Type {

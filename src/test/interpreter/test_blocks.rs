@@ -1,4 +1,4 @@
-use ast::rules;
+use crate::ast::rules;
 
 use super::utils::{ interpret_rule };
 

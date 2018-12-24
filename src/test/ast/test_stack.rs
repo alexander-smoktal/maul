@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
-use ast::expressions::*;
-use ast::stack;
+use crate::ast::expressions::*;
+use crate::ast::stack;
 use std::boxed::Box;
 
 #[test]

@@ -1,6 +1,6 @@
-pub use ast::expressions::Expression;
-use ast::parser;
-use ast::stack;
+pub use crate::ast::expressions::Expression;
+use crate::ast::parser;
+use crate::ast::stack;
 
 #[macro_export]
 macro_rules! sexp {

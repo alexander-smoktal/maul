@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 pub use std::ops;
 
-use ast::expressions;
-use ast::stack;
+use crate::ast::expressions;
+use crate::ast::stack;
 
-use interpreter;
+use crate::interpreter;
 
 #[derive(Debug)]
 pub struct Expressions(VecDeque<Box<expressions::Expression>>);

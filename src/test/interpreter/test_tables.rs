@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
-use ast::rules;
-use interpreter::types::{Type::{self, Table}};
+use crate::ast::rules;
+use crate::interpreter::types::{Type::{self, Table}};
 
 use super::utils::interpret_rule;
 

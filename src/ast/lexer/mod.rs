@@ -7,7 +7,7 @@ use std::fmt;
 use std::iter::{FromIterator, IntoIterator, Iterator, Peekable};
 use std::string::String;
 use std::vec;
-use utils::AsExclusiveTakeWhile;
+use crate::utils::AsExclusiveTakeWhile;
 
 // ---------- Lexer --------------
 pub struct Lexer {

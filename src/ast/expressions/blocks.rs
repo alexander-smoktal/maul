@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use ast::expressions;
-use ast::expressions::variables;
-use ast::stack;
+use crate::ast::expressions;
+use crate::ast::expressions::variables;
+use crate::ast::stack;
 
-use interpreter;
+use crate::interpreter;
 
 #[derive(Debug)]
 pub struct Block {

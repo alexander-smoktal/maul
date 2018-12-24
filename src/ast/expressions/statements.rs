@@ -1,9 +1,9 @@
-use ast::expressions;
-use ast::lexer::tokens;
-use ast::parser;
-use ast::stack;
+use crate::ast::expressions;
+use crate::ast::lexer::tokens;
+use crate::ast::parser;
+use crate::ast::stack;
 
-use interpreter;
+use crate::interpreter;
 
 #[derive(Debug)]
 pub enum Statement {

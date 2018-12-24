@@ -1,4 +1,4 @@
-use ast::lexer::tokens;
+use crate::ast::lexer::tokens;
 
 #[macro_use]
 pub mod utils;
@@ -15,7 +15,7 @@ pub mod variables;
 use std::cmp::{Eq, PartialEq};
 use std::fmt::Debug;
 
-use interpreter;
+use crate::interpreter;
 
 pub trait Expression: Debug + interpreter::Eval {
     fn clone(&self) -> Box<Expression> {

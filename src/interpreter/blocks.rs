@@ -1,6 +1,6 @@
-use ast::expressions::blocks;
-use interpreter::{self, environment, types};
-use utils;
+use crate::ast::expressions::blocks;
+use crate::interpreter::{self, environment, types};
+use crate::utils;
 
 /* pub struct Block {
     statements: VecDeque<Box<expressions::Expression>>,

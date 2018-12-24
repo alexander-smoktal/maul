@@ -6,8 +6,8 @@ pub mod types;
 pub mod variables;
 pub mod blocks;
 
-use ast::expressions;
-use utils;
+use crate::ast::expressions;
+use crate::utils;
 
 pub trait Eval: std::fmt::Debug {
     fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {

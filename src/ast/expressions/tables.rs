@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use ast::expressions::{self, primitives};
-use ast::rules;
-use ast::stack;
-use ast::parser;
-use ast::lexer::tokens;
+use crate::ast::expressions::{self, primitives};
+use crate::ast::rules;
+use crate::ast::stack;
+use crate::ast::parser;
+use crate::ast::lexer::tokens;
 
 #[derive(Debug)]
 pub struct Indexing {

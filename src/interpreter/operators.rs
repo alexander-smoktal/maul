@@ -1,10 +1,10 @@
 use std::clone::Clone;
 
-use ast::expressions::operators;
-use ast::lexer::tokens::Keyword;
+use crate::ast::expressions::operators;
+use crate::ast::lexer::tokens::Keyword;
 
-use interpreter::{self, environment, types};
-use utils;
+use crate::interpreter::{self, environment, types};
+use crate::utils;
 
 impl interpreter::Eval for operators::Unop {
     // unop ::= ‘-’ | not | ‘#’ | ‘~’

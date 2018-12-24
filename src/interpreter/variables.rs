@@ -3,9 +3,9 @@ use std::cell::RefCell;
 use std::clone::Clone;
 
 use std::collections::VecDeque;
-use ast::expressions::{ self, variables };
-use interpreter::{self, environment, types};
-use utils;
+use crate::ast::expressions::{ self, variables };
+use crate::interpreter::{self, environment, types};
+use crate::utils;
 
 // pub struct Id(pub String);
 impl interpreter::Eval for variables::Id {

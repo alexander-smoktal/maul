@@ -1,10 +1,10 @@
-use ast::parser;
-use ast::stack;
-use ast::rules;
-use utils;
+use crate::ast::parser;
+use crate::ast::stack;
+use crate::ast::rules;
+use crate::utils;
 
-use interpreter::types;
-use interpreter::environment;
+use crate::interpreter::types;
+use crate::interpreter::environment;
 
 #[allow(dead_code)]
 pub fn interpret(source_code: &str) -> (types::Type, utils::Shared<environment::Environment>)

@@ -4,8 +4,8 @@ use std::ops::Deref;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use utils::Shared;
-use interpreter::types;
+use crate::utils::Shared;
+use crate::interpreter::types;
 
 /// Flag, which marks block env as interruptible and contains break type.
 /// Non-interruptable blocks should check if flag is `None`, because break statements can cross block boundaries.

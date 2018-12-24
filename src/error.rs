@@ -1,4 +1,4 @@
-use ast::lexer::tokens;
+use crate::ast::lexer::tokens;
 
 #[derive(Debug, PartialEq)]
 pub struct Error {

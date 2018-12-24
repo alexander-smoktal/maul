@@ -2,11 +2,11 @@
 
 use std::collections::VecDeque;
 
-use ast::parser;
-use ast::stack;
-use ast::expressions::*;
+use crate::ast::parser;
+use crate::ast::stack;
+use crate::ast::expressions::*;
 
-use ast::lexer::tokens::Keyword;
+use crate::ast::lexer::tokens::Keyword;
 
 const DEBUG: bool = false;
 

@@ -1,8 +1,8 @@
-use ast::expressions;
-use ast::stack;
+use crate::ast::expressions;
+use crate::ast::stack;
 use std::collections::VecDeque;
 
-use interpreter;
+use crate::interpreter;
 
 #[derive(Debug)]
 pub struct Funcname {
