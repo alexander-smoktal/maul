@@ -15,7 +15,8 @@ impl interpreter::Eval for operators::Unop {
         // Keyword
         match self.0 {
             Keyword::MINUS => {
-                match value {
+                match_type!(&value,
+                    // TODO: unref table
                     types::Type::Number(number) => types::Type::Number(-number),
                     types::Type::Table { ref metatable, .. } => {
                         if let Some(metamethod) = metatable.get("__unm") {
@@ -25,32 +26,32 @@ impl interpreter::Eval for operators::Unop {
                         }
                     },
                     _ => self.runtime_error(format!("Can't negate {:?} value", value))
-                }
+                )
             },
             Keyword::NOT => {
                 types::Type::Boolean(!value.as_bool())
             },
             Keyword::HASH => {
-                match value {
+                match_type!(&value,
+                    // TODO: unref table
                     types::Type::String(string) => types::Type::Number(string.as_bytes().len() as f64),
                     types::Type::Table { border, ref metatable, .. } => {
                         if let Some(metamethod) = metatable.get("__len") {
                             metamethod.call(vec![&value])
                         } else {
-                            types::Type::Number(border as f64)
+                            types::Type::Number(*border as f64)
                         }
                     },
                     _ => {
                         self.runtime_error(format!("Can't get length of {:?} value", value));
                     }
-                }
+                )
             },
             Keyword::TILDA => {
-                if let types::Type::Number(number) = value {
-                    types::Type::Number(!(number as i64) as f64)
-                } else {
-                    self.runtime_error(format!("Can't apply bitwise not to {:?} value", value));
-                }
+                match_type!(&value,
+                    types::Type::Number(number) => types::Type::Number(!(*number as i64) as f64),
+                    _ => self.runtime_error(format!("Can't apply bitwise not to {:?} value", value))
+                )
             },
             _ => panic!("Should never happen")
         }
@@ -62,8 +63,8 @@ impl interpreter::Eval for operators::Unop {
 fn eval_ariphmetic(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
     // Function to convert value for arithmetic operation
     let normalize = |value, op| -> f64 {
-        match value {
-            types::Type::Number(number) => number,
+        match_type!(&value,
+            types::Type::Number(number) => *number,
             types::Type::String(string) => {
                 if let Ok(number) = string.parse::<f64>() {
                     number
@@ -72,11 +73,12 @@ fn eval_ariphmetic(exp: &interpreter::Eval, op: &Keyword, left: types::Type, rig
                 }
             },
             _ => exp.runtime_error(format!("Can't apply {} operator to {:?} value", op, value))
-        }
+        )
     };
 
     macro_rules! metatable_binop {
         ($mt_key: tt, $op: tt, $function: expr) => ({
+            // TODO: unref table
             if let types::Type::Table { ref metatable, .. } = left {
                 if let Some(metamethod) = metatable.get($mt_key) {
                     return metamethod.call(vec![&left, &right])
@@ -104,11 +106,7 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
         types::Type::Boolean(!value.as_bool())
     }
 
-
-    let left_ref = left.as_ref().borrow_mut();
-    let right_ref = right.as_ref().borrow_mut();
-
-    match (*left_ref, *right_ref) {
+    match_type!((&left, &right),
         (types::Type::Number(leftnum), types::Type::Number(rightnum)) => {
             println!("Comparing {:?} and {:?}", leftnum, rightnum);
             match op {
@@ -120,7 +118,7 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
                 Keyword::NEQ => types::Type::Boolean(leftnum != rightnum),
                 _ => panic!("Should never happen")
             }
-        }
+        },
         (types::Type::String(leftnum), types::Type::String(rightnum)) => {
             match op {
                 Keyword::LESS => types::Type::Boolean(leftnum < rightnum),
@@ -136,9 +134,9 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
             macro_rules! metatable_binop {
                 ($mt_key: tt, $op: tt) => {
                     if let Some(metamethod) = metatable.get($mt_key) {
-                        metamethod.call(vec![*left_ref, *right_ref])
+                        metamethod.call(vec![&left, &right])
                     } else {
-                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", left_ref, right_ref, $op))
+                        exp.runtime_error(format!("Can't compare values {:?} and {:?} with {} operator", &left, &right, $op))
                     }
                 }
             }
@@ -153,26 +151,30 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
                 Keyword::NEQ => not(metatable_binop!("__eq", "~=")),
                 _ => panic!("Should never happen")
             }
-        }
+        },
         // TODO: Function comparison not implemented
         _ => types::Type::Boolean(false)
-    }
+    )
 }
 
 fn eval_bitwise(exp: &interpreter::Eval, op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
     macro_rules! metatable_binop {
         ($mt_key: tt, $op: tt, $function: expr) => ({
-            if let types::Type::Table { ref metatable, .. } = left {
-                if let Some(metamethod) = metatable.get($mt_key) {
-                    return metamethod.call(vec![&left, &right])
-                }
-            }
+            match_type!(&left,
+                types::Type::Table { ref metatable, .. } => {
+                    if let Some(metamethod) = metatable.get($mt_key) {
+                        return metamethod.call(vec![&left, &right])
+                    }
+                },
+                _ => ()
+            );
 
-            if let (types::Type::Number(leftnum), types::Type::Number(rightnum)) = (&left, &right) {
-                return types::Type::Number($function(*leftnum as i64, *rightnum as i64) as f64)
-            } else {
-                exp.runtime_error(format!("Bitwise operator can be applied only to numbers. Got {:?} and {:?}", left, right))
-            }
+            match_type!((&left, &right),
+                (types::Type::Number(leftnum), types::Type::Number(rightnum)) => {
+                    return types::Type::Number($function(*leftnum as i64, *rightnum as i64) as f64)
+                },
+                _ => exp.runtime_error(format!("Bitwise operator can be applied only to numbers. Got {:?} and {:?}", left, right))
+            )
         })
     }
 
@@ -197,11 +199,11 @@ fn eval_boolean(_exp: &operators::Binop, op: &Keyword, left: types::Type, right:
 
 fn eval_concat(exp: &interpreter::Eval, _op: &Keyword, left: types::Type, right: types::Type) -> types::Type {
     fn to_string(value: &types::Type) -> Option<String> {
-        match value {
+        match_type!(value,
             types::Type::Number(num) => Some(num.to_string()),
             types::Type::String(str) => Some(str.clone()),
             _ => None
-        }
+        )
     }
 
     if let (Some(mut leftstr), Some(rightstr)) = (to_string(&left), to_string(&right)) {

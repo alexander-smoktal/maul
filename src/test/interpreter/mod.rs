@@ -1,4 +1,5 @@
 pub mod utils;
+mod test_types;
 mod test_primitives;
 mod test_operators;
 mod test_tables;

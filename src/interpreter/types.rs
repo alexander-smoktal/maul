@@ -112,3 +112,22 @@ impl ::std::fmt::Display for Type {
         }
     }
 }
+
+/// Macro to use for pattern maching types with respect to type referencing
+#[macro_export]
+macro_rules! match_type {
+    (($($typ:expr),+), $($pat:pat => $result:expr),+) => {{
+        let typs = ($(if let types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ }),+);
+
+        match typs {$(
+            $pat => $result
+        ), +}}
+    };
+    ($typ:expr, $($pat:pat => $result:expr),+) => {{
+        let typ = if let types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ };
+
+        match typ {$(
+            $pat => $result
+        ), +}}
+    };
+}

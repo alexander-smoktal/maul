@@ -16,6 +16,6 @@ fn test_do_block_local() {
 
 #[test]
 fn test_while() {
-    let (_val, env) = interpret_rule("y = 3; while y ~= 5 do y = y + 5 end", rules::block);
+    let (_val, env) = interpret_rule("y = 3; while y ~= 5 do y = y + 1 end", rules::block);
     assert_eq!(env, r#"{"y": RefCell { value: Number(5.0) }}"#);
 }
