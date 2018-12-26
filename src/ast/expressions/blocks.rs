@@ -74,7 +74,6 @@ pub struct IfCondition {
     pub condition: Box<expressions::Expression>,
     pub block: Box<expressions::Expression>,
 }
-impl interpreter::Eval for IfCondition {}
 impl expressions::Expression for IfCondition {}
 
 impl IfCondition {
@@ -95,7 +94,6 @@ pub struct IfBlock {
     pub conditions: VecDeque<Box<expressions::Expression>>,
     pub else_block: Option<Box<expressions::Expression>>,
 }
-impl interpreter::Eval for IfBlock {}
 impl expressions::Expression for IfBlock {}
 
 impl IfBlock {

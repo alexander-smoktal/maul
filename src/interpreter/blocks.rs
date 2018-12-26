@@ -80,3 +80,38 @@ impl interpreter::Eval for blocks::RepeatBlock {
         types::Type::Nil
     }
 }
+
+// pub struct IfCondition {
+//     pub condition: Box<expressions::Expression>,
+//     pub block: Box<expressions::Expression>,
+// }
+impl interpreter::Eval for blocks::IfCondition {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        if self.condition.eval(env).as_bool() {
+            self.block.eval(env);
+            return types::Type::Boolean(true)
+        }
+
+        types::Type::Nil
+    }
+}
+
+
+// pub struct IfBlock {
+//     pub conditions: VecDeque<Box<expressions::Expression>>,
+//     pub else_block: Option<Box<expressions::Expression>>,
+// }
+impl interpreter::Eval for blocks::IfBlock {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        for condition in &self.conditions {
+            if condition.eval(env).as_bool() {
+                return types::Type::Nil
+            }
+        }
+
+        match &self.else_block {
+            Some(block) => block.eval(env),
+            _ => types::Type::Nil
+        }
+    }
+}
