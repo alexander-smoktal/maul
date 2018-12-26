@@ -60,19 +60,19 @@ fn test_invalid_if() {
 #[test]
 fn test_numerical_for() {
     assert_eq!(parse_string("for x = 7, x == 6 do break end", rules::stat),
-        r#"[Single(NumericalForBlock { init: Assignment { varlist: [Id("x")], explist: [Number(7.0)] }, limit: Binop(EQ, Id("x"), Number(6.0)), step: None, block: Block { statements: [Break], retstat: None } })]"#);
+        r#"[Single(NumericalForBlock { var_name: String("x"), init_value: Number(7.0), limit: Binop(EQ, Id("x"), Number(6.0)), step: None, block: Block { statements: [Break], retstat: None } })]"#);
     assert_eq!(parse_string("for x = 7, x == 6, -1 do break end", rules::stat),
-        r#"[Single(NumericalForBlock { init: Assignment { varlist: [Id("x")], explist: [Number(7.0)] }, limit: Binop(EQ, Id("x"), Number(6.0)), step: Some(Unop(MINUS, Number(1.0))), block: Block { statements: [Break], retstat: None } })]"#);
+        r#"[Single(NumericalForBlock { var_name: String("x"), init_value: Number(7.0), limit: Binop(EQ, Id("x"), Number(6.0)), step: Some(Unop(MINUS, Number(1.0))), block: Block { statements: [Break], retstat: None } })]"#);
 }
 
 #[test]
 fn test_generic_for() {
     assert_eq!(parse_string("for x in xlist do break end", rules::stat),
-        r#"[Single(GenericForBlock { namelist: [Id("x")], explist: [Id("xlist")], block: Block { statements: [Break], retstat: None } })]"#);
+        r#"[Single(GenericForBlock { namelist: [String("x")], explist: [Id("xlist")], block: Block { statements: [Break], retstat: None } })]"#);
     assert_eq!(parse_string("for x, y in xlist do break end", rules::stat),
-        r#"[Single(GenericForBlock { namelist: [Id("x"), Id("y")], explist: [Id("xlist")], block: Block { statements: [Break], retstat: None } })]"#);
+        r#"[Single(GenericForBlock { namelist: [String("x"), String("y")], explist: [Id("xlist")], block: Block { statements: [Break], retstat: None } })]"#);
     assert_eq!(parse_string("for x in xlist, 0, 1 do break end", rules::stat),
-        r#"[Single(GenericForBlock { namelist: [Id("x")], explist: [Id("xlist"), Number(0.0), Number(1.0)], block: Block { statements: [Break], retstat: None } })]"#);
+        r#"[Single(GenericForBlock { namelist: [String("x")], explist: [Id("xlist"), Number(0.0), Number(1.0)], block: Block { statements: [Break], retstat: None } })]"#);
     assert_eq!(parse_string("for x,y in xlist, 0, 1 do break end", rules::stat),
-        r#"[Single(GenericForBlock { namelist: [Id("x"), Id("y")], explist: [Id("xlist"), Number(0.0), Number(1.0)], block: Block { statements: [Break], retstat: None } })]"#);
+        r#"[Single(GenericForBlock { namelist: [String("x"), String("y")], explist: [Id("xlist"), Number(0.0), Number(1.0)], block: Block { statements: [Break], retstat: None } })]"#);
 }

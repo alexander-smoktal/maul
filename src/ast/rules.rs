@@ -80,7 +80,7 @@ rule!(stat, or![
         terminal!(Keyword::END)) => blocks::IfBlock::new],
     and![(
         terminal!(Keyword::FOR),
-        variables::Id::rule,
+        variables::Id::rule_string_id,
         or![
             and![(
                 terminal!(Keyword::ASSIGN),
@@ -92,7 +92,7 @@ rule!(stat, or![
                 block,
                 terminal!(Keyword::END)) => blocks::NumericalForBlock::new],
             and![(
-                and![(repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule) => second])) => prepend_vector_prefix],
+                and![(repetition!(and![(terminal!(Keyword::COMMA), variables::Id::rule_string_id) => second])) => prepend_vector_prefix],
                 terminal!(Keyword::IN),
                 explist,
                 terminal!(Keyword::DO),

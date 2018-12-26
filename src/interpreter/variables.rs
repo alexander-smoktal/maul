@@ -7,7 +7,7 @@ use crate::ast::expressions::{ self, variables };
 use crate::interpreter::{self, environment, types};
 use crate::utils;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 // pub struct Id(pub String);
 impl interpreter::Eval for variables::Id {

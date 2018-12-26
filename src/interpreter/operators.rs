@@ -108,7 +108,6 @@ fn eval_equivalence(exp: &interpreter::Eval, op: &Keyword, left: types::Type, ri
 
     match_type!((&left, &right),
         (types::Type::Number(leftnum), types::Type::Number(rightnum)) => {
-            println!("Comparing {:?} and {:?}", leftnum, rightnum);
             match op {
                 Keyword::LESS => types::Type::Boolean(leftnum < rightnum),
                 Keyword::LEQ => types::Type::Boolean(leftnum <= rightnum),

@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
 use crate::ast::expressions;
-use crate::ast::expressions::variables;
 use crate::ast::stack;
 
 use crate::interpreter;
@@ -118,25 +117,23 @@ impl IfBlock {
 
 #[derive(Debug)]
 pub struct NumericalForBlock {
-    pub init: Box<expressions::Expression>,
+    pub var_name: Box<expressions::Expression>,
+    pub init_value: Box<expressions::Expression>,
     pub limit: Box<expressions::Expression>,
     pub step: Option<Box<expressions::Expression>>,
     pub block: Box<expressions::Expression>,
 }
-impl interpreter::Eval for NumericalForBlock {}
 impl expressions::Expression for NumericalForBlock {}
 
 impl NumericalForBlock {
     // for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
     pub fn new(stack: &mut stack::Stack) {
-        let (_end, block, _do, step, limit, _comma, init_value, _assign, init_name, _for)
+        let (_end, block, _do, step, limit, _comma, init_value, _assign, var_name, _for)
             = stack_unpack!(stack, single, single, single, optional, single, single, single, single, single, single);
 
         stack.push_single(Box::new(NumericalForBlock {
-            init: Box::new(variables::Assignment {
-                varlist: VecDeque::from(vec![init_name]),
-                explist: VecDeque::from(vec![init_value])
-            }),
+            var_name,
+            init_value,
             limit,
             step,
             block

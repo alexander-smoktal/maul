@@ -7,7 +7,7 @@ use std::cell::RefCell;
 use crate::utils::Shared;
 use crate::interpreter::types;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 macro_rules! debug_env {
     ($($output: expr),+) => {

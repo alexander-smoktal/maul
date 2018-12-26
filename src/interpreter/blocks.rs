@@ -1,4 +1,4 @@
-use crate::ast::expressions::blocks;
+use crate::ast::expressions::{blocks, self};
 use crate::interpreter::{self, environment, types};
 use crate::utils;
 
@@ -113,5 +113,51 @@ impl interpreter::Eval for blocks::IfBlock {
             Some(block) => block.eval(env),
             _ => types::Type::Nil
         }
+    }
+}
+
+// pub struct NumericalForBlock {
+//     pub init: Box<expressions::Expression>,
+//     pub limit: Box<expressions::Expression>,
+//     pub step: Option<Box<expressions::Expression>>,
+//     pub block: Box<expressions::Expression>,
+// }
+impl interpreter::Eval for blocks::NumericalForBlock {
+    fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        // Statement initialization
+        let eval_name = self.var_name.eval(env);
+        let var_name = match_type!(&eval_name,
+            types::Type::String(value) => value.clone(),
+            _ => self.runtime_error(format!("{:?} cannot be used as `for` statement variable name", self.var_name))
+        );
+
+        let mut get_num = |exp: &Box<expressions::Expression>, value_type| -> f64 {
+            let evaluated = exp.eval(env);
+            match_type!(&evaluated,
+                types::Type::Number(value) => *value,
+                _ => self.runtime_error(format!("{:?} cannot be used as `for` statement {} value", exp, value_type))
+            )
+        };
+
+        let init_num = get_num(&self.init_value, "initial");
+        let limit_num = get_num(&self.limit, "limit");
+
+        let step_num = if let Some(step) = &self.step {
+            get_num(step, "step")
+        } else {
+            1f64
+        };
+
+        // Creating local env and assigning initial value
+        let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone())));
+
+        let mut i = init_num;
+        while i != limit_num {
+            local_env.borrow_mut().add_variable(var_name.clone(), types::Type::Number(i));
+            self.block.eval(&mut local_env);
+            i += step_num;
+        }
+
+        types::Type::Nil
     }
 }
