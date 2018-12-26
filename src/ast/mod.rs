@@ -16,11 +16,10 @@ pub mod expressions;
 pub mod parser;
 pub mod rules;
 
-use std::collections::VecDeque;
 use std::fmt::{Debug, Error, Formatter};
 
 pub struct AST {
-    expressions: VecDeque<Box<expressions::Expression>>,
+    top_expression: Box<expressions::Expression>,
 }
 
 impl AST {
@@ -28,16 +27,22 @@ impl AST {
         let mut parser = parser::Parser::new(source_code);
         let mut stack = stack::Stack::new();
 
-        rules::exp(&mut parser, &mut stack);
+        rules::chunk(&mut parser, &mut stack);
 
         AST {
-            expressions: stack.pop_repetition(),
+            top_expression: stack.pop_single(),
         }
+    }
+
+    pub fn eval(&self) {
+        let mut env = crate::utils::Shared::new(crate::interpreter::environment::Environment::new(None));
+
+        self.top_expression.eval(&mut env);
     }
 }
 
 impl Debug for AST {
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {
-        writeln!(fmt, "{:?}", self.expressions)
+        writeln!(fmt, "{:?}", self.top_expression)
     }
 }
