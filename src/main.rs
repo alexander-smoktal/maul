@@ -1,6 +1,4 @@
-#![feature(trace_macros)]
-#![feature(fn_traits)]
-#![feature(box_patterns)]
+// #![feature(trace_macros)]
 
 pub mod utils;
 #[macro_use]
