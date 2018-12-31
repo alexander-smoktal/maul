@@ -5,15 +5,15 @@ use crate::ast::rules;
 fn test_funcname() {
     assert_eq!(
         parse_string("a", rules::funcname),
-        r#"[Single(Funcname { object: [Id("a")], method: None })]"#
+        r#"[Single(Id("a")), Optional(None)]"#
     );
     assert_eq!(
         parse_string("a.b", rules::funcname),
-        r#"[Single(Funcname { object: [Id("a"), String("b")], method: None })]"#
+        r#"[Single(Indexing { object: Id("a"), index: String("b") }), Optional(None)]"#
     );
     assert_eq!(
         parse_string("a.b:c", rules::funcname),
-        r#"[Single(Funcname { object: [Id("a"), String("b")], method: Some(String("c")) })]"#
+        r#"[Single(Indexing { object: Id("a"), index: String("b") }), Optional(Some(String("c")))]"#
     );
 }
 
@@ -21,19 +21,19 @@ fn test_funcname() {
 fn test_func_args() {
     assert_eq!(
         parse_string("one", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [String("one")], varargs: false })]"#
+        r#"[Repetition([String("one")]), Optional(None)]"#
     );
     assert_eq!(
         parse_string("one, two", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [String("one"), String("two")], varargs: false })]"#
+        r#"[Repetition([String("one"), String("two")]), Optional(None)]"#
     );
     assert_eq!(
         parse_string("one, two, ...", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [String("one"), String("two")], varargs: true })]"#
+        r#"[Repetition([String("one"), String("two")]), Optional(Some(Ellipsis))]"#
     );
     assert_eq!(
         parse_string("...", rules::parlist),
-        r#"[Single(FunctionParameters { namelist: [], varargs: true })]"#
+        r#"[Repetition([]), Optional(Some(Ellipsis))]"#
     );
 }
 
@@ -161,33 +161,36 @@ fn test_functioncall_rec_args() {
 #[test]
 fn test_closure() {
     assert_eq!(parse_string("function () break; end", rules::functiondef),
-        "[Single(Closure { params: None, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
+        "[Single(Closure { params: [], varargs: false, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
     assert_eq!(parse_string("function (...) break; end", rules::functiondef),
-        "[Single(Closure { params: Some(FunctionParameters { namelist: [], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
+        "[Single(Closure { params: [], varargs: true, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]");
     assert_eq!(parse_string("function (t, a, b, c) end", rules::functiondef),
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [String("t"), String("a"), String("b"), String("c")], varargs: false }), body: Block { statements: [], retstat: None } })]"#);
+        r#"[Single(Closure { params: [String("t"), String("a"), String("b"), String("c")], varargs: false, body: Block { statements: [], retstat: None } })]"#);
     assert_eq!(parse_string("function (b, c, ...) break; end", rules::functiondef),
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [String("b"), String("c")], varargs: true }), body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
+        r#"[Single(Closure { params: [String("b"), String("c")], varargs: true, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } })]"#);
     assert_eq!(parse_string("function (t, a, b, c) return 7; end", rules::functiondef),
-        r#"[Single(Closure { params: Some(FunctionParameters { namelist: [String("t"), String("a"), String("b"), String("c")], varargs: false }), body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
+        r#"[Single(Closure { params: [String("t"), String("a"), String("b"), String("c")], varargs: false, body: Block { statements: [], retstat: Some(Return(Some(Expressions([Number(7.0)])))) } })]"#);
 }
 
 #[test]
 fn test_functiondef() {
     assert_eq!(parse_string("function f () break; end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("f")], method: None }, body: Closure { params: None, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } } })]"#);
+        r#"[Single(Assignment { varlist: [Id("f")], explist: [Closure { params: [], varargs: false, body: Block { statements: [Break, Terminal(SEMICOLONS)], retstat: None } }] })]"#);
+
     assert_eq!(parse_string("function t.a.b.c.f (...) break end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("t"), String("a"), String("b"), String("c"), String("f")], method: None }, body: Closure { params: Some(FunctionParameters { namelist: [], varargs: true }), body: Block { statements: [Break], retstat: None } } })]"#);
+        r#"[Single(Assignment { varlist: [Indexing { object: Indexing { object: Indexing { object: Indexing { object: Id("t"), index: String("a") }, index: String("b") }, index: String("c") }, index: String("f") }], explist: [Closure { params: [], varargs: true, body: Block { statements: [Break], retstat: None } }] })]"#);
+
     assert_eq!(parse_string("function f (t, a, b, c) break end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("f")], method: None }, body: Closure { params: Some(FunctionParameters { namelist: [String("t"), String("a"), String("b"), String("c")], varargs: false }), body: Block { statements: [Break], retstat: None } } })]"#);
+        r#"[Single(Assignment { varlist: [Id("f")], explist: [Closure { params: [String("t"), String("a"), String("b"), String("c")], varargs: false, body: Block { statements: [Break], retstat: None } }] })]"#);
+
     assert_eq!(parse_string("function t.a:f(b, c, ...) break end", rules::stat),
-        r#"[Single(Function { name: Funcname { object: [Id("t"), String("a")], method: Some(String("f")) }, body: Closure { params: Some(FunctionParameters { namelist: [String("b"), String("c")], varargs: true }), body: Block { statements: [Break], retstat: None } } })]"#);
+        r#"[Single(Assignment { varlist: [Indexing { object: Indexing { object: Id("t"), index: String("a") }, index: String("f") }], explist: [Closure { params: [String("self"), String("b"), String("c")], varargs: true, body: Block { statements: [Break], retstat: None } }] })]"#);
 }
 
 #[test]
 fn test_local_function() {
     assert_eq!(parse_string("local function f () break end", rules::stat),
-        r#"[Single(Local(Function { name: Id("f"), body: Closure { params: None, body: Block { statements: [Break], retstat: None } } }))]"#);
+        r#"[Single(Local(Assignment { varlist: [Id("f")], explist: [Closure { params: [], varargs: false, body: Block { statements: [Break], retstat: None } }] }))]"#);
 }
 
 #[test]
@@ -209,5 +212,5 @@ fn test_fib() {
          return a.b.fib(n-1) + a.b.fib(n-2) \
        end \
      end", rules::chunk),
-       r#"[Single(Block { statements: [Function { name: Funcname { object: [Id("a"), String("b")], method: Some(String("fib")) }, body: Closure { params: Some(FunctionParameters { namelist: [String("n")], varargs: false }), body: Block { statements: [Assignment { varlist: [Id("N")], explist: [Binop(PLUS, Id("N"), Number(1.0))] }, IfBlock { conditions: [IfCondition { condition: Binop(LESS, Id("n"), Number(2.0)), block: Block { statements: [], retstat: Some(Return(Some(Expressions([Id("n")])))) } }], else_block: Some(Block { statements: [], retstat: Some(Return(Some(Expressions([Binop(PLUS, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }, args: [Binop(MINUS, Id("n"), Number(1.0))], method: None }, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }, args: [Binop(MINUS, Id("n"), Number(2.0))], method: None })])))) }) }], retstat: None } } }], retstat: None })]"#);
+       r#"[Single(Block { statements: [Assignment { varlist: [Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }], explist: [Closure { params: [String("self"), String("n")], varargs: false, body: Block { statements: [Assignment { varlist: [Id("N")], explist: [Binop(PLUS, Id("N"), Number(1.0))] }, IfBlock { conditions: [IfCondition { condition: Binop(LESS, Id("n"), Number(2.0)), block: Block { statements: [], retstat: Some(Return(Some(Expressions([Id("n")])))) } }], else_block: Some(Block { statements: [], retstat: Some(Return(Some(Expressions([Binop(PLUS, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }, args: [Binop(MINUS, Id("n"), Number(1.0))], method: None }, Funcall { object: Indexing { object: Indexing { object: Id("a"), index: String("b") }, index: String("fib") }, args: [Binop(MINUS, Id("n"), Number(2.0))], method: None })])))) }) }], retstat: None } }] }], retstat: None })]"#);
 }

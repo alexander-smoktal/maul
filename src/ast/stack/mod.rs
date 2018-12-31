@@ -21,6 +21,10 @@ impl Stack {
         Stack { elements: vec![] }
     }
 
+    pub fn len(&self) -> usize {
+        self.elements.len()
+    }
+
     pub fn peek(&self) -> &Element {
         self.elements.last().unwrap()
     }
@@ -36,8 +40,9 @@ impl Stack {
                 expression
             }
             element => panic!(format!(
-                "Expected single element on stack. Got {:?}",
-                element
+                "Expected single element on stack. Got {:?}\nStack: {:?}",
+                element,
+                self
             )),
         }
     }
@@ -53,8 +58,9 @@ impl Stack {
                 expressions
             }
             element => panic!(format!(
-                "Expected repetition vector on stack. Got {:?}",
-                element
+                "Expected repetition vector on stack. Got {:?}\nStack: {:?}",
+                element,
+                self
             )),
         }
     }
@@ -70,8 +76,9 @@ impl Stack {
                 expression
             }
             element => panic!(format!(
-                "Expected optional element on stack. Got {:?}",
-                element
+                "Expected optional element on stack. Got {:?}\nStack: {:?}",
+                element,
+                self
             )),
         }
     }

@@ -1,50 +1,74 @@
-use crate::ast::expressions;
+use crate::ast::expressions::{self, statements, tables, primitives, variables};
 use crate::ast::stack;
 use std::collections::VecDeque;
 
 use crate::interpreter;
 
 #[derive(Debug)]
-pub struct Funcname {
-    pub object: VecDeque<Box<expressions::Expression>>,
-    pub method: Option<Box<expressions::Expression>>,
-}
-impl interpreter::Eval for Funcname {}
-impl expressions::Expression for Funcname {}
-
-impl Funcname {
-    pub fn new(stack: &mut stack::Stack) {
-        let (method, object) = stack_unpack!(stack, optional, repetition);
-
-        stack.push_single(Box::new(Funcname { object, method }))
-    }
-}
-
-#[derive(Debug)]
 pub struct Closure {
-    params: Option<Box<expressions::Expression>>,
-    body: Box<expressions::Expression>,
+    pub params: VecDeque<Box<expressions::Expression>>,
+    pub varargs: bool,
+    pub body: Box<expressions::Expression>,
 }
 impl interpreter::Eval for Closure {}
 impl expressions::Expression for Closure {}
 
+/// Closure expression.
+/// Note: Our parameter parser already remove braces and in case we have no parameters, pushed empty
+/// namelist and Nona as vargargs on top of stask, so we just need to pick them up.
 impl Closure {
     // ‘(’ [parlist] ‘)’ block end
     pub fn new(stack: &mut stack::Stack) {
         // We've remove braces before
-        let (_end, body, params) = stack_unpack!(stack, single, single, optional);
+        let (_end, body, ellipsis, params, _function) = stack_unpack!(stack, single, single, optional, repetition, single);
 
-        stack.push_single(Box::new(Closure { params, body }))
+        stack.push_single(Box::new(Closure {
+            params,
+            varargs: ellipsis.is_some(),
+            body
+        }));
     }
 }
 
 #[derive(Debug)]
-pub struct FunctionParameters {
-    pub namelist: VecDeque<Box<expressions::Expression>>,
-    pub varargs: bool,
+pub struct Function;
+
+/// Function, which is basically an assignment of a closure to a name.
+/// Also performs rearrangment of parameters and method name if it's a method.
+impl Function {
+    pub fn new(stack: &mut stack::Stack) {
+        // This looks like a lot of terminals, but we need them to desugar method
+        let (_end, body, ellipsis, mut params, methodname, mut object, _function) =
+            stack_unpack!(stack, single, single, optional, repetition, optional, single, single);
+
+        // Check if have method name. If so, we make another indexing and add `self` argument
+        if let Some(method) = methodname {
+            // Function name
+            object = Box::new(tables::Indexing {
+                object,
+                index: method,
+            });
+
+            // Prepend `self` parameter to the parameters
+            params.push_front(Box::new(primitives::String("self".to_string())));
+        }
+
+        let closure = Box::new(Closure {
+            params,
+            varargs: ellipsis.is_some(),
+            body
+        }) as Box<expressions::Expression>;
+
+
+        stack.push_single(Box::new(variables::Assignment {
+            varlist: vec![object].into(),
+            explist: vec![closure].into()
+        }));
+    }
 }
-impl interpreter::Eval for FunctionParameters {}
-impl expressions::Expression for FunctionParameters {}
+
+#[derive(Debug)]
+pub struct FunctionParameters;
 
 impl FunctionParameters {
     /// Each new name in parameters list will append itself to the parameters list
@@ -65,10 +89,7 @@ impl FunctionParameters {
 
         let namelist = stack.pop_repetition();
 
-        stack.push_single(Box::new(FunctionParameters {
-            namelist: namelist,
-            varargs: true,
-        }))
+        FunctionParameters::finalize_parameters_parsing(stack, namelist, true);
     }
 
     /// Final namelist function. We either had namelist or namelist followed by ellipsis.VecDeque
@@ -80,10 +101,7 @@ impl FunctionParameters {
             stack::Element::Repetition(_) => {
                 let namelist = stack.pop_repetition();
 
-                stack.push_single(Box::new(FunctionParameters {
-                    namelist: namelist,
-                    varargs: false,
-                }))
+                FunctionParameters::finalize_parameters_parsing(stack, namelist, false);
             }
             // Already had ellipsis after namelist, which properly created parameters. Ignore
             _ => {}
@@ -93,10 +111,17 @@ impl FunctionParameters {
     pub fn new_single_varargs(stack: &mut stack::Stack) {
         // Ellipsis
         stack.pop_single();
-        stack.push_single(Box::new(FunctionParameters {
-            namelist: VecDeque::new(),
-            varargs: true,
-        }))
+        FunctionParameters::finalize_parameters_parsing(stack, VecDeque::new(), true);
+    }
+
+    /// Helper function to push parameters and indicator of varargs
+    /// After method execution, stack will contains parameters list and optional ellipsis expression
+    fn finalize_parameters_parsing(stack: &mut stack::Stack,
+        namelist: VecDeque<Box<expressions::Expression>>,
+        varargs: bool) {
+
+        stack.push_repetition(namelist);
+        stack.push_optional(if varargs { Some(Box::new(statements::Statement::Ellipsis)) } else { None });
     }
 }
 
@@ -143,24 +168,5 @@ impl Funcall {
             let _lbrace = stack.pop_single();
             stack.push_repetition(VecDeque::new());
         }
-    }
-}
-
-#[derive(Debug)]
-pub struct Function {
-    pub name: Box<expressions::Expression>,
-    pub body: Box<expressions::Expression>
-}
-impl interpreter::Eval for Function {}
-impl expressions::Expression for Function {}
-
-impl Function {
-    pub fn new(stack: &mut stack::Stack) {
-        let (body, name, _function) = stack_unpack!(stack, single, single, single);
-
-        stack.push_single(Box::new(Function {
-            name,
-            body
-        }))
     }
 }

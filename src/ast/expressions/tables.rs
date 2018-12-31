@@ -29,10 +29,20 @@ impl Indexing {
     }
 
     /// Createx indexing for its prefix
-    fn new(stack: &mut stack::Stack) {
+    pub fn new(stack: &mut stack::Stack) {
         let (index, object) = stack_unpack!(stack, single, single);
 
         stack.push_single(Box::new(Indexing { object, index }));
+    }
+
+    pub fn new_indexing_chain(stack: &mut stack::Stack) {
+        let (chain, mut object) = stack_unpack!(stack, repetition, single);
+
+        for index in chain.into_iter() {
+            object = Box::new(Indexing { object, index })
+        }
+
+        stack.push_single(object)
     }
 }
 

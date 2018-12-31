@@ -101,7 +101,10 @@ rule!(stat, or![
         ]) => ignore],
     and![(terminal!(Keyword::FUNCTION), funcname, funcbody) => function::Function::new],
     and![(terminal!(Keyword::LOCAL), or![
-            and![(terminal!(Keyword::FUNCTION), variables::Id::rule, funcbody) => function::Function::new],
+            // Because function expects indication of method name, we push empty optional value after Id
+            and![(terminal!(Keyword::FUNCTION),
+                and![(variables::Id::rule) => |stack: &mut stack::Stack| { stack.push_optional(None) } ],
+                funcbody) => function::Function::new],
             and![(namelist, variables::Assignment::rule_local) => ignore]
         ]) => blocks::Local::new]
 ]);
@@ -122,9 +125,9 @@ rule!(label, and![(terminal!(Keyword::PATH), variables::Id::rule, terminal!(Keyw
 rule!(funcname,
     and![(
         and![(variables::Id::rule,
-            repetition!(and![(terminal!(Keyword::DOT), variables::Id::rule_string_id) => second])) => prepend_vector_prefix],
+            repetition!(and![(terminal!(Keyword::DOT), variables::Id::rule_string_id) => second])) => tables::Indexing::new_indexing_chain],
         optional!(and![(terminal!(Keyword::COLONS), variables::Id::rule_string_id) => second], nil)) =>
-        function::Funcname::new]);
+        ignore]);
 
 // varlist ::= var {‘,’ var}
 // We push vector not expression on top to check assignment parity
@@ -229,18 +232,31 @@ rule!(args, or![
 ]);
 
 // functiondef ::= function funcbody
-rule!(functiondef, and![(terminal!(Keyword::FUNCTION), funcbody) => second]);
+rule!(functiondef, and![(terminal!(Keyword::FUNCTION), funcbody) => function::Closure::new]);
 
 // funcbody ::= ‘(’ [parlist] ‘)’ block end
 rule!(funcbody, and![(and![(terminal!(Keyword::LBRACE),
-                            optional!(parlist, nil),
+                            optional!(parlist),
                             terminal!(Keyword::RBRACE)) =>
+                            // This closure handles parameters. In case we have no parameters, pushed empty objects,
+                            // So closure could parse them
                             |stack: &mut stack::Stack| {
-                                let (_rb, params, _lb) = stack_unpack!(stack, single, optional, single);
-                                stack.push_optional(params);
+                                // rbrace
+                                stack.pop_single();
+                                // Contains parameters
+                                if let stack::Element::Optional(_) = stack.peek() {
+                                    let (ellipsis, params, _lb) = stack_unpack!(stack, optional, repetition, single);
+                                    stack.push_repetition(params);
+                                    stack.push_optional(ellipsis);
+                                } else {
+                                    // lbrace
+                                    stack.pop_single();
+                                    stack.push_repetition(VecDeque::new());
+                                    stack.push_optional(None);
+                                }
                             }],
                       block,
-                      terminal!(Keyword::END)) => function::Closure::new]);
+                      terminal!(Keyword::END)) => ignore]);
 
 // -- Here we have a problem of prefix comma for both variants. Will resolve manually
 // -- Names always will produce vector and ellipsis will produce single element, which is the indicator of the end
