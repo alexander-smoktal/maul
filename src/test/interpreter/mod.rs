@@ -5,3 +5,4 @@ mod test_operators;
 mod test_tables;
 mod test_variables;
 mod test_blocks;
+mod test_functions;

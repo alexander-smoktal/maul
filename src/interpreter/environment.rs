@@ -66,6 +66,10 @@ impl Environment {
         }
     }
 
+    pub fn id(&self) -> u64 {
+        *self.global_id_counter.borrow()
+    }
+
     /// Global ID's to use for objects
     pub fn next_global_id(&mut self) -> u64 {
         let value = *self.global_id_counter.borrow();

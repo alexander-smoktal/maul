@@ -6,6 +6,7 @@ pub mod primitives;
 pub mod tables;
 pub mod variables;
 pub mod blocks;
+pub mod functions;
 
 use crate::ast::expressions;
 use crate::utils;

@@ -4,8 +4,9 @@ use std::cell::RefCell;
 use std::ops::Deref;
 
 use crate::ast::expressions;
+use crate::interpreter::environment;
+use crate::utils;
 
-#[derive(Debug)]
 pub enum Type {
     Nil,
     Boolean(bool),
@@ -26,7 +27,9 @@ pub enum Type {
         id: u64,
         parameters: Vec<String>,
         varargs: bool,
-        body: Box<expressions::Expression>
+        body: Rc<Box<expressions::Expression>>,
+        // TODO: This closure is basically wrong. We want to close only vars in body, not whole environment
+        env: utils::Shared<environment::Environment>
     }
 }
 
@@ -109,6 +112,28 @@ impl ::std::fmt::Display for Type {
             Type::Table { id, .. } => write!(f, "table ({:x})", id),
             Type::Reference(value) => value.borrow().fmt(f),
             _ => write!(f, "{:?}", self)
+        }
+    }
+}
+
+/// Debug, which breaks closured env circular dependency
+impl ::std::fmt::Debug for Type {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        match self {
+            Type::Nil => write!(f, "Nil"),
+            Type::Boolean(value) => write!(f, "Boolean({:?})", value),
+            Type::Number(value) => write!(f, "Number({:?})", value),
+            Type::String(value) => write!(f, "String({:?})", value),
+            Type::Reference(value) => write!(f, "Reference({:?})", value),
+            Type::Vector(vec) => write!(f, "Vector({:?})", vec),
+            Type::Table{ id, map, metatable, border } => {
+                write!(f, "Table {{ id: {}, map: {:?}, metatable: {:?}, border: {} }}", id, map, metatable, border)
+            },
+            Type::Function { id, parameters, varargs, body, env } =>
+            {
+                write!(f, "Function {{ id: {:?}, parameters: {:?}, varargs: {:?}, body: {:?}, env: {:?} }}",
+                    id, parameters, varargs, body, env.borrow().id())
+            },
         }
     }
 }

@@ -1,6 +1,8 @@
 use crate::ast::expressions::{self, statements, tables, primitives, variables};
 use crate::ast::stack;
+
 use std::collections::VecDeque;
+use std::rc::Rc;
 
 use crate::interpreter;
 
@@ -8,9 +10,8 @@ use crate::interpreter;
 pub struct Closure {
     pub params: VecDeque<Box<expressions::Expression>>,
     pub varargs: bool,
-    pub body: Box<expressions::Expression>,
+    pub body: Rc<Box<expressions::Expression>>,
 }
-impl interpreter::Eval for Closure {}
 impl expressions::Expression for Closure {}
 
 /// Closure expression.
@@ -25,7 +26,7 @@ impl Closure {
         stack.push_single(Box::new(Closure {
             params,
             varargs: ellipsis.is_some(),
-            body
+            body: Rc::new(body)
         }));
     }
 }
@@ -56,7 +57,7 @@ impl Function {
         let closure = Box::new(Closure {
             params,
             varargs: ellipsis.is_some(),
-            body
+            body: Rc::new(body)
         }) as Box<expressions::Expression>;
 
 
