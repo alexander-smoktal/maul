@@ -49,13 +49,19 @@ fn eval_args(args: &VecDeque<Box<expressions::Expression>>,
 }
 
 fn call_function(this: &expressions::Expression,
+    call_object: Option<types::Type>,
     function: types::Type,
     args: &VecDeque<Box<expressions::Expression>>,
     call_env: &mut utils::Shared<environment::Environment>) -> types::Type {
     match_type!(&function,
         types::Type::Function { parameters, varargs, body, env, .. } => {
-            let mut local_env = environment::Environment::new(Some(env.clone()));
+            let mut local_env = environment::Environment::new(Some(env.clone()), environment::BreakFlag::Return(None));
             let mut args = eval_args(args, call_env);
+
+            // self
+            if let Some(obj) = call_object {
+                args.push_front(obj)
+            }
 
             // Bing args to parameters
             for parameter in parameters {
@@ -64,11 +70,16 @@ fn call_function(this: &expressions::Expression,
                 }
             }
 
+            // Varargs
             if *varargs {
                 local_env.add_variable("args".to_string(), types::Type::Vector(args))
             }
 
-            body.eval(&mut utils::Shared::new(local_env))
+            let mut shared_env = utils::Shared::new(local_env);
+            body.eval(&mut shared_env);
+
+            let result = shared_env.borrow_mut().retval();
+            result
         },
         _ => this.runtime_error(format!("Cannot call {:?}, not a function", function))
     )
@@ -81,7 +92,7 @@ impl interpreter::Eval for function::Funcall {
     //     pub method: Option<Box<expressions::Expression>>,
     // }
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        let function = self.object.eval(env);
+        let call_object = self.object.eval(env);
 
         // First let check if we have method name, in this case we expect table on method inside
         if let Some(ref method_exp) = self.method {
@@ -90,22 +101,22 @@ impl interpreter::Eval for function::Funcall {
             match_type!(&method_name,
                 types::Type::String(_) => {
                     // This must be a table, because we call its method
-                    match_type!(&function,
+                    match_type!(&call_object,
                         types::Type::Table{ ref map, .. } => {
-                            if let Some(method) = map.get(&method_name) {
-                                call_function(self, types::Type::Reference(method.clone()), &self.args, env)
+                            if let Some(method) = map.get(&method_name).cloned() {
+                                call_function(self, Some(call_object), types::Type::Reference(method), &self.args, env)
                             } else {
                                 self.runtime_error(format!("Object doesn't contain method {:?}", method_name))
                             }
                         },
-                        _ => self.runtime_error(format!("Method call object is not a table, but {:?}", function))
+                        _ => self.runtime_error(format!("Method call object is not a table, but {:?}", call_object))
                     )
                 },
                 _ => self.runtime_error(format!("Method call method name is not a string, but {:?}", method_name))
             )
         // Function
         } else {
-            call_function(self, function, &self.args, env)
+            call_function(self, None, call_object, &self.args, env)
         }
     }
 }

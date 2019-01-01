@@ -22,7 +22,7 @@ pub fn interpret_rule<F>(source_code: &str, func: F) -> (types::Type, utils::Sha
 
     assert!(parser.peek().is_none(), format!("Parser contains tokens after parsing: {:?}", parser));
 
-    let mut env = utils::Shared::new(environment::Environment::new(None));
+    let mut env = utils::Shared::new(environment::Environment::new(None, environment::BreakFlag::None));
 
     (stack.pop_single().eval(&mut env), env)
 }

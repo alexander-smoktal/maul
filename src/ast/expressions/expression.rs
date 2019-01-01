@@ -4,11 +4,8 @@ pub use std::ops;
 use crate::ast::expressions;
 use crate::ast::stack;
 
-use crate::interpreter;
-
 #[derive(Debug)]
-pub struct Expressions(VecDeque<Box<expressions::Expression>>);
-impl interpreter::Eval for Expressions {}
+pub struct Expressions(pub VecDeque<Box<expressions::Expression>>);
 impl expressions::Expression for Expressions {}
 
 impl Expressions {

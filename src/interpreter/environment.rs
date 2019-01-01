@@ -53,7 +53,7 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new(parent: Option<Shared<Environment>>) -> Self {
+    pub fn new(parent: Option<Shared<Environment>>, break_flag: BreakFlag) -> Self {
         Environment {
             global_id_counter: if let Some(ref parent) = parent {
                 parent.borrow_mut().global_id_counter.clone()
@@ -62,7 +62,7 @@ impl Environment {
             },
             data: HashMap::new(),
             parent,
-            break_flag: BreakFlag::None
+            break_flag
         }
     }
 
@@ -105,7 +105,7 @@ impl Environment {
     }
 
     /// Set environment break flag. We cross blocks borders toward the topmost env and brake all blocks on the way
-    pub fn brake_execution(&mut self, flag: BreakFlag) -> bool {
+    pub fn break_execution(&mut self, flag: BreakFlag) -> bool {
         match flag {
             BreakFlag::None => false,
             BreakFlag::Break(_) => {
@@ -114,7 +114,7 @@ impl Environment {
                     BreakFlag::None => {
                         if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
-                            parent.borrow_mut().brake_execution(flag)
+                            parent.borrow_mut().break_execution(flag)
                         } else {
                             // Didn't find breakable block
                             false
@@ -133,7 +133,7 @@ impl Environment {
                     BreakFlag::None => {
                         if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
-                            parent.borrow_mut().brake_execution(flag)
+                            parent.borrow_mut().break_execution(flag)
                         } else {
                             // Didn't find returnable block
                             false
@@ -143,7 +143,7 @@ impl Environment {
                     BreakFlag::Break(_) => {
                          if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
-                            parent.borrow_mut().brake_execution(flag)
+                            parent.borrow_mut().break_execution(flag)
                         } else {
                             // Didn't find returnable block
                             false
@@ -164,8 +164,19 @@ impl Environment {
         }
     }
 
-    pub fn brake_flag(&self) -> &BreakFlag {
+    pub fn break_flag(&self) -> &BreakFlag {
         &self.break_flag
+    }
+
+    // Destroy environment and in case it contains return value, return it
+    pub fn retval(&mut self) -> types::Type {
+        if let BreakFlag::Return(ref mut some_ret) = self.break_flag {
+            if let Some(retval) = some_ret.take() {
+                return retval
+            }
+        }
+
+        types::Type::Nil
     }
 }
 

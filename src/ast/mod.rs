@@ -17,6 +17,7 @@ pub mod parser;
 pub mod rules;
 
 use std::fmt::{Debug, Error, Formatter};
+use crate::interpreter::environment;
 
 pub struct AST {
     top_expression: Box<expressions::Expression>,
@@ -35,7 +36,7 @@ impl AST {
     }
 
     pub fn eval(&self) {
-        let mut env = crate::utils::Shared::new(crate::interpreter::environment::Environment::new(None));
+        let mut env = crate::utils::Shared::new(environment::Environment::new(None, environment::BreakFlag::None));
 
         self.top_expression.eval(&mut env);
     }

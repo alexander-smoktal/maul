@@ -3,15 +3,12 @@ use crate::ast::lexer::tokens;
 use crate::ast::parser;
 use crate::ast::stack;
 
-use crate::interpreter;
-
 #[derive(Debug)]
 pub enum Statement {
     Break,
     Ellipsis,
     Return(Option<Box<expressions::Expression>>),
 }
-impl interpreter::Eval for Statement {}
 impl expressions::Expression for Statement {}
 
 impl Statement {

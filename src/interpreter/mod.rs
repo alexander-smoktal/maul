@@ -7,6 +7,8 @@ pub mod tables;
 pub mod variables;
 pub mod blocks;
 pub mod functions;
+pub mod statements;
+pub mod expression;
 
 use crate::ast::expressions;
 use crate::utils;

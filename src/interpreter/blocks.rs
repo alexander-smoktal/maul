@@ -12,7 +12,7 @@ impl interpreter::Eval for blocks::Block {
             statement.eval(env);
 
             // Check if broken
-            if env.borrow().brake_flag() != &environment::BreakFlag::None {
+            if let environment::BreakFlag::Break(true) = env.borrow().break_flag() {
                 return types::Type::Nil
             }
         }
@@ -20,7 +20,7 @@ impl interpreter::Eval for blocks::Block {
         if let Some(ref retstat) = self.retstat {
             let return_value = retstat.eval(env);
 
-            if !env.borrow_mut().brake_execution(environment::BreakFlag::Return(Some(return_value))) {
+            if !env.borrow_mut().break_execution(environment::BreakFlag::Return(Some(return_value))) {
                 self.runtime_error("Unexpected return statement. Not a function".to_string())
             }
         }
@@ -32,7 +32,7 @@ impl interpreter::Eval for blocks::Block {
 // pub struct DoBlock(pub Box<expressions::Expression>);
 impl interpreter::Eval for blocks::DoBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        let local_env = environment::Environment::new(Some(env.clone()));
+        let local_env = environment::Environment::new(Some(env.clone()), environment::BreakFlag::Break(false));
 
         self.0.eval(&mut utils::Shared::new(local_env));
         types::Type::Nil
@@ -55,7 +55,8 @@ impl interpreter::Eval for blocks::WhileBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
 
         while self.condition.eval(env).as_bool() {
-            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone())));
+            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone()),
+                environment::BreakFlag::Break(false)));
             self.block.eval(&mut local_env);
         }
         types::Type::Nil
@@ -69,7 +70,8 @@ impl interpreter::Eval for blocks::WhileBlock {
 impl interpreter::Eval for blocks::RepeatBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         loop {
-            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone())));
+            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone()),
+                environment::BreakFlag::Break(false)));
             self.block.eval(&mut local_env);
 
             if self.condition.eval(env).as_bool() {
@@ -149,7 +151,8 @@ impl interpreter::Eval for blocks::NumericalForBlock {
         };
 
         // Creating local env and assigning initial value
-        let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone())));
+        let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone()),
+            environment::BreakFlag::Break(false)));
 
         let mut i = init_num;
         while i != limit_num {
