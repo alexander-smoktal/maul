@@ -1,14 +1,14 @@
 #[macro_use]
 pub mod types;
+pub mod blocks;
 pub mod environment;
+pub mod expression;
+pub mod functions;
 pub mod operators;
 pub mod primitives;
+pub mod statements;
 pub mod tables;
 pub mod variables;
-pub mod blocks;
-pub mod functions;
-pub mod statements;
-pub mod expression;
 
 use crate::ast::expressions;
 use crate::utils;

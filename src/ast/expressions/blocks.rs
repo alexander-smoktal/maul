@@ -81,10 +81,7 @@ impl IfCondition {
         let (block, _then, condition, _elseif) =
             stack_unpack!(stack, single, single, single, single);
 
-        stack.push_single(Box::new(IfCondition {
-            condition,
-            block
-        }))
+        stack.push_single(Box::new(IfCondition { condition, block }))
     }
 }
 
@@ -101,17 +98,14 @@ impl IfBlock {
         let (_end, else_block, mut conditions, block, _then, condition, _if) =
             stack_unpack!(stack, single, optional, repetition, single, single, single, single);
 
-            let primary_condition = Box::new(IfCondition {
-                condition,
-                block
-            });
+        let primary_condition = Box::new(IfCondition { condition, block });
 
-            conditions.push_front(primary_condition);
+        conditions.push_front(primary_condition);
 
-            stack.push_single(Box::new(IfBlock {
-                conditions,
-                else_block
-            }))
+        stack.push_single(Box::new(IfBlock {
+            conditions,
+            else_block,
+        }))
     }
 }
 
@@ -128,15 +122,16 @@ impl expressions::Expression for NumericalForBlock {}
 impl NumericalForBlock {
     // for Name ‘=’ exp ‘,’ exp [‘,’ exp] do block end |
     pub fn new(stack: &mut stack::Stack) {
-        let (_end, block, _do, step, limit, _comma, init_value, _assign, var_name, _for)
-            = stack_unpack!(stack, single, single, single, optional, single, single, single, single, single, single);
+        let (_end, block, _do, step, limit, _comma, init_value, _assign, var_name, _for) = stack_unpack!(
+            stack, single, single, single, optional, single, single, single, single, single, single
+        );
 
         stack.push_single(Box::new(NumericalForBlock {
             var_name,
             init_value,
             limit,
             step,
-            block
+            block,
         }))
     }
 }
@@ -145,7 +140,7 @@ impl NumericalForBlock {
 pub struct GenericForBlock {
     pub namelist: VecDeque<Box<expressions::Expression>>,
     pub explist: VecDeque<Box<expressions::Expression>>,
-    pub block: Box<expressions::Expression>
+    pub block: Box<expressions::Expression>,
 }
 impl interpreter::Eval for GenericForBlock {}
 impl expressions::Expression for GenericForBlock {}
@@ -153,13 +148,13 @@ impl expressions::Expression for GenericForBlock {}
 impl GenericForBlock {
     // for namelist in explist do block end |
     pub fn new(stack: &mut stack::Stack) {
-        let (_end, block, _do, explist, _in, namelist, _for)
-            = stack_unpack!(stack, single, single, single, repetition, single, repetition, single);
+        let (_end, block, _do, explist, _in, namelist, _for) =
+            stack_unpack!(stack, single, single, single, repetition, single, repetition, single);
 
         stack.push_single(Box::new(GenericForBlock {
             namelist,
             explist,
-            block
+            block,
         }))
     }
 }

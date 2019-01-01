@@ -2,7 +2,6 @@ use crate::ast::expressions::primitives;
 use crate::interpreter::{self, environment, types};
 use crate::utils;
 
-
 impl interpreter::Eval for primitives::Nil {
     fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {
         types::Type::Nil

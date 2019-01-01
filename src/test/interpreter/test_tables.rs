@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use crate::ast::rules;
-use crate::interpreter::types::{Type::{self, Table}};
+use crate::interpreter::types::Type::{self, Table};
 
 use super::utils::interpret_rule;
 
@@ -18,23 +18,38 @@ fn test_simple_table() {
 
     if let (Table { border, map, .. }, _) = interpret_rule("{1}", rules::tableconstructor) {
         assert_eq!(border, 1);
-        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(
+            map.get(&Type::Number(1f64)).unwrap().borrow().deref(),
+            &Type::Number(1f64)
+        );
     } else {
         panic!()
     }
 
     if let (Table { border, map, .. }, _) = interpret_rule("{1, 2}", rules::tableconstructor) {
         assert_eq!(border, 2);
-        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
-        assert_eq!(map.get(&Type::Number(2f64)).unwrap().borrow().deref(), &Type::Number(2f64));
+        assert_eq!(
+            map.get(&Type::Number(1f64)).unwrap().borrow().deref(),
+            &Type::Number(1f64)
+        );
+        assert_eq!(
+            map.get(&Type::Number(2f64)).unwrap().borrow().deref(),
+            &Type::Number(2f64)
+        );
     } else {
         panic!()
     }
 
     if let (Table { border, map, .. }, _) = interpret_rule("{1; 3}", rules::tableconstructor) {
         assert_eq!(border, 2);
-        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
-        assert_eq!(map.get(&Type::Number(2f64)).unwrap().borrow().deref(), &Type::Number(3f64));
+        assert_eq!(
+            map.get(&Type::Number(1f64)).unwrap().borrow().deref(),
+            &Type::Number(1f64)
+        );
+        assert_eq!(
+            map.get(&Type::Number(2f64)).unwrap().borrow().deref(),
+            &Type::Number(3f64)
+        );
     } else {
         panic!()
     }
@@ -46,7 +61,13 @@ fn test_name_table() {
     println!("{:?}", val);
     if let Table { border, map, .. } = val {
         assert_eq!(border, 0);
-        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(
+            map.get(&Type::String("Hello".to_string()))
+                .unwrap()
+                .borrow()
+                .deref(),
+            &Type::Number(1f64)
+        );
     } else {
         panic!()
     }
@@ -55,8 +76,17 @@ fn test_name_table() {
     println!("{:?}", val);
     if let Table { border, map, .. } = val {
         assert_eq!(border, 1);
-        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
-        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(2f64));
+        assert_eq!(
+            map.get(&Type::String("Hello".to_string()))
+                .unwrap()
+                .borrow()
+                .deref(),
+            &Type::Number(1f64)
+        );
+        assert_eq!(
+            map.get(&Type::Number(1f64)).unwrap().borrow().deref(),
+            &Type::Number(2f64)
+        );
     } else {
         panic!()
     }
@@ -65,8 +95,20 @@ fn test_name_table() {
     println!("{:?}", val);
     if let Table { border, map, .. } = val {
         assert_eq!(border, 0);
-        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
-        assert_eq!(map.get(&Type::String("world".to_string())).unwrap().borrow().deref(), &Type::Boolean(false));
+        assert_eq!(
+            map.get(&Type::String("Hello".to_string()))
+                .unwrap()
+                .borrow()
+                .deref(),
+            &Type::Number(1f64)
+        );
+        assert_eq!(
+            map.get(&Type::String("world".to_string()))
+                .unwrap()
+                .borrow()
+                .deref(),
+            &Type::Boolean(false)
+        );
     } else {
         panic!()
     }
@@ -79,7 +121,10 @@ fn test_bracket_table() {
     println!("{:?}", val);
     if let Table { border, map, .. } = val {
         assert_eq!(border, 1);
-        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(1f64));
+        assert_eq!(
+            map.get(&Type::Number(1f64)).unwrap().borrow().deref(),
+            &Type::Number(1f64)
+        );
     } else {
         panic!()
     }
@@ -88,8 +133,17 @@ fn test_bracket_table() {
     println!("{:?}", val);
     if let Table { border, map, .. } = val {
         assert_eq!(border, 1);
-        assert_eq!(map.get(&Type::String("Hello".to_string())).unwrap().borrow().deref(), &Type::Number(1f64));
-        assert_eq!(map.get(&Type::Number(1f64)).unwrap().borrow().deref(), &Type::Number(2f64));
+        assert_eq!(
+            map.get(&Type::String("Hello".to_string()))
+                .unwrap()
+                .borrow()
+                .deref(),
+            &Type::Number(1f64)
+        );
+        assert_eq!(
+            map.get(&Type::Number(1f64)).unwrap().borrow().deref(),
+            &Type::Number(2f64)
+        );
     } else {
         panic!()
     }
@@ -98,7 +152,13 @@ fn test_bracket_table() {
     println!("{:?}", val);
     if let Table { border, map, .. } = val {
         assert_eq!(border, 0);
-        assert_eq!(map.get(&Type::String("world".to_string())).unwrap().borrow().deref(), &Type::Boolean(false));
+        assert_eq!(
+            map.get(&Type::String("world".to_string()))
+                .unwrap()
+                .borrow()
+                .deref(),
+            &Type::Boolean(false)
+        );
     } else {
         panic!()
     }

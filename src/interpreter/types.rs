@@ -1,7 +1,7 @@
-use std::collections::{HashMap, VecDeque};
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::collections::{HashMap, VecDeque};
 use std::ops::Deref;
+use std::rc::Rc;
 
 use crate::ast::expressions;
 use crate::interpreter::environment;
@@ -20,7 +20,7 @@ pub enum Type {
         id: u64,
         map: HashMap<Type, Rc<RefCell<Type>>>,
         metatable: HashMap<String, Type>,
-        border: usize
+        border: usize,
     },
     Function {
         /// For comparison
@@ -29,8 +29,8 @@ pub enum Type {
         varargs: bool,
         body: Rc<Box<expressions::Expression>>,
         // XXX: Capture only vars function needs?
-        env: utils::Shared<environment::Environment>
-    }
+        env: utils::Shared<environment::Environment>,
+    },
 }
 
 impl Type {
@@ -42,7 +42,7 @@ impl Type {
         match self {
             Type::Nil => false,
             Type::Boolean(false) => false,
-            _ => true
+            _ => true,
         }
     }
 
@@ -51,7 +51,7 @@ impl Type {
         match self {
             Type::Nil => true,
             Type::Reference(typeref) => typeref.borrow().is_nil(),
-            _ => false
+            _ => false,
         }
     }
 
@@ -59,7 +59,7 @@ impl Type {
     pub fn as_ref(self) -> Rc<RefCell<Self>> {
         match self {
             Type::Reference(typeref) => typeref,
-            _ => Rc::new(RefCell::new(self))
+            _ => Rc::new(RefCell::new(self)),
         }
     }
 }
@@ -73,17 +73,17 @@ impl ::std::cmp::PartialEq<&'static str> for Type {
 
 impl ::std::cmp::PartialEq for Type {
     fn eq(&self, other: &Self) -> bool {
-       match (self, other) {
-           (Type::Boolean(left), Type::Boolean(right)) => left == right,
-           (Type::Number(left), Type::Number(right)) => left == right,
-           (Type::String(left), Type::String(right)) => left == right,
-           (Type::Reference(left), right) => right.eq(left.borrow().deref()),
-           (left, Type::Reference(right)) => left.eq(right.borrow().deref()),
-           (Type::Vector(left), Type::Vector(right)) => left == right,
-           (Type::Table{ id: left, .. }, Type::Table{ id: right, .. }) => left == right,
-           (Type::Function{ id: left, .. }, Type::Function{ id: right, .. }) => left == right,
-           _ => false
-       }
+        match (self, other) {
+            (Type::Boolean(left), Type::Boolean(right)) => left == right,
+            (Type::Number(left), Type::Number(right)) => left == right,
+            (Type::String(left), Type::String(right)) => left == right,
+            (Type::Reference(left), right) => right.eq(left.borrow().deref()),
+            (left, Type::Reference(right)) => left.eq(right.borrow().deref()),
+            (Type::Vector(left), Type::Vector(right)) => left == right,
+            (Type::Table { id: left, .. }, Type::Table { id: right, .. }) => left == right,
+            (Type::Function { id: left, .. }, Type::Function { id: right, .. }) => left == right,
+            _ => false,
+        }
     }
 }
 
@@ -98,8 +98,8 @@ impl ::std::hash::Hash for Type {
             Type::String(value) => value.hash(state),
             Type::Reference(value) => value.borrow().hash(state),
             Type::Vector(vec) => vec.hash(state),
-            Type::Table{ id, .. } => id.hash(state),
-            Type::Function{ id, .. } => id.hash(state)
+            Type::Table { id, .. } => id.hash(state),
+            Type::Function { id, .. } => id.hash(state),
         }
     }
 }
@@ -111,7 +111,7 @@ impl ::std::fmt::Display for Type {
             Type::Function { id, .. } => write!(f, "function ({:x})", id),
             Type::Table { id, .. } => write!(f, "table ({:x})", id),
             Type::Reference(value) => value.borrow().fmt(f),
-            _ => write!(f, "{:?}", self)
+            _ => write!(f, "{:?}", self),
         }
     }
 }
@@ -126,14 +126,31 @@ impl ::std::fmt::Debug for Type {
             Type::String(value) => write!(f, "String({:?})", value),
             Type::Reference(value) => write!(f, "Reference({:?})", value),
             Type::Vector(vec) => write!(f, "Vector({:?})", vec),
-            Type::Table{ id, map, metatable, border } => {
-                write!(f, "Table {{ id: {}, map: {:?}, metatable: {:?}, border: {} }}", id, map, metatable, border)
-            },
-            Type::Function { id, parameters, varargs, body, env } =>
-            {
-                write!(f, "Function {{ id: {:?}, parameters: {:?}, varargs: {:?}, body: {:?}, env: {:?} }}",
-                    id, parameters, varargs, body, env.borrow().id())
-            },
+            Type::Table {
+                id,
+                map,
+                metatable,
+                border,
+            } => write!(
+                f,
+                "Table {{ id: {}, map: {:?}, metatable: {:?}, border: {} }}",
+                id, map, metatable, border
+            ),
+            Type::Function {
+                id,
+                parameters,
+                varargs,
+                body,
+                env,
+            } => write!(
+                f,
+                "Function {{ id: {:?}, parameters: {:?}, varargs: {:?}, body: {:?}, env: {:?} }}",
+                id,
+                parameters,
+                varargs,
+                body,
+                env.borrow().id()
+            ),
         }
     }
 }

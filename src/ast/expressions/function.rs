@@ -1,4 +1,4 @@
-use crate::ast::expressions::{self, statements, tables, primitives, variables};
+use crate::ast::expressions::{self, primitives, statements, tables, variables};
 use crate::ast::stack;
 
 use std::collections::VecDeque;
@@ -19,12 +19,13 @@ impl Closure {
     // ‘(’ [parlist] ‘)’ block end
     pub fn new(stack: &mut stack::Stack) {
         // We've remove braces before
-        let (_end, body, ellipsis, params, _function) = stack_unpack!(stack, single, single, optional, repetition, single);
+        let (_end, body, ellipsis, params, _function) =
+            stack_unpack!(stack, single, single, optional, repetition, single);
 
         stack.push_single(Box::new(Closure {
             params,
             varargs: ellipsis.is_some(),
-            body: Rc::new(body)
+            body: Rc::new(body),
         }));
     }
 }
@@ -55,13 +56,12 @@ impl Function {
         let closure = Box::new(Closure {
             params,
             varargs: ellipsis.is_some(),
-            body: Rc::new(body)
+            body: Rc::new(body),
         }) as Box<expressions::Expression>;
-
 
         stack.push_single(Box::new(variables::Assignment {
             varlist: vec![object].into(),
-            explist: vec![closure].into()
+            explist: vec![closure].into(),
         }));
     }
 }
@@ -115,12 +115,17 @@ impl FunctionParameters {
 
     /// Helper function to push parameters and indicator of varargs
     /// After method execution, stack will contains parameters list and optional ellipsis expression
-    fn finalize_parameters_parsing(stack: &mut stack::Stack,
+    fn finalize_parameters_parsing(
+        stack: &mut stack::Stack,
         namelist: VecDeque<Box<expressions::Expression>>,
-        varargs: bool) {
-
+        varargs: bool,
+    ) {
         stack.push_repetition(namelist);
-        stack.push_optional(if varargs { Some(Box::new(statements::Statement::Ellipsis)) } else { None });
+        stack.push_optional(if varargs {
+            Some(Box::new(statements::Statement::Ellipsis))
+        } else {
+            None
+        });
     }
 }
 

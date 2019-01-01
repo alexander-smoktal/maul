@@ -1,4 +1,4 @@
-use crate::ast::expressions::{blocks, self};
+use crate::ast::expressions::{self, blocks};
 use crate::interpreter::{self, environment, types};
 use crate::utils;
 
@@ -13,14 +13,17 @@ impl interpreter::Eval for blocks::Block {
 
             // Check if broken
             if let environment::BreakFlag::Break(true) = env.borrow().break_flag() {
-                return types::Type::Nil
+                return types::Type::Nil;
             }
         }
 
         if let Some(ref retstat) = self.retstat {
             let return_value = retstat.eval(env);
 
-            if !env.borrow_mut().break_execution(environment::BreakFlag::Return(Some(return_value))) {
+            if !env
+                .borrow_mut()
+                .break_execution(environment::BreakFlag::Return(Some(return_value)))
+            {
                 self.runtime_error("Unexpected return statement. Not a function".to_string())
             }
         }
@@ -32,7 +35,8 @@ impl interpreter::Eval for blocks::Block {
 // pub struct DoBlock(pub Box<expressions::Expression>);
 impl interpreter::Eval for blocks::DoBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        let local_env = environment::Environment::new(Some(env.clone()), environment::BreakFlag::Break(false));
+        let local_env =
+            environment::Environment::new(Some(env.clone()), environment::BreakFlag::Break(false));
 
         self.0.eval(&mut utils::Shared::new(local_env));
         types::Type::Nil
@@ -53,10 +57,11 @@ impl interpreter::Eval for blocks::Local {
 // }
 impl interpreter::Eval for blocks::WhileBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-
         while self.condition.eval(env).as_bool() {
-            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone()),
-                environment::BreakFlag::Break(false)));
+            let mut local_env = utils::Shared::new(environment::Environment::new(
+                Some(env.clone()),
+                environment::BreakFlag::Break(false),
+            ));
             self.block.eval(&mut local_env);
         }
         types::Type::Nil
@@ -70,12 +75,14 @@ impl interpreter::Eval for blocks::WhileBlock {
 impl interpreter::Eval for blocks::RepeatBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         loop {
-            let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone()),
-                environment::BreakFlag::Break(false)));
+            let mut local_env = utils::Shared::new(environment::Environment::new(
+                Some(env.clone()),
+                environment::BreakFlag::Break(false),
+            ));
             self.block.eval(&mut local_env);
 
             if self.condition.eval(env).as_bool() {
-                break
+                break;
             }
         }
 
@@ -91,13 +98,12 @@ impl interpreter::Eval for blocks::IfCondition {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         if self.condition.eval(env).as_bool() {
             self.block.eval(env);
-            return types::Type::Boolean(true)
+            return types::Type::Boolean(true);
         }
 
         types::Type::Nil
     }
 }
-
 
 // pub struct IfBlock {
 //     pub conditions: VecDeque<Box<expressions::Expression>>,
@@ -107,13 +113,13 @@ impl interpreter::Eval for blocks::IfBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         for condition in &self.conditions {
             if condition.eval(env).as_bool() {
-                return types::Type::Nil
+                return types::Type::Nil;
             }
         }
 
         match &self.else_block {
             Some(block) => block.eval(env),
-            _ => types::Type::Nil
+            _ => types::Type::Nil,
         }
     }
 }
@@ -151,12 +157,16 @@ impl interpreter::Eval for blocks::NumericalForBlock {
         };
 
         // Creating local env and assigning initial value
-        let mut local_env = utils::Shared::new(environment::Environment::new(Some(env.clone()),
-            environment::BreakFlag::Break(false)));
+        let mut local_env = utils::Shared::new(environment::Environment::new(
+            Some(env.clone()),
+            environment::BreakFlag::Break(false),
+        ));
 
         let mut i = init_num;
         while i != limit_num {
-            local_env.borrow_mut().add_variable(var_name.clone(), types::Type::Number(i));
+            local_env
+                .borrow_mut()
+                .add_variable(var_name.clone(), types::Type::Number(i));
             self.block.eval(&mut local_env);
             i += step_num;
         }

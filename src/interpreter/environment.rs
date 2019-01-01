@@ -1,11 +1,10 @@
-
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
-use std::cell::RefCell;
 
-use crate::utils::Shared;
 use crate::interpreter::types;
+use crate::utils::Shared;
 
 const DEBUG: bool = false;
 
@@ -36,7 +35,7 @@ pub enum BreakFlag {
     Return(Option<types::Type>),
     /// Goto may interrupt execution of any block. Should be checked by all blocks and handled gracefuly
     /// Label name and old break flag value
-    Goto(String, Box<BreakFlag>)
+    Goto(String, Box<BreakFlag>),
 }
 
 /// Environment structure. Each block starts new environment, settings current as a parent
@@ -62,7 +61,7 @@ impl Environment {
             },
             data: HashMap::new(),
             parent,
-            break_flag
+            break_flag,
         }
     }
 
@@ -87,7 +86,7 @@ impl Environment {
                 Some(ref mut parent) => {
                     debug_env!("Env didn't found variable {:?}, asking parent env", varname);
                     parent.borrow_mut().get(varname)
-                },
+                }
                 _ => {
                     debug_env!("Env didn't found variable {:?}, returning nil", varname);
                     None
@@ -123,10 +122,10 @@ impl Environment {
                     BreakFlag::Break(_) => {
                         self.break_flag = flag;
                         true
-                    },
-                    _ => false
+                    }
+                    _ => false,
                 }
-            },
+            }
             BreakFlag::Return(_) => {
                 match self.break_flag {
                     // Return crosses non-breakable block boundaries, and we also break current block execution
@@ -141,21 +140,21 @@ impl Environment {
                     }
                     // Return crosses breakable block boundaries, and we also break current block execution
                     BreakFlag::Break(_) => {
-                         if let Some(ref mut parent) = self.parent {
+                        if let Some(ref mut parent) = self.parent {
                             self.break_flag = BreakFlag::Break(true);
                             parent.borrow_mut().break_execution(flag)
                         } else {
                             // Didn't find returnable block
                             false
                         }
-                    },
+                    }
                     BreakFlag::Return(_) => {
                         self.break_flag = flag;
                         true
-                    },
-                    _ => false
+                    }
+                    _ => false,
                 }
-            },
+            }
             // This doesn't look nice. We could fill old value from the inside. Will be todo
             BreakFlag::Goto(_, _) => {
                 self.break_flag = flag;
@@ -172,7 +171,7 @@ impl Environment {
     pub fn retval(&mut self) -> types::Type {
         if let BreakFlag::Return(ref mut some_ret) = self.break_flag {
             if let Some(retval) = some_ret.take() {
-                return retval
+                return retval;
             }
         }
 

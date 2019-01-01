@@ -13,7 +13,8 @@ fn test_stack_unpack() {
         vec![
             Box::new(primitives::Nil) as Box<Expression>,
             Box::new(primitives::Nil) as Box<Expression>,
-        ].into_iter()
+        ]
+        .into_iter()
         .collect::<VecDeque<Box<Expression>>>(),
     );
     stack.push_optional(Some(Box::new(primitives::Nil)));

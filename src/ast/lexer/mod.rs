@@ -2,12 +2,12 @@ pub mod tokens;
 
 use self::tokens::{get_operator_table, get_token_table, Keyword, Token, TokenType};
 
+use crate::utils::AsExclusiveTakeWhile;
 use std::collections::HashMap;
 use std::fmt;
 use std::iter::{FromIterator, IntoIterator, Iterator, Peekable};
 use std::string::String;
 use std::vec;
-use crate::utils::AsExclusiveTakeWhile;
 
 // ---------- Lexer --------------
 pub struct Lexer {
@@ -111,7 +111,11 @@ impl Lexer {
             .collect();
         self.advance_pos(number.len());
 
-        TokenType::Number(number.parse::<f64>().expect(format!("Failed to parse number '{}'", number).as_str()))
+        TokenType::Number(
+            number
+                .parse::<f64>()
+                .expect(format!("Failed to parse number '{}'", number).as_str()),
+        )
     }
 
     fn parse_operator(&mut self) -> TokenType {

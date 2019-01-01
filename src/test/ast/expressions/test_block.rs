@@ -1,7 +1,6 @@
 use super::utils::parse_string;
 use crate::ast::rules;
 
-
 #[test]
 fn test_do_block() {
     assert_eq!(parse_string("do one = one + 8 end", rules::stat),
@@ -19,7 +18,6 @@ fn test_repeat_block() {
     assert_eq!(parse_string("repeat one = 42; break until false", rules::stat),
         r#"[Single(RepeatBlock { block: Block { statements: [Assignment { varlist: [Id("one")], explist: [Number(42.0)] }, Terminal(SEMICOLONS), Break], retstat: None }, condition: Boolean(false) })]"#);
 }
-
 
 #[test]
 fn test_simple_if_block() {
@@ -54,7 +52,10 @@ fn test_empty_if_blocks() {
 #[test]
 #[should_panic]
 fn test_invalid_if() {
-    println!("{:?}", parse_string("if then elseif false then x= 8 else x = 1 end", rules::stat));
+    println!(
+        "{:?}",
+        parse_string("if then elseif false then x= 8 else x = 1 end", rules::stat)
+    );
 }
 
 #[test]

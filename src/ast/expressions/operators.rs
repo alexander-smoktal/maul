@@ -47,11 +47,7 @@ impl Binop {
     }
 
     // https://en.wikipedia.org/wiki/Operator-precedence_parser
-    pub fn prec_rule(
-        parser: &mut parser::Parser,
-        stack: &mut stack::Stack,
-        precedence: usize,
-    ) {
+    pub fn prec_rule(parser: &mut parser::Parser, stack: &mut stack::Stack, precedence: usize) {
         // or
         // and
         // <     >     <=    >=    ~=    ==

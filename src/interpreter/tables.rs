@@ -1,7 +1,7 @@
-use std::collections::{HashMap, VecDeque};
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::clone::Clone;
+use std::collections::{HashMap, VecDeque};
+use std::rc::Rc;
 
 use crate::ast::expressions::tables;
 use crate::interpreter::{self, environment, types};
@@ -57,7 +57,7 @@ impl interpreter::Eval for tables::Table {
             id: env.borrow_mut().next_global_id(),
             map,
             metatable: HashMap::new(),
-            border
+            border,
         }
     }
 }
@@ -67,7 +67,7 @@ impl interpreter::Eval for tables::TableField {
         let mut result_vector: VecDeque<types::Type> = VecDeque::new();
 
         if let Some(ref expression) = self.key {
-            let key =  expression.eval(env);
+            let key = expression.eval(env);
 
             if key.is_nil() {
                 self.runtime_error(format!("Cannot use `nil` as a table key"))
@@ -89,7 +89,12 @@ impl interpreter::Eval for tables::Indexing {
         let mut table_borrow = table.borrow_mut();
 
         // We can index only tables
-        if let types::Type::Table { ref mut map, ref mut border, .. } = *table_borrow {
+        if let types::Type::Table {
+            ref mut map,
+            ref mut border,
+            ..
+        } = *table_borrow
+        {
             let key = self.index.eval(env);
 
             // If we have this entry, return reference to it
@@ -104,7 +109,7 @@ impl interpreter::Eval for tables::Indexing {
                 update_table_border(&map, border);
 
                 types::Type::Reference(new_entry)
-            }
+            };
         }
 
         // Because of NLL

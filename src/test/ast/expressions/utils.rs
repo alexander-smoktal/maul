@@ -26,7 +26,10 @@ where
 
     func(&mut parser, &mut stack);
 
-    assert!(parser.peek().is_none(), "Parser contains tokens after parsing");
+    assert!(
+        parser.peek().is_none(),
+        "Parser contains tokens after parsing"
+    );
 
     stack
 }

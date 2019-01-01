@@ -11,48 +11,54 @@ impl interpreter::Eval for function::Closure {
     //     pub body: Rc<Box<expressions::Expression>>,
     // }
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        let parameters: Vec<String> = self.
-            params.
-            iter().
-            map(
-                |exp| {
-                    if let types::Type::String(string) = exp.eval(env) {
-                        string
-                    } else {
-                        self.runtime_error(format!("Function arguments contains not a string, but {:?}", exp));
-                    }
-                }).
-            collect();
+        let parameters: Vec<String> = self
+            .params
+            .iter()
+            .map(|exp| {
+                if let types::Type::String(string) = exp.eval(env) {
+                    string
+                } else {
+                    self.runtime_error(format!(
+                        "Function arguments contains not a string, but {:?}",
+                        exp
+                    ));
+                }
+            })
+            .collect();
 
         types::Type::Function {
             id: env.borrow_mut().next_global_id(),
             parameters,
             varargs: self.varargs,
             body: self.body.clone(),
-            env: env.clone()
+            env: env.clone(),
         }
     }
 }
 
-fn eval_args(args: &VecDeque<Box<expressions::Expression>>,
-    call_env: &mut utils::Shared<environment::Environment>) -> VecDeque<types::Type> {
+fn eval_args(
+    args: &VecDeque<Box<expressions::Expression>>,
+    call_env: &mut utils::Shared<environment::Environment>,
+) -> VecDeque<types::Type> {
     let mut result = VecDeque::new();
 
     for arg in args {
         match arg.eval(call_env) {
             types::Type::Vector(vec) => result.extend(vec.into_iter()),
-            value => result.push_back(value)
+            value => result.push_back(value),
         }
     }
 
     result
 }
 
-fn call_function(this: &expressions::Expression,
+fn call_function(
+    this: &expressions::Expression,
     call_object: Option<types::Type>,
     function: types::Type,
     args: &VecDeque<Box<expressions::Expression>>,
-    call_env: &mut utils::Shared<environment::Environment>) -> types::Type {
+    call_env: &mut utils::Shared<environment::Environment>,
+) -> types::Type {
     match_type!(&function,
         types::Type::Function { parameters, varargs, body, env, .. } => {
             let mut local_env = environment::Environment::new(Some(env.clone()), environment::BreakFlag::Return(None));

@@ -1,11 +1,11 @@
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::clone::Clone;
+use std::rc::Rc;
 
-use std::collections::VecDeque;
-use crate::ast::expressions::{ self, variables };
+use crate::ast::expressions::{self, variables};
 use crate::interpreter::{self, environment, types};
 use crate::utils;
+use std::collections::VecDeque;
 
 const DEBUG: bool = false;
 
@@ -13,12 +13,13 @@ const DEBUG: bool = false;
 impl interpreter::Eval for variables::Id {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         // Temp variable to fix borrowmut
-        let variable =  env.borrow_mut().get(&self.0).clone();
+        let variable = env.borrow_mut().get(&self.0).clone();
         if let Some(refcell) = variable {
             types::Type::Reference(refcell)
         } else {
             let new_entry = Rc::new(RefCell::new(types::Type::Nil));
-            env.borrow_mut().add_variable(self.0.clone(), types::Type::Reference(new_entry.clone()));
+            env.borrow_mut()
+                .add_variable(self.0.clone(), types::Type::Reference(new_entry.clone()));
             types::Type::Reference(new_entry)
             // self.runtime_error(format!("Cannot find variable '{}' in current scope", self.0))
         }
@@ -26,14 +27,16 @@ impl interpreter::Eval for variables::Id {
 }
 
 /// Function to evaluate vars and expressions and properly append result into a target
-fn eval_expression(expressions: &VecDeque<Box<expressions::Expression>>,
-                    env: &mut utils::Shared<environment::Environment>) -> VecDeque<types::Type> {
+fn eval_expression(
+    expressions: &VecDeque<Box<expressions::Expression>>,
+    env: &mut utils::Shared<environment::Environment>,
+) -> VecDeque<types::Type> {
     let mut result = VecDeque::new();
 
     for exp in expressions {
         match exp.eval(env) {
             types::Type::Vector(vec) => result.extend(vec.into_iter()),
-            value => result.push_back(value)
+            value => result.push_back(value),
         }
     }
 
@@ -66,8 +69,10 @@ impl interpreter::Eval for variables::Assignment {
             // We can only add variable by name, this should be an Id or change reference. Everything else is an error
             match key {
                 types::Type::String(var_id) => env.borrow_mut().add_variable(var_id, value),
-                types::Type::Reference(reference) => { reference.replace(value); },
-                _ => self.runtime_error(format!("Can't use '{}' as a lvalue", key))
+                types::Type::Reference(reference) => {
+                    reference.replace(value);
+                }
+                _ => self.runtime_error(format!("Can't use '{}' as a lvalue", key)),
             }
         }
 

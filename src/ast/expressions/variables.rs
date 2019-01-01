@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 use crate::ast::expressions;
 use crate::ast::lexer::tokens::{self, Keyword};
 use crate::ast::parser;
-use crate::ast::stack;
 use crate::ast::rules;
+use crate::ast::stack;
 
 #[derive(Debug, Clone)]
 pub struct Id(pub String);
@@ -51,10 +51,7 @@ impl Assignment {
     pub fn new(stack: &mut stack::Stack) {
         let (explist, _assignment, varlist) = stack_unpack!(stack, repetition, single, repetition);
 
-        stack.push_single(Box::new(Assignment {
-            varlist,
-            explist
-        }))
+        stack.push_single(Box::new(Assignment { varlist, explist }))
     }
 
     pub fn rule_local(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
@@ -68,17 +65,14 @@ impl Assignment {
 
             let (explist, varlist) = stack_unpack!(stack, repetition, repetition);
 
-            stack.push_single(Box::new(Assignment {
-                varlist,
-                explist
-            }))
+            stack.push_single(Box::new(Assignment { varlist, explist }))
         } else {
             // No assignment. Just namelist
             let varlist = stack.pop_repetition();
 
             stack.push_single(Box::new(Assignment {
                 varlist,
-                explist: VecDeque::new()
+                explist: VecDeque::new(),
             }))
         }
 

@@ -65,7 +65,7 @@ fn test_exp_binop() {
 fn test_exp_prefixexp() {
     assert_eq!(
         parse_string("Hello.world", rules::exp),
-            r#"[Single(Indexing { object: Id("Hello"), index: String("world") })]"#
+        r#"[Single(Indexing { object: Id("Hello"), index: String("world") })]"#
     );
 }
 
@@ -73,7 +73,7 @@ fn test_exp_prefixexp() {
 fn test_exp_tableconstructor() {
     assert_eq!(
         parse_string("{ [true] = false }", rules::exp),
-            "[Single(Table([TableField { key: Some(Boolean(true)), value: Boolean(false) }]))]"
+        "[Single(Table([TableField { key: Some(Boolean(true)), value: Boolean(false) }]))]"
     );
 }
 

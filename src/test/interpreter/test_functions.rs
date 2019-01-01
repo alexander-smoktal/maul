@@ -1,6 +1,6 @@
 use crate::ast::rules;
 
-use super::utils::{ interpret_rule, interpret_rule_env };
+use super::utils::{interpret_rule, interpret_rule_env};
 
 #[test]
 fn test_closure_eval() {

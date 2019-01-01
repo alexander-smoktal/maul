@@ -11,9 +11,10 @@ impl interpreter::Eval for statements::Statement {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         match &self {
             statements::Statement::Break => {
-                env.borrow_mut().break_execution(environment::BreakFlag::Break(true));
+                env.borrow_mut()
+                    .break_execution(environment::BreakFlag::Break(true));
                 types::Type::Nil
-            },
+            }
             statements::Statement::Ellipsis => unimplemented!("Hey, do you wanna some varargs?"),
             statements::Statement::Return(retval) => {
                 // Block already handles return mechanism, so we just return value

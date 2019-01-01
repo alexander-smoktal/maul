@@ -37,8 +37,7 @@ impl Stack {
             }
             element => panic!(format!(
                 "Expected single element on stack. Got {:?}\nStack: {:?}",
-                element,
-                self
+                element, self
             )),
         }
     }
@@ -55,8 +54,7 @@ impl Stack {
             }
             element => panic!(format!(
                 "Expected repetition vector on stack. Got {:?}\nStack: {:?}",
-                element,
-                self
+                element, self
             )),
         }
     }
@@ -73,8 +71,7 @@ impl Stack {
             }
             element => panic!(format!(
                 "Expected optional element on stack. Got {:?}\nStack: {:?}",
-                element,
-                self
+                element, self
             )),
         }
     }

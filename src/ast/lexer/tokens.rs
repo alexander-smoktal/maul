@@ -202,11 +202,7 @@ pub struct Token {
 
 impl Token {
     pub fn new(token: TokenType, row: usize, column: usize) -> Token {
-        Token {
-            token,
-            row,
-            column,
-        }
+        Token { token, row, column }
     }
 
     pub fn eof() -> Token {

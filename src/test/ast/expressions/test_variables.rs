@@ -46,7 +46,10 @@ fn test_varlist() {
 
 #[test]
 fn test_assignment() {
-    assert_eq!(parse_string("var = 7", rules::stat), r#"[Single(Assignment { varlist: [Id("var")], explist: [Number(7.0)] })]"#);
+    assert_eq!(
+        parse_string("var = 7", rules::stat),
+        r#"[Single(Assignment { varlist: [Id("var")], explist: [Number(7.0)] })]"#
+    );
     assert_eq!(parse_string("var1, var2 = 7, false", rules::stat), r#"[Single(Assignment { varlist: [Id("var1"), Id("var2")], explist: [Number(7.0), Boolean(false)] })]"#);
     assert_eq!(parse_string(r#"var1.data, var2["key"] = 7, false"#, rules::stat),
         r#"[Single(Assignment { varlist: [Indexing { object: Id("var1"), index: String("data") }, Indexing { object: Id("var2"), index: String("key") }], explist: [Number(7.0), Boolean(false)] })]"#);
@@ -56,19 +59,28 @@ fn test_assignment() {
 
 #[test]
 fn test_varlist_more_vars() {
-    assert_eq!(parse_string("var1, var2 = 7", rules::stat), r#"[Single(Assignment { varlist: [Id("var1"), Id("var2")], explist: [Number(7.0)] })]"#);
+    assert_eq!(
+        parse_string("var1, var2 = 7", rules::stat),
+        r#"[Single(Assignment { varlist: [Id("var1"), Id("var2")], explist: [Number(7.0)] })]"#
+    );
 }
 
 #[test]
 fn test_varlist_more_expressions() {
-    assert_eq!(parse_string("var1 = 7, false", rules::stat), r#"[Single(Assignment { varlist: [Id("var1")], explist: [Number(7.0), Boolean(false)] })]"#);
+    assert_eq!(
+        parse_string("var1 = 7, false", rules::stat),
+        r#"[Single(Assignment { varlist: [Id("var1")], explist: [Number(7.0), Boolean(false)] })]"#
+    );
 }
 
 #[test]
 fn test_local_assignment() {
     assert_eq!(parse_string("local var1, var2 = 7, false", rules::stat), r#"[Single(Local(Assignment { varlist: [String("var1"), String("var2")], explist: [Number(7.0), Boolean(false)] }))]"#);
     assert_eq!(parse_string("local var1, var2 = 7", rules::stat), r#"[Single(Local(Assignment { varlist: [String("var1"), String("var2")], explist: [Number(7.0)] }))]"#);
-    assert_eq!(parse_string("local var1, var2", rules::stat), r#"[Single(Local(Assignment { varlist: [String("var1"), String("var2")], explist: [] }))]"#);
+    assert_eq!(
+        parse_string("local var1, var2", rules::stat),
+        r#"[Single(Local(Assignment { varlist: [String("var1"), String("var2")], explist: [] }))]"#
+    );
 }
 
 #[test]

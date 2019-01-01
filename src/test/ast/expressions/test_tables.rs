@@ -4,13 +4,16 @@ use crate::ast::rules;
 #[test]
 fn test_table_fields() {
     assert_eq!(
-        parse_string(r#"["Key"] = true"#, rules::field), r#"[Single(TableField { key: Some(String("Key")), value: Boolean(true) })]"#
+        parse_string(r#"["Key"] = true"#, rules::field),
+        r#"[Single(TableField { key: Some(String("Key")), value: Boolean(true) })]"#
     );
     assert_eq!(
-        parse_string("Key = false", rules::field), r#"[Single(TableField { key: Some(String("Key")), value: Boolean(false) })]"#
+        parse_string("Key = false", rules::field),
+        r#"[Single(TableField { key: Some(String("Key")), value: Boolean(false) })]"#
     );
     assert_eq!(
-        parse_string("7", rules::field), "[Single(TableField { key: None, value: Number(7.0) })]"
+        parse_string("7", rules::field),
+        "[Single(TableField { key: None, value: Number(7.0) })]"
     );
 }
 
@@ -45,7 +48,10 @@ fn test_invalid1() {
 #[test]
 #[should_panic]
 fn test_invalid2() {
-    parse_string(r#"{["Key"] = true Key = false, 7}"#, rules::tableconstructor);
+    parse_string(
+        r#"{["Key"] = true Key = false, 7}"#,
+        rules::tableconstructor,
+    );
 }
 
 #[test]

@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
 use crate::ast::expressions::{self, primitives};
+use crate::ast::lexer::tokens;
+use crate::ast::parser;
 use crate::ast::rules;
 use crate::ast::stack;
-use crate::ast::parser;
-use crate::ast::lexer::tokens;
 
 #[derive(Debug)]
 pub struct Indexing {
@@ -49,7 +49,7 @@ impl Indexing {
 #[derive(Debug)]
 pub struct TableField {
     pub key: Option<Box<expressions::Expression>>,
-    pub value: Box<expressions::Expression>
+    pub value: Box<expressions::Expression>,
 }
 impl expressions::Expression for TableField {}
 
@@ -70,11 +70,12 @@ impl TableField {
 
     // terminal!(Keyword::LSBRACKET), exp, terminal!(Keyword::RSBRACKET), terminal!(Keyword::EQUAL), exp
     pub fn new_table_index(stack: &mut stack::Stack) {
-        let (value, _assign, _rb, key, _lb) = stack_unpack!(stack, single, single, single, single, single);
+        let (value, _assign, _rb, key, _lb) =
+            stack_unpack!(stack, single, single, single, single, single);
 
         stack.push_single(Box::new(TableField {
             key: Some(key),
-            value
+            value,
         }))
     }
 
@@ -84,7 +85,7 @@ impl TableField {
 
         stack.push_single(Box::new(TableField {
             key: Some(key),
-            value
+            value,
         }))
     }
 
@@ -92,10 +93,7 @@ impl TableField {
     pub fn new_value(stack: &mut stack::Stack) {
         let value = stack.pop_single();
 
-        stack.push_single(Box::new(TableField {
-            key: None,
-            value
-        }))
+        stack.push_single(Box::new(TableField { key: None, value }))
     }
 
     /// Sequence of fields. We either first field or consequential
@@ -110,9 +108,7 @@ impl TableField {
                 stack.push_repetition(fieldlist)
             }
             // First field
-            _ => {
-                stack.push_repetition(VecDeque::from(vec![field]))
-            }
+            _ => stack.push_repetition(VecDeque::from(vec![field])),
         }
     }
 }
