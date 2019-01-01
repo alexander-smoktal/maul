@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::clone::Clone;
@@ -24,15 +24,15 @@ impl interpreter::Eval for tables::Table {
             if let types::Type::Vector(mut key_value) = field_expression.eval(env) {
                 // Key AND value
                 if key_value.len() == 2 {
-                    let value = key_value.pop().unwrap();
-                    let key = key_value.pop().unwrap();
+                    let value = key_value.pop_back().unwrap();
+                    let key = key_value.pop_back().unwrap();
 
                     map.insert(key, Rc::new(RefCell::new(value)));
                     update_table_border(&map, &mut border);
                 // Only key
                 } else if key_value.len() == 1 {
                     let mut key: types::Type;
-                    let value = key_value.pop().unwrap();
+                    let value = key_value.pop_back().unwrap();
 
                     loop {
                         border = border + 1;
@@ -64,7 +64,7 @@ impl interpreter::Eval for tables::Table {
 
 impl interpreter::Eval for tables::TableField {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        let mut result_vector: Vec<types::Type> = vec![];
+        let mut result_vector: VecDeque<types::Type> = VecDeque::new();
 
         if let Some(ref expression) = self.key {
             let key =  expression.eval(env);
@@ -73,10 +73,10 @@ impl interpreter::Eval for tables::TableField {
                 self.runtime_error(format!("Cannot use `nil` as a table key"))
             }
 
-            result_vector.push(key);
+            result_vector.push_back(key);
         }
 
-        result_vector.push(self.value.eval(env));
+        result_vector.push_back(self.value.eval(env));
 
         types::Type::Vector(result_vector)
     }

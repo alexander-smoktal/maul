@@ -4,8 +4,6 @@ use crate::ast::stack;
 use std::collections::VecDeque;
 use std::rc::Rc;
 
-use crate::interpreter;
-
 #[derive(Debug)]
 pub struct Closure {
     pub params: VecDeque<Box<expressions::Expression>>,
@@ -132,7 +130,6 @@ pub struct Funcall {
     pub args: VecDeque<Box<expressions::Expression>>,
     pub method: Option<Box<expressions::Expression>>,
 }
-impl interpreter::Eval for Funcall {}
 impl expressions::Expression for Funcall {}
 
 impl Funcall {

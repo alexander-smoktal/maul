@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
@@ -14,7 +14,7 @@ pub enum Type {
     String(String),
     /// Reference to an existing value
     Reference(Rc<RefCell<Type>>),
-    Vector(Vec<Type>),
+    Vector(VecDeque<Type>),
     Table {
         /// For comparison
         id: u64,
@@ -28,7 +28,7 @@ pub enum Type {
         parameters: Vec<String>,
         varargs: bool,
         body: Rc<Box<expressions::Expression>>,
-        // TODO: This closure is basically wrong. We want to close only vars in body, not whole environment
+        // XXX: Capture only vars function needs?
         env: utils::Shared<environment::Environment>
     }
 }

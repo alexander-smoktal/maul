@@ -16,7 +16,6 @@ impl interpreter::Eval for operators::Unop {
         match self.0 {
             Keyword::MINUS => {
                 match_type!(&value,
-                    // TODO: unref table
                     types::Type::Number(number) => types::Type::Number(-number),
                     types::Type::Table { ref metatable, .. } => {
                         if let Some(metamethod) = metatable.get("__unm") {
@@ -33,7 +32,6 @@ impl interpreter::Eval for operators::Unop {
             },
             Keyword::HASH => {
                 match_type!(&value,
-                    // TODO: unref table
                     types::Type::String(string) => types::Type::Number(string.as_bytes().len() as f64),
                     types::Type::Table { border, ref metatable, .. } => {
                         if let Some(metamethod) = metatable.get("__len") {

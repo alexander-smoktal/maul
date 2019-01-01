@@ -26,14 +26,18 @@ impl interpreter::Eval for variables::Id {
 }
 
 /// Function to evaluate vars and expressions and properly append result into a target
-fn fill_out_typevec(exp: &Box<expressions::Expression>,
-                    env: &mut utils::Shared<environment::Environment>,
-                    typevec: &mut VecDeque<types::Type>) {
-    match exp.eval(env) {
-        types::Type::Vector(vec) => typevec.extend(vec.into_iter()),
-        value => typevec.push_back(value)
+fn eval_expression(expressions: &VecDeque<Box<expressions::Expression>>,
+                    env: &mut utils::Shared<environment::Environment>) -> VecDeque<types::Type> {
+    let mut result = VecDeque::new();
+
+    for exp in expressions {
+        match exp.eval(env) {
+            types::Type::Vector(vec) => result.extend(vec.into_iter()),
+            value => result.push_back(value)
+        }
     }
 
+    result
 }
 
 // pub struct Assignment {
@@ -43,11 +47,8 @@ fn fill_out_typevec(exp: &Box<expressions::Expression>,
 impl interpreter::Eval for variables::Assignment {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         // TODO: Rework to use deque and pop values
-        let mut var_typevec: VecDeque<types::Type> = VecDeque::new();
-        let mut exp_typevec: VecDeque<types::Type> = VecDeque::new();
-
-        self.varlist.iter().for_each(|exp| { fill_out_typevec(exp, env, &mut var_typevec) });
-        self.explist.iter().for_each(|exp| { fill_out_typevec(exp, env, &mut exp_typevec) });
+        let mut var_typevec = eval_expression(&self.varlist, env);
+        let mut exp_typevec = eval_expression(&self.explist, env);
 
         while !var_typevec.is_empty() {
             let key = var_typevec.pop_front().unwrap();
