@@ -75,14 +75,14 @@ impl Lexer {
         // If keyword map contains the keyword, return Token::Keyword
         // Else return a Token::Identifier
         match self.token_table.get(&id) {
-            Some(keyword) => return TokenType::Keyword(keyword.clone()),
-            _ => return TokenType::Id(id),
+            Some(keyword) => TokenType::Keyword(keyword.clone()),
+            _ => TokenType::Id(id),
         }
     }
 
     fn parse_string(&mut self) -> TokenType {
         // Looking for the closing doublequote
-        let string_chars = |chr: &char| chr.clone() != '"';
+        let string_chars = |chr: &char| *chr != '"';
 
         // Skip starting doublequote
         self.char_iterator.next();
@@ -94,7 +94,7 @@ impl Lexer {
         self.advance_pos(string.len() + 2); // With doublequotes
 
         // Skip ending doublequote
-        if let None = self.char_iterator.next() {
+        if self.char_iterator.next().is_none() {
             panic!("Unmatched double quotes at {}:{}", self.row, self.column)
         }
 
@@ -102,7 +102,7 @@ impl Lexer {
     }
 
     fn parse_number(&mut self) -> TokenType {
-        let numeric_chars = |chr: &char| chr.is_numeric() || chr.clone() == '.';
+        let numeric_chars = |chr: &char| chr.is_numeric() || *chr == '.';
 
         // Looking for the end of the number
         let number: String = self

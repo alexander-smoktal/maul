@@ -11,16 +11,12 @@ pub enum Element {
     Optional(Option<Box<expressions::Expression>>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Stack {
     elements: Vec<Element>,
 }
 
 impl Stack {
-    pub fn new() -> Self {
-        Stack { elements: vec![] }
-    }
-
     pub fn len(&self) -> usize {
         self.elements.len()
     }

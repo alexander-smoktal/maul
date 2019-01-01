@@ -17,7 +17,7 @@ macro_rules! make_op_table {
             $(
                 $lrec_prec.insert($lrec, prec);
             )+
-            prec = prec + 1;
+            prec += 1;
             let _compiler_friend = prec;
         )+
     };

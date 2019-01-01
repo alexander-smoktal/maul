@@ -6,7 +6,7 @@ use std::boxed::Box;
 
 #[test]
 fn test_stack_unpack() {
-    let mut stack = stack::Stack::new();
+    let mut stack = stack::Stack::default();
 
     stack.push_single(Box::new(primitives::Nil));
     stack.push_repetition(

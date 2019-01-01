@@ -11,7 +11,7 @@ type TableHashMap = HashMap<types::Type, Rc<RefCell<types::Type>>>;
 
 fn update_table_border(table: &TableHashMap, border: &mut usize) {
     while table.contains_key(&types::Type::Number((*border + 1) as f64)) {
-        *border = *border + 1;
+        *border += 1;
     }
 }
 
@@ -35,7 +35,7 @@ impl interpreter::Eval for tables::Table {
                     let value = key_value.pop_back().unwrap();
 
                     loop {
-                        border = border + 1;
+                        border += 1;
                         key = types::Type::Number(border as f64);
 
                         if !map.contains_key(&key) {

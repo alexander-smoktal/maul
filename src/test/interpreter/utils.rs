@@ -16,7 +16,7 @@ pub fn interpret_rule<F>(source_code: &str, func: F) -> (types::Type, utils::Sha
     F: Fn(&mut parser::Parser, &mut stack::Stack) -> bool
 {
     let mut parser = parser::Parser::new(source_code.to_string());
-    let mut stack = stack::Stack::new();
+    let mut stack = stack::Stack::default();
 
     func(&mut parser, &mut stack);
 
@@ -32,7 +32,7 @@ pub fn interpret_rule_env<F>(source_code: &str, func: F, env: &mut utils::Shared
     F: Fn(&mut parser::Parser, &mut stack::Stack) -> bool
 {
     let mut parser = parser::Parser::new(source_code.to_string());
-    let mut stack = stack::Stack::new();
+    let mut stack = stack::Stack::default();
 
     func(&mut parser, &mut stack);
 

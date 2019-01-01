@@ -26,7 +26,7 @@ pub struct AST {
 impl AST {
     pub fn new(source_code: String) -> Self {
         let mut parser = parser::Parser::new(source_code);
-        let mut stack = stack::Stack::new();
+        let mut stack = stack::Stack::default();
 
         rules::chunk(&mut parser, &mut stack);
 

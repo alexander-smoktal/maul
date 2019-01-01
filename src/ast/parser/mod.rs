@@ -27,13 +27,11 @@ impl Parser {
     pub fn peek(&mut self) -> Option<&tokens::Token> {
         let result = if let Some(ref token) = self.lookahead_token {
             Some(token)
+        } else if let Some(token) = self.lexer.next() {
+            self.lookahead_token = Some(token);
+            self.lookahead_token.as_ref()
         } else {
-            if let Some(token) = self.lexer.next() {
-                self.lookahead_token = Some(token);
-                self.lookahead_token.as_ref()
-            } else {
-                None
-            }
+            None
         };
 
         debug_parser!("Parser peek {:?}", result);
