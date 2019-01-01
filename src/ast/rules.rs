@@ -1,5 +1,6 @@
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(clippy::all)]
+#![cfg_attr(rustfmt, rustfmt_skip)]
 
 use std::collections::VecDeque;
 
