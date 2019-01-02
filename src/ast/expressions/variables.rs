@@ -1,4 +1,6 @@
 use std::collections::VecDeque;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::ast::expressions;
 use crate::ast::lexer::tokens::{self, Keyword};
@@ -6,19 +8,27 @@ use crate::ast::parser;
 use crate::ast::rules;
 use crate::ast::stack;
 
-#[derive(Debug, Clone)]
-pub struct Id(pub String);
+use crate::interpreter::{types, environment, cache};
+
+/// Id contains cached value for an environment.
+/// During evalueation, we first check if we have value in cache and if no , we set it after evaluation.
+#[derive(Clone)]
+pub struct Id {
+    pub id: String,
+    /// We need interior mutability to update cache
+    pub cache: RefCell<cache::Cache>
+}
 impl expressions::Expression for Id {}
 
 impl Id {
     pub fn rule(parser: &mut parser::Parser, stack: &mut stack::Stack) -> bool {
         if let Some(tokens::Token {
-            token: tokens::TokenType::Id(string),
+            token: tokens::TokenType::Id(id),
             ..
         }) = parser.peek().cloned()
         {
             parser.shift();
-            stack.push_single(Box::new(Id(string)));
+            stack.push_single(Box::new(Id {id, cache: RefCell::new(cache::Cache::new())}));
             true
         } else {
             false
@@ -37,6 +47,20 @@ impl Id {
         } else {
             false
         }
+    }
+
+    pub fn get_cached(&self, env: &environment::Environment) -> Option<types::Type> {
+        self.cache.borrow().get(env.id())
+    }
+
+    pub fn set_cached(&self, env: &environment::Environment, value: &Rc<RefCell<types::Type>>) {
+        self.cache.borrow_mut().set(env.id(), value)
+    }
+}
+
+impl ::std::fmt::Debug for Id {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        write!(f, "Id({:?})", self.id)
     }
 }
 

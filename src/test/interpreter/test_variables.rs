@@ -28,7 +28,7 @@ fn test_variable_table() {
     let (_val, env) = interpret_rule("x = {}", rules::stat);
     assert_eq!(
         env,
-        r#"{"x": RefCell { value: Table { id: 0, map: {}, metatable: {}, border: 0 } }}"#
+        r#"{"x": RefCell { value: Table { id: 1, map: {}, metatable: {}, border: 0 } }}"#
     );
 
     let (_val, mut env) = interpret_rule("x = {y = 5, [5] = false}", rules::stat);

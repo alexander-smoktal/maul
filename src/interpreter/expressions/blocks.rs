@@ -163,10 +163,13 @@ impl interpreter::Eval for blocks::NumericalForBlock {
         ));
 
         let mut i = init_num;
-        while i != limit_num {
-            local_env
+        let counter_ref = local_env
                 .borrow_mut()
                 .add_variable(var_name.clone(), types::Type::Number(i));
+
+        while i != limit_num {
+            counter_ref.replace(types::Type::Number(i));
+
             self.block.eval(&mut local_env);
             i += step_num;
         }

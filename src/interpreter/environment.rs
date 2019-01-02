@@ -49,30 +49,37 @@ pub struct Environment {
     parent: Option<Shared<Environment>>,
     /// Block execution break flag. See BreakFlag documentation
     break_flag: BreakFlag,
+    /// Environment self ID
+    id: u64
 }
 
 impl Environment {
     pub fn new(parent: Option<Shared<Environment>>, break_flag: BreakFlag) -> Self {
-        Environment {
-            global_id_counter: if let Some(ref parent) = parent {
+        let global_id_counter = if let Some(ref parent) = parent {
                 parent.borrow_mut().global_id_counter.clone()
             } else {
                 Rc::new(RefCell::new(0))
-            },
+            };
+        let id = *global_id_counter.borrow();
+        *global_id_counter.borrow_mut() += 1;
+
+        Environment {
+            global_id_counter,
             data: HashMap::new(),
             parent,
             break_flag,
+            id,
         }
     }
 
     pub fn id(&self) -> u64 {
-        *self.global_id_counter.borrow()
+        self.id
     }
 
     /// Global ID's to use for objects
     pub fn next_global_id(&mut self) -> u64 {
         let value = *self.global_id_counter.borrow();
-        *self.global_id_counter.borrow_mut() = value;
+        *self.global_id_counter.borrow_mut() += 1;
         value
     }
 
@@ -96,11 +103,14 @@ impl Environment {
     }
 
     /// Add variable with `id` with `value` to the current environment
-    pub fn add_variable(&mut self, id: String, value: types::Type) {
-        match value {
-            types::Type::Reference(value) => self.data.insert(id, value.clone()),
-            value => self.data.insert(id, Rc::new(RefCell::new(value))),
+    pub fn add_variable(&mut self, id: String, value: types::Type) -> Rc<RefCell<types::Type>> {
+        let reference = match value {
+            types::Type::Reference(value) => value.clone(),
+            value => Rc::new(RefCell::new(value)),
         };
+
+        self.data.insert(id, reference.clone());
+        reference
     }
 
     /// Set environment break flag. We cross blocks borders toward the topmost env and brake all blocks on the way

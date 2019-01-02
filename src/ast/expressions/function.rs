@@ -1,8 +1,10 @@
 use crate::ast::expressions::{self, primitives, statements, tables, variables};
 use crate::ast::stack;
+use crate::interpreter::cache;
 
 use std::collections::VecDeque;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug)]
 pub struct Closure {
@@ -47,6 +49,7 @@ impl Function {
             object = Box::new(tables::Indexing {
                 object,
                 index: method,
+                cache: RefCell::new(cache::Cache::new()),
             });
 
             // Prepend `self` parameter to the parameters

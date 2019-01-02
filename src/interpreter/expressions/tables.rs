@@ -92,18 +92,26 @@ impl interpreter::Eval for tables::Indexing {
         if let types::Type::Table {
             ref mut map,
             ref mut border,
+            id,
             ..
         } = *table_borrow
         {
+            if let Some(cached_value) = self.cache.borrow().get(id) {
+                return cached_value
+            }
+
             let key = self.index.eval(env);
 
             // If we have this entry, return reference to it
             return if let Some(result) = map.get(&key).cloned() {
+                self.cache.borrow_mut().set(id, &result);
+
                 types::Type::Reference(result)
             // If we have no such entry in the table, we add new entry with Nil value
             // In case of chaind indexing, we must get an error about indexing Nil value
             } else {
                 let new_entry = Rc::new(RefCell::new(types::Type::Nil));
+                self.cache.borrow_mut().set(id, &new_entry);
 
                 map.insert(key, new_entry.clone());
                 update_table_border(&map, border);
@@ -113,6 +121,6 @@ impl interpreter::Eval for tables::Indexing {
         }
 
         // Because of NLL
-        self.runtime_error(format!("Attempt to index `{}` value", table_borrow))
+        self.runtime_error(format!("Attempt to index `{}` value, not a table", table_borrow))
     }
 }

@@ -72,13 +72,13 @@ fn call_function(
             // Bing args to parameters
             for parameter in parameters {
                 if let Some(arg) = args.pop_front() {
-                    local_env.add_variable(parameter.clone(), arg)
+                    local_env.add_variable(parameter.clone(), arg);
                 }
             }
 
             // Varargs
             if *varargs {
-                local_env.add_variable("args".to_string(), types::Type::Vector(args))
+                local_env.add_variable("args".to_string(), types::Type::Vector(args));
             }
 
             let mut shared_env = utils::Shared::new(local_env);

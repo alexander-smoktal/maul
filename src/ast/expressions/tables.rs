@@ -1,4 +1,7 @@
 use std::collections::VecDeque;
+use std::cell::RefCell;
+
+use crate::interpreter::cache;
 
 use crate::ast::expressions::{self, primitives};
 use crate::ast::lexer::tokens;
@@ -6,12 +9,19 @@ use crate::ast::parser;
 use crate::ast::rules;
 use crate::ast::stack;
 
-#[derive(Debug)]
 pub struct Indexing {
     pub object: Box<expressions::Expression>,
     pub index: Box<expressions::Expression>,
+    /// We need interior mutability to update cache
+    pub cache: RefCell<cache::Cache>
 }
 impl expressions::Expression for Indexing {}
+
+impl ::std::fmt::Debug for Indexing {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        write!(f, "Indexing {{ object: {:?}, index: {:?} }}", self.object, self.index)
+    }
+}
 
 impl Indexing {
     /// .Name indexing
@@ -32,14 +42,14 @@ impl Indexing {
     pub fn new(stack: &mut stack::Stack) {
         let (index, object) = stack_unpack!(stack, single, single);
 
-        stack.push_single(Box::new(Indexing { object, index }));
+        stack.push_single(Box::new(Indexing { object, index, cache: RefCell::new(cache::Cache::new()) }));
     }
 
     pub fn new_indexing_chain(stack: &mut stack::Stack) {
         let (chain, mut object) = stack_unpack!(stack, repetition, single);
 
         for index in chain.into_iter() {
-            object = Box::new(Indexing { object, index })
+            object = Box::new(Indexing { object, index, cache: RefCell::new(cache::Cache::new()) })
         }
 
         stack.push_single(object)

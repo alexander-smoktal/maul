@@ -1,16 +1,10 @@
 #[macro_use]
 pub mod types;
-pub mod blocks;
 pub mod environment;
-pub mod expression;
-pub mod functions;
-pub mod operators;
-pub mod primitives;
-pub mod statements;
-pub mod tables;
-pub mod variables;
+pub mod expressions;
+pub mod cache;
 
-use crate::ast::expressions;
+use crate::ast;
 use crate::utils;
 
 pub trait Eval: std::fmt::Debug {
@@ -31,7 +25,7 @@ pub trait Eval: std::fmt::Debug {
     }
 }
 
-impl Eval for expressions::Terminal {
+impl Eval for ast::expressions::Terminal {
     fn eval(&self, _env: &mut utils::Shared<environment::Environment>) -> types::Type {
         types::Type::Nil
     }

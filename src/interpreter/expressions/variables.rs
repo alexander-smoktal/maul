@@ -12,17 +12,30 @@ const DEBUG: bool = false;
 // pub struct Id(pub String);
 impl interpreter::Eval for variables::Id {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        // Temp variable to fix borrowmut
-        let variable = env.borrow_mut().get(&self.0).clone();
-        if let Some(refcell) = variable {
-            types::Type::Reference(refcell)
+        // Let's check if we can retrieve value from cache
+        if let Some(cached_value) = self.get_cached(&*env.borrow()) {
+            if DEBUG {
+                println!("Returning cached value {:?}: {:?}", self.id, cached_value);
+            }
+            return cached_value
+        };
+
+        let find_result = env.borrow_mut().get(&self.id).clone();
+        let var_reference = if let Some(refcell) = find_result {
+            refcell
         } else {
             let new_entry = Rc::new(RefCell::new(types::Type::Nil));
             env.borrow_mut()
-                .add_variable(self.0.clone(), types::Type::Reference(new_entry.clone()));
-            types::Type::Reference(new_entry)
-            // self.runtime_error(format!("Cannot find variable '{}' in current scope", self.0))
+                .add_variable(self.id.clone(), types::Type::Reference(new_entry.clone()));
+            new_entry
+        };
+
+        // Save value into cache
+        self.set_cached(&*env.borrow(), &var_reference);
+        if DEBUG {
+            println!("Saving cached value {:?}: {:?}", self.id, var_reference);
         }
+        types::Type::Reference(var_reference)
     }
 }
 
@@ -68,7 +81,9 @@ impl interpreter::Eval for variables::Assignment {
 
             // We can only add variable by name, this should be an Id or change reference. Everything else is an error
             match key {
-                types::Type::String(var_id) => env.borrow_mut().add_variable(var_id, value),
+                types::Type::String(var_id) => {
+                    env.borrow_mut().add_variable(var_id, value);
+                },
                 types::Type::Reference(reference) => {
                     reference.replace(value);
                 }
