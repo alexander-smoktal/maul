@@ -27,3 +27,12 @@ fn test_functioncall_eval() {
     let (val, _) = interpret_rule_env("sum1(5)", rules::functioncall, &mut env);
     assert_eq!(val, "Number(6.0)");
 }
+
+#[test]
+fn test_method_eval() {
+    let (_, mut env) = interpret_rule("tab = {}; tab.x = 5;", rules::block);
+    let (_, mut env) = interpret_rule_env("function tab:sum(x) return x + self.x; end", rules::stat, &mut env);
+
+    let (val, _) = interpret_rule_env("tab:sum(5)", rules::functioncall, &mut env);
+    assert_eq!(val, "Number(10.0)");
+}
