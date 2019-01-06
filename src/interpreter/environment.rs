@@ -82,7 +82,7 @@ impl Environment {
         *self.global_id_counter.borrow_mut() += 1;
         value
     }
-
+    
     /// Get variable value(reference). If current env doesn't contain the varable, checks in parent environments
     pub fn get(&mut self, varname: &String) -> Option<Rc<RefCell<types::Type>>> {
         if let Some(value) = self.data.get(varname) {

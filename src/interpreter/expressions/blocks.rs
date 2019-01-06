@@ -57,12 +57,18 @@ impl interpreter::Eval for blocks::Local {
 // }
 impl interpreter::Eval for blocks::WhileBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        while self.condition.eval(env).as_bool() {
-            let mut local_env = utils::Shared::new(environment::Environment::new(
-                Some(env.clone()),
-                environment::BreakFlag::Break(false),
-            ));
+        let mut local_env = utils::Shared::new(environment::Environment::new(
+            Some(env.clone()),
+            environment::BreakFlag::Break(false),
+        ));
+
+        while self.condition.eval(env).as_bool() {            
             self.block.eval(&mut local_env);
+            // Check if broken
+            let env_borrow = local_env.borrow();
+            if let environment::BreakFlag::Break(true) = env_borrow.break_flag().clone() {
+                break;
+            }
         }
         types::Type::Nil
     }
@@ -74,13 +80,19 @@ impl interpreter::Eval for blocks::WhileBlock {
 // }
 impl interpreter::Eval for blocks::RepeatBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
+        let mut local_env = utils::Shared::new(environment::Environment::new(
+            Some(env.clone()),
+            environment::BreakFlag::Break(false),
+        ));
+        
         loop {
-            let mut local_env = utils::Shared::new(environment::Environment::new(
-                Some(env.clone()),
-                environment::BreakFlag::Break(false),
-            ));
             self.block.eval(&mut local_env);
 
+            // Check if broken
+            if let environment::BreakFlag::Break(true) = local_env.borrow().break_flag() {
+                break;
+            }
+            
             if self.condition.eval(env).as_bool() {
                 break;
             }
@@ -167,10 +179,16 @@ impl interpreter::Eval for blocks::NumericalForBlock {
                 .borrow_mut()
                 .add_variable(var_name.clone(), types::Type::Number(i));
 
-        while i != limit_num {
+        while i != limit_num {            
             counter_ref.replace(types::Type::Number(i));
 
             self.block.eval(&mut local_env);
+
+            // Check if broken
+            if let environment::BreakFlag::Break(true) = local_env.borrow().break_flag() {
+                break;
+            }
+            
             i += step_num;
         }
 
