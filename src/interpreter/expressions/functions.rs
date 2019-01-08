@@ -78,7 +78,7 @@ fn call_function(
 
             // Varargs
             if *varargs {
-                local_env.add_variable("args".to_string(), types::Type::Vector(args));
+                local_env.add_variable("arg".to_string(), types::Type::Vector(args));
             }
 
             let mut shared_env = utils::Shared::new(local_env);

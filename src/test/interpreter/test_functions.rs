@@ -36,3 +36,16 @@ fn test_method_eval() {
     let (val, _) = interpret_rule_env("tab:sum(5)", rules::functioncall, &mut env);
     assert_eq!(val, "Number(10.0)");
 }
+
+#[test]
+fn test_varags_eval() {
+    let (_, mut env) = interpret_rule("function args(...) return arg; end", rules::stat);
+
+    let (val, _) = interpret_rule_env("args(5)", rules::functioncall, &mut env);
+    assert_eq!(val, "Reference(RefCell { value: Vector([Number(5.0)]) })");
+
+    let (_, mut env) = interpret_rule("function args(a, b, ...) return arg; end", rules::stat);
+
+    let (val, _) = interpret_rule_env("args(1, 2, 3, 4)", rules::functioncall, &mut env);
+    assert_eq!(val, "Reference(RefCell { value: Vector([Number(3.0), Number(4.0)]) })");
+}

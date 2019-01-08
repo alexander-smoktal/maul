@@ -6,3 +6,4 @@ pub mod primitives;
 pub mod statements;
 pub mod tables;
 pub mod variables;
+pub mod labels;

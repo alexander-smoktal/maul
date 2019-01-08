@@ -159,17 +159,62 @@ impl ::std::fmt::Debug for Type {
 #[macro_export]
 macro_rules! match_type {
     (($($typ:expr),+), $($pat:pat => $result:expr),+) => {{
-        let typs = ($(if let types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ }),+);
+        let typs = ($(if let $crate::interpreter::types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ }),+);
 
         match typs {$(
             $pat => $result
         ), +}}
     };
     ($typ:expr, $($pat:pat => $result:expr),+) => {{
-        let typ = if let types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ };
+        let typ = if let $crate::interpreter::types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ };
 
         match typ {$(
             $pat => $result
         ), +}}
     };
+}
+
+impl ::std::convert::AsRef<bool> for Type {
+    fn as_ref(&self) -> &bool {
+        match_type!(&self,
+            Type::Boolean(val) => val,
+            _ => panic!("Cannot convert vale {} to a boolean", self)
+        )
+    }
+}
+
+impl ::std::convert::AsRef<f64> for Type {
+    fn as_ref(&self) -> &f64 {
+        match_type!(&self,
+            Type::Number(val) => val,
+            _ => panic!("Cannot convert vale {} to a number", self)
+        )
+    }
+}
+
+impl ::std::convert::AsRef<String> for Type {
+    fn as_ref(&self) -> &String {
+        match_type!(&self,
+            Type::String(val) => val,
+            _ => panic!("Cannot convert vale {} to a string", self)
+        )
+    }
+}
+
+impl ::std::convert::AsRef<VecDeque<Type>> for Type {
+    fn as_ref(&self) -> &VecDeque<Type> {
+        match_type!(&self,
+            Type::Vector(val) => val,
+            _ => panic!("Cannot convert vale {} to a string", self)
+        )
+    }
+}
+
+impl ::std::convert::AsRef<HashMap<Type, Rc<RefCell<Type>>>> for Type {
+    fn as_ref(&self) -> &HashMap<Type, Rc<RefCell<Type>>> {
+        match_type!(&self,
+            Type::Table { map, .. } => map,
+            _ => panic!("Cannot convert vale {} to a string", self)
+        )
+    }
 }

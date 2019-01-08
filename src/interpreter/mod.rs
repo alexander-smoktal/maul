@@ -3,6 +3,7 @@ pub mod types;
 pub mod environment;
 pub mod expressions;
 pub mod cache;
+pub mod native;
 
 use crate::ast;
 use crate::utils;
