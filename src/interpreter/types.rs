@@ -178,7 +178,7 @@ impl ::std::convert::AsRef<bool> for Type {
     fn as_ref(&self) -> &bool {
         match_type!(&self,
             Type::Boolean(val) => val,
-            _ => panic!("Cannot convert vale {} to a boolean", self)
+            _ => panic!("Cannot convert lua value {} to a boolean", self)
         )
     }
 }
@@ -187,7 +187,7 @@ impl ::std::convert::AsRef<f64> for Type {
     fn as_ref(&self) -> &f64 {
         match_type!(&self,
             Type::Number(val) => val,
-            _ => panic!("Cannot convert vale {} to a number", self)
+            _ => panic!("Cannot convert lua value {} to a number", self)
         )
     }
 }
@@ -196,7 +196,7 @@ impl ::std::convert::AsRef<String> for Type {
     fn as_ref(&self) -> &String {
         match_type!(&self,
             Type::String(val) => val,
-            _ => panic!("Cannot convert vale {} to a string", self)
+            _ => panic!("Cannot convert lua value {} to a string", self)
         )
     }
 }
@@ -205,7 +205,7 @@ impl ::std::convert::AsRef<VecDeque<Type>> for Type {
     fn as_ref(&self) -> &VecDeque<Type> {
         match_type!(&self,
             Type::Vector(val) => val,
-            _ => panic!("Cannot convert vale {} to a string", self)
+            _ => panic!("Cannot convert lua value {} to a deque", self)
         )
     }
 }
@@ -214,7 +214,7 @@ impl ::std::convert::AsRef<HashMap<Type, Rc<RefCell<Type>>>> for Type {
     fn as_ref(&self) -> &HashMap<Type, Rc<RefCell<Type>>> {
         match_type!(&self,
             Type::Table { map, .. } => map,
-            _ => panic!("Cannot convert vale {} to a string", self)
+            _ => panic!("Cannot convert lua value {} to a hashmap", self)
         )
     }
 }
