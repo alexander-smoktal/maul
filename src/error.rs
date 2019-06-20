@@ -14,7 +14,7 @@ impl Error {
         }
     }
 
-    pub fn add(self, message: &str) -> Error {
+    pub fn add_message(self, message: &str) -> Error {
         Error {
             error_token: self.error_token,
             message: self.message + message,

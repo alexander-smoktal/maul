@@ -114,7 +114,7 @@ impl Lexer {
         TokenType::Number(
             number
                 .parse::<f64>()
-                .expect(format!("Failed to parse number '{}'", number).as_str()),
+                .unwrap_or_else(|_| panic!("Failed to parse number '{}'", number)),
         )
     }
 

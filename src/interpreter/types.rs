@@ -56,7 +56,7 @@ impl Type {
     }
 
     /// Create reference to an object or clone reference
-    pub fn as_ref(self) -> Rc<RefCell<Self>> {
+    pub fn into_reference(self) -> Rc<RefCell<Self>> {
         match self {
             Type::Reference(typeref) => typeref,
             _ => Rc::new(RefCell::new(self)),
@@ -67,7 +67,7 @@ impl Type {
 #[cfg(test)]
 impl ::std::cmp::PartialEq<&'static str> for Type {
     fn eq(&self, other: &&'static str) -> bool {
-        format!("{:?}", self) == other.to_string()
+        format!("{:?}", self) == *other
     }
 }
 
@@ -168,6 +168,7 @@ macro_rules! match_type {
     ($typ:expr, $($pat:pat => $result:expr),+) => {{
         let typ = if let $crate::interpreter::types::Type::Reference(value) = $typ { unsafe { &*value.as_ptr() } } else { $typ };
 
+        #[allow(clippy::single_match)]
         match typ {$(
             $pat => $result
         ), +}}

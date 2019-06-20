@@ -1,4 +1,6 @@
 // #![feature(trace_macros)]
+// Because I like `new` functions, but they push element on stack, not return it
+#![allow(clippy::new_ret_no_self)]
 
 pub mod utils;
 #[macro_use]

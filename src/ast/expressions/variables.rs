@@ -28,7 +28,7 @@ impl Id {
         }) = parser.peek().cloned()
         {
             parser.shift();
-            stack.push_single(Box::new(Id {id, cache: RefCell::new(cache::Cache::new())}));
+            stack.push_single(Box::new(Id {id, cache: RefCell::new(cache::Cache::default())}));
             true
         } else {
             false

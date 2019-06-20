@@ -49,7 +49,7 @@ impl Function {
             object = Box::new(tables::Indexing {
                 object,
                 index: method,
-                cache: RefCell::new(cache::Cache::new()),
+                cache: RefCell::new(cache::Cache::default()),
             });
 
             // Prepend `self` parameter to the parameters
@@ -98,16 +98,13 @@ impl FunctionParameters {
     /// In case of ellipsis, we already have proper expression on stack. In case we have namelist on stack,
     /// we create new function parameters object.
     pub fn new_namelist(stack: &mut stack::Stack) {
-        match stack.peek() {
-            // This is in case we had only namelist
-            stack::Element::Repetition(_) => {
-                let namelist = stack.pop_repetition();
+        // This is in case we had only namelist
+        if let stack::Element::Repetition(_) = stack.peek() {
+            let namelist = stack.pop_repetition();
 
-                FunctionParameters::finalize_parameters_parsing(stack, namelist, false);
-            }
-            // Already had ellipsis after namelist, which properly created parameters. Ignore
-            _ => {}
+            FunctionParameters::finalize_parameters_parsing(stack, namelist, false);
         }
+        // Otherwise we already had ellipsis after namelist, which properly created parameters. Ignore
     }
 
     pub fn new_single_varargs(stack: &mut stack::Stack) {

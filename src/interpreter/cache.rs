@@ -5,7 +5,7 @@ use super::types;
 
 /// Evaluation cache. Know how to store reference for a particular execution context: environment of table.
 /// Called to speedup execution of block cycles
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Cache {
     /// Context environment or table id
     env_id: u64,
@@ -14,13 +14,6 @@ pub struct Cache {
 }
 
 impl Cache {
-    pub fn new() -> Self {
-        Cache {
-            env_id: 0,
-            cached_value: None
-        }
-    }
-
     pub fn get(&self, env_id: u64) -> Option<types::Type> {
         if env_id == self.env_id {
             if let Some(value) = &self.cached_value {

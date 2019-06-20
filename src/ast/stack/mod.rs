@@ -21,6 +21,10 @@ impl Stack {
         self.elements.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.elements.is_empty()
+    }
+
     pub fn peek(&self) -> &Element {
         self.elements.last().unwrap()
     }
@@ -95,7 +99,7 @@ impl Stack {
 #[cfg(test)]
 impl ::std::cmp::PartialEq<&'static str> for Stack {
     fn eq(&self, other: &&'static str) -> bool {
-        format!("{:?}", self.elements) == other.to_string()
+        format!("{:?}", self.elements) == *other
     }
 }
 

@@ -82,9 +82,9 @@ impl Environment {
         *self.global_id_counter.borrow_mut() += 1;
         value
     }
-    
+
     /// Get variable value(reference). If current env doesn't contain the varable, checks in parent environments
-    pub fn get(&mut self, varname: &String) -> Option<Rc<RefCell<types::Type>>> {
+    pub fn get(&mut self, varname: &str) -> Option<Rc<RefCell<types::Type>>> {
         if let Some(value) = self.data.get(varname) {
             debug_env!("Env found variable {}, which is {:?}", varname, value);
             Some(value.clone())
@@ -195,11 +195,11 @@ impl std::fmt::Display for Environment {
         keys.sort();
 
         let mut result = "{".to_string();
-        for ref key in keys.into_iter() {
-            result += format!("{:?}: {:?}, ", key, self.data.get(*key).unwrap()).as_str();
+        for key in keys.into_iter() {
+            result += format!("{:?}: {:?}, ", key, self.data.get(key).unwrap()).as_str();
         }
 
-        if self.data.len() > 0 {
+        if !self.data.is_empty() {
             result.pop();
             result.pop();
         }
@@ -221,13 +221,13 @@ impl Deref for Environment {
 #[cfg(test)]
 impl ::std::cmp::PartialEq<&'static str> for Environment {
     fn eq(&self, other: &&'static str) -> bool {
-        format!("{}", self) == other.to_string()
+        format!("{}", self) == *other
     }
 }
 
 #[cfg(test)]
 impl ::std::cmp::PartialEq<&'static str> for Shared<Environment> {
     fn eq(&self, other: &&'static str) -> bool {
-        format!("{}", self.borrow()) == other.to_string()
+        format!("{}", self.borrow()) == *other
     }
 }

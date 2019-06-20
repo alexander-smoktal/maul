@@ -84,8 +84,8 @@ fn call_function(
             let mut shared_env = utils::Shared::new(local_env);
             body.eval(&mut shared_env);
 
-            let result = shared_env.borrow_mut().retval();
-            result
+            let mut borrow = shared_env.borrow_mut();
+            borrow.retval()
         },
         _ => this.runtime_error(format!("Cannot call {:?}, not a function", function))
     )

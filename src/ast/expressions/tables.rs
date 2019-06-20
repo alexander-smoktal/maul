@@ -42,14 +42,14 @@ impl Indexing {
     pub fn new(stack: &mut stack::Stack) {
         let (index, object) = stack_unpack!(stack, single, single);
 
-        stack.push_single(Box::new(Indexing { object, index, cache: RefCell::new(cache::Cache::new()) }));
+        stack.push_single(Box::new(Indexing { object, index, cache: RefCell::new(cache::Cache::default()) }));
     }
 
     pub fn new_indexing_chain(stack: &mut stack::Stack) {
         let (chain, mut object) = stack_unpack!(stack, repetition, single);
 
         for index in chain.into_iter() {
-            object = Box::new(Indexing { object, index, cache: RefCell::new(cache::Cache::new()) })
+            object = Box::new(Indexing { object, index, cache: RefCell::new(cache::Cache::default()) })
         }
 
         stack.push_single(object)

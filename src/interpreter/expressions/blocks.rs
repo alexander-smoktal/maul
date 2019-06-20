@@ -8,7 +8,7 @@ use crate::utils;
 }*/
 impl interpreter::Eval for blocks::Block {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        for ref statement in &self.statements {
+        for statement in &self.statements {
             statement.eval(env);
 
             // Check if broken
@@ -151,7 +151,7 @@ impl interpreter::Eval for blocks::NumericalForBlock {
             _ => self.runtime_error(format!("{:?} cannot be used as `for` statement variable name", self.var_name))
         );
 
-        let mut get_num = |exp: &Box<expressions::Expression>, value_type| -> f64 {
+        let mut get_num = |exp: &expressions::Expression, value_type| -> f64 {
             let evaluated = exp.eval(env);
             match_type!(&evaluated,
                 types::Type::Number(value) => *value,
@@ -159,11 +159,11 @@ impl interpreter::Eval for blocks::NumericalForBlock {
             )
         };
 
-        let init_num = get_num(&self.init_value, "initial");
-        let limit_num = get_num(&self.limit, "limit");
+        let init_num = get_num(self.init_value.as_ref(), "initial");
+        let limit_num = get_num(self.limit.as_ref(), "limit");
 
         let step_num = if let Some(step) = &self.step {
-            get_num(step, "step")
+            get_num(step.as_ref(), "step")
         } else {
             1f64
         };

@@ -20,7 +20,7 @@ impl interpreter::Eval for tables::Table {
         let mut map: TableHashMap = HashMap::new();
         let mut border: usize = 0;
 
-        for ref field_expression in &self.0 {
+        for field_expression in &self.0 {
             if let types::Type::Vector(mut key_value) = field_expression.eval(env) {
                 // Key AND value
                 if key_value.len() == 2 {
@@ -70,7 +70,7 @@ impl interpreter::Eval for tables::TableField {
             let key = expression.eval(env);
 
             if key.is_nil() {
-                self.runtime_error(format!("Cannot use `nil` as a table key"))
+                self.runtime_error("Cannot use `nil` as a table key".to_string())
             }
 
             result_vector.push_back(key);
@@ -84,7 +84,7 @@ impl interpreter::Eval for tables::TableField {
 
 impl interpreter::Eval for tables::Indexing {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
-        let table = self.object.eval(env).as_ref();
+        let table = self.object.eval(env).into_reference();
         // This is bullshit. WTF Ref
         let mut table_borrow = table.borrow_mut();
 
