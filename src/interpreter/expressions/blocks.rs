@@ -62,11 +62,11 @@ impl interpreter::Eval for blocks::WhileBlock {
             environment::BreakFlag::Break(false),
         ));
 
-        while self.condition.eval(env).as_bool() {            
+        while self.condition.eval(env).as_bool() {
             self.block.eval(&mut local_env);
             // Check if broken
             let env_borrow = local_env.borrow();
-            if let environment::BreakFlag::Break(true) = env_borrow.break_flag().clone() {
+            if let environment::BreakFlag::Break(true) = *env_borrow.break_flag() {
                 break;
             }
         }
@@ -84,7 +84,7 @@ impl interpreter::Eval for blocks::RepeatBlock {
             Some(env.clone()),
             environment::BreakFlag::Break(false),
         ));
-        
+
         loop {
             self.block.eval(&mut local_env);
 
@@ -92,7 +92,7 @@ impl interpreter::Eval for blocks::RepeatBlock {
             if let environment::BreakFlag::Break(true) = local_env.borrow().break_flag() {
                 break;
             }
-            
+
             if self.condition.eval(env).as_bool() {
                 break;
             }
@@ -179,7 +179,7 @@ impl interpreter::Eval for blocks::NumericalForBlock {
                 .borrow_mut()
                 .add_variable(var_name.clone(), types::Type::Number(i));
 
-        while i != limit_num {            
+        while (i - limit_num).abs() > std::f64::EPSILON {
             counter_ref.replace(types::Type::Number(i));
 
             self.block.eval(&mut local_env);
@@ -188,7 +188,7 @@ impl interpreter::Eval for blocks::NumericalForBlock {
             if let environment::BreakFlag::Break(true) = local_env.borrow().break_flag() {
                 break;
             }
-            
+
             i += step_num;
         }
 

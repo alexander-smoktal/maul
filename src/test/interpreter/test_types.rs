@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 use crate::interpreter::types;
 use std::cell::RefCell;
 use std::rc::Rc;

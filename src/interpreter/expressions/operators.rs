@@ -113,8 +113,8 @@ fn eval_equivalence(
                 Keyword::LEQ => types::Type::Boolean(leftnum <= rightnum),
                 Keyword::GREATER => types::Type::Boolean(leftnum > rightnum),
                 Keyword::GEQ => types::Type::Boolean(leftnum >= rightnum),
-                Keyword::EQ => types::Type::Boolean(leftnum == rightnum),
-                Keyword::NEQ => types::Type::Boolean(leftnum != rightnum),
+                Keyword::EQ => types::Type::Boolean((leftnum - rightnum).abs() <= std::f64::EPSILON),
+                Keyword::NEQ => types::Type::Boolean((leftnum - rightnum).abs() > std::f64::EPSILON),
                 _ => panic!("Should never happen")
             }
         },
