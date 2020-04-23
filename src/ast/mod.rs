@@ -20,7 +20,7 @@ use crate::interpreter::environment;
 use std::fmt::{Debug, Error, Formatter};
 
 pub struct AST {
-    top_expression: Box<expressions::Expression>,
+    top_expression: Box<dyn expressions::Expression>,
 }
 
 impl AST {

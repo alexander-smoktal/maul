@@ -11,11 +11,11 @@ fn test_stack_unpack() {
     stack.push_single(Box::new(primitives::Nil));
     stack.push_repetition(
         vec![
-            Box::new(primitives::Nil) as Box<Expression>,
-            Box::new(primitives::Nil) as Box<Expression>,
+            Box::new(primitives::Nil) as Box<dyn Expression>,
+            Box::new(primitives::Nil) as Box<dyn Expression>,
         ]
         .into_iter()
-        .collect::<VecDeque<Box<Expression>>>(),
+        .collect::<VecDeque<Box<dyn Expression>>>(),
     );
     stack.push_optional(Some(Box::new(primitives::Nil)));
 

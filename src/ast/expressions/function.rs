@@ -8,9 +8,9 @@ use std::cell::RefCell;
 
 #[derive(Debug)]
 pub struct Closure {
-    pub params: VecDeque<Box<expressions::Expression>>,
+    pub params: VecDeque<Box<dyn expressions::Expression>>,
     pub varargs: bool,
-    pub body: Rc<Box<expressions::Expression>>,
+    pub body: Rc<Box<dyn expressions::Expression>>,
 }
 impl expressions::Expression for Closure {}
 
@@ -60,7 +60,7 @@ impl Function {
             params,
             varargs: ellipsis.is_some(),
             body: Rc::new(body),
-        }) as Box<expressions::Expression>;
+        }) as Box<dyn expressions::Expression>;
 
         stack.push_single(Box::new(variables::Assignment {
             varlist: vec![object].into(),
@@ -117,7 +117,7 @@ impl FunctionParameters {
     /// After method execution, stack will contains parameters list and optional ellipsis expression
     fn finalize_parameters_parsing(
         stack: &mut stack::Stack,
-        namelist: VecDeque<Box<expressions::Expression>>,
+        namelist: VecDeque<Box<dyn expressions::Expression>>,
         varargs: bool,
     ) {
         stack.push_repetition(namelist);
@@ -131,9 +131,9 @@ impl FunctionParameters {
 
 #[derive(Debug)]
 pub struct Funcall {
-    pub object: Box<expressions::Expression>,
-    pub args: VecDeque<Box<expressions::Expression>>,
-    pub method: Option<Box<expressions::Expression>>,
+    pub object: Box<dyn expressions::Expression>,
+    pub args: VecDeque<Box<dyn expressions::Expression>>,
+    pub method: Option<Box<dyn expressions::Expression>>,
 }
 impl expressions::Expression for Funcall {}
 

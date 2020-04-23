@@ -2,7 +2,7 @@ use crate::ast::expressions;
 
 pub fn some_expression<E: expressions::Expression + 'static>(
     expression: E,
-) -> Option<Box<expressions::Expression>> {
+) -> Option<Box<dyn expressions::Expression>> {
     log_debug!("Made expression: {:?}", expression);
     Some(Box::new(expression))
 }

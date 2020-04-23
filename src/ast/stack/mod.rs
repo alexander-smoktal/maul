@@ -6,9 +6,9 @@ const DEBUG: bool = false;
 
 #[derive(Debug)]
 pub enum Element {
-    Single(Box<expressions::Expression>),
-    Repetition(VecDeque<Box<expressions::Expression>>),
-    Optional(Option<Box<expressions::Expression>>),
+    Single(Box<dyn expressions::Expression>),
+    Repetition(VecDeque<Box<dyn expressions::Expression>>),
+    Optional(Option<Box<dyn expressions::Expression>>),
 }
 
 #[derive(Debug, Default)]
@@ -29,7 +29,7 @@ impl Stack {
         self.elements.last().unwrap()
     }
 
-    pub fn pop_single(&mut self) -> Box<expressions::Expression> {
+    pub fn pop_single(&mut self) -> Box<dyn expressions::Expression> {
         if self.elements.is_empty() {
             panic!("Invalid grammar. No elements on stack");
         }
@@ -46,7 +46,7 @@ impl Stack {
         }
     }
 
-    pub fn pop_repetition(&mut self) -> VecDeque<Box<expressions::Expression>> {
+    pub fn pop_repetition(&mut self) -> VecDeque<Box<dyn expressions::Expression>> {
         if self.elements.is_empty() {
             panic!("Invalid grammar. No elements on stack");
         }
@@ -63,7 +63,7 @@ impl Stack {
         }
     }
 
-    pub fn pop_optional(&mut self) -> Option<Box<expressions::Expression>> {
+    pub fn pop_optional(&mut self) -> Option<Box<dyn expressions::Expression>> {
         if self.elements.is_empty() {
             panic!("Invalid grammar. No elements on stack");
         }
@@ -80,17 +80,17 @@ impl Stack {
         }
     }
 
-    pub fn push_single(&mut self, expression: Box<expressions::Expression>) {
+    pub fn push_single(&mut self, expression: Box<dyn expressions::Expression>) {
         self.elements.push(Element::Single(expression));
         debug_parser!("Stack push: {:?}", self.peek())
     }
 
-    pub fn push_repetition(&mut self, expressions: VecDeque<Box<expressions::Expression>>) {
+    pub fn push_repetition(&mut self, expressions: VecDeque<Box<dyn expressions::Expression>>) {
         self.elements.push(Element::Repetition(expressions));
         debug_parser!("Stack push: {:?}", self.peek())
     }
 
-    pub fn push_optional(&mut self, expression: Option<Box<expressions::Expression>>) {
+    pub fn push_optional(&mut self, expression: Option<Box<dyn expressions::Expression>>) {
         self.elements.push(Element::Optional(expression));
         debug_parser!("Stack push: {:?}", self.peek())
     }

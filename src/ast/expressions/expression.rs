@@ -5,7 +5,7 @@ use crate::ast::expressions;
 use crate::ast::stack;
 
 #[derive(Debug)]
-pub struct Expressions(pub VecDeque<Box<expressions::Expression>>);
+pub struct Expressions(pub VecDeque<Box<dyn expressions::Expression>>);
 impl expressions::Expression for Expressions {}
 
 impl Expressions {

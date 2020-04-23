@@ -27,7 +27,7 @@ pub enum Type {
         id: u64,
         parameters: Vec<String>,
         varargs: bool,
-        body: Rc<Box<expressions::Expression>>,
+        body: Rc<Box<dyn expressions::Expression>>,
         // XXX: Capture only vars function needs?
         env: utils::Shared<environment::Environment>,
     },

@@ -5,14 +5,14 @@ use crate::ast::stack;
 #[macro_export]
 macro_rules! sexp {
     ($e: expr) => {
-        Some(Box::new($e) as Box<Expression>)
+        Some(Box::new($e) as Box<dyn Expression>)
     };
 }
 
 #[macro_export]
 macro_rules! exp {
     ($e: expr) => {
-        Box::new($e) as Box<Expression>
+        Box::new($e) as Box<dyn Expression>
     };
 }
 

@@ -3,8 +3,8 @@ use crate::interpreter::{self, environment, types};
 use crate::utils;
 
 /* pub struct Block {
-    statements: VecDeque<Box<expressions::Expression>>,
-    retstat: Option<Box<expressions::Expression>>,
+    statements: VecDeque<Box<dyn expressions::Expression>>,
+    retstat: Option<Box<dyn expressions::Expression>>,
 }*/
 impl interpreter::Eval for blocks::Block {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -32,7 +32,7 @@ impl interpreter::Eval for blocks::Block {
     }
 }
 
-// pub struct DoBlock(pub Box<expressions::Expression>);
+// pub struct DoBlock(pub Box<dyn expressions::Expression>);
 impl interpreter::Eval for blocks::DoBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let local_env =
@@ -44,7 +44,7 @@ impl interpreter::Eval for blocks::DoBlock {
 }
 
 // TODO: Do we need another wrapper for local?
-// pub struct Local(Box<expressions::Expression>);
+// pub struct Local(Box<dyn expressions::Expression>);
 impl interpreter::Eval for blocks::Local {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         self.0.eval(env)
@@ -52,8 +52,8 @@ impl interpreter::Eval for blocks::Local {
 }
 
 // pub struct WhileBlock {
-//     pub condition: Box<expressions::Expression>,
-//     pub block: Box<expressions::Expression>,
+//     pub condition: Box<dyn expressions::Expression>,
+//     pub block: Box<dyn expressions::Expression>,
 // }
 impl interpreter::Eval for blocks::WhileBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -75,8 +75,8 @@ impl interpreter::Eval for blocks::WhileBlock {
 }
 
 // pub struct RepeatBlock {
-//     pub block: Box<expressions::Expression>,
-//     pub condition: Box<expressions::Expression>,
+//     pub block: Box<dyn expressions::Expression>,
+//     pub condition: Box<dyn expressions::Expression>,
 // }
 impl interpreter::Eval for blocks::RepeatBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -103,8 +103,8 @@ impl interpreter::Eval for blocks::RepeatBlock {
 }
 
 // pub struct IfCondition {
-//     pub condition: Box<expressions::Expression>,
-//     pub block: Box<expressions::Expression>,
+//     pub condition: Box<dyn expressions::Expression>,
+//     pub block: Box<dyn expressions::Expression>,
 // }
 impl interpreter::Eval for blocks::IfCondition {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -118,8 +118,8 @@ impl interpreter::Eval for blocks::IfCondition {
 }
 
 // pub struct IfBlock {
-//     pub conditions: VecDeque<Box<expressions::Expression>>,
-//     pub else_block: Option<Box<expressions::Expression>>,
+//     pub conditions: VecDeque<Box<dyn expressions::Expression>>,
+//     pub else_block: Option<Box<dyn expressions::Expression>>,
 // }
 impl interpreter::Eval for blocks::IfBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -137,10 +137,10 @@ impl interpreter::Eval for blocks::IfBlock {
 }
 
 // pub struct NumericalForBlock {
-//     pub init: Box<expressions::Expression>,
-//     pub limit: Box<expressions::Expression>,
-//     pub step: Option<Box<expressions::Expression>>,
-//     pub block: Box<expressions::Expression>,
+//     pub init: Box<dyn expressions::Expression>,
+//     pub limit: Box<dyn expressions::Expression>,
+//     pub step: Option<Box<dyn expressions::Expression>>,
+//     pub block: Box<dyn expressions::Expression>,
 // }
 impl interpreter::Eval for blocks::NumericalForBlock {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
@@ -151,7 +151,7 @@ impl interpreter::Eval for blocks::NumericalForBlock {
             _ => self.runtime_error(format!("{:?} cannot be used as `for` statement variable name", self.var_name))
         );
 
-        let mut get_num = |exp: &expressions::Expression, value_type| -> f64 {
+        let mut get_num = |exp: &dyn expressions::Expression, value_type| -> f64 {
             let evaluated = exp.eval(env);
             match_type!(&evaluated,
                 types::Type::Number(value) => *value,

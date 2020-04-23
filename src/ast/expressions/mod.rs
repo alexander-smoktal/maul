@@ -18,18 +18,18 @@ use std::fmt::Debug;
 use crate::interpreter;
 
 pub trait Expression: Debug + interpreter::Eval {
-    fn clone(&self) -> Box<Expression> {
+    fn clone(&self) -> Box<dyn Expression> {
         panic!("Trying to clone expression, which can't be cloned")
     }
 }
 
-impl PartialEq for Box<Expression> {
-    fn eq(&self, other: &Box<Expression>) -> bool {
+impl PartialEq for Box<dyn Expression> {
+    fn eq(&self, other: &Box<dyn Expression>) -> bool {
         format!("{:?}", self) == format!("{:?}", other)
     }
 }
 
-impl Eq for Box<Expression> {}
+impl Eq for Box<dyn Expression> {}
 
 // Struct for debugging. Wraps terminal. Basically Noop
 #[derive(Debug)]

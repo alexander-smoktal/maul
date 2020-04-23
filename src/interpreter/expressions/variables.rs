@@ -41,7 +41,7 @@ impl interpreter::Eval for variables::Id {
 
 /// Function to evaluate vars and expressions and properly append result into a target
 fn eval_expression(
-    expressions: &VecDeque<Box<expressions::Expression>>,
+    expressions: &VecDeque<Box<dyn expressions::Expression>>,
     env: &mut utils::Shared<environment::Environment>,
 ) -> VecDeque<types::Type> {
     let mut result = VecDeque::new();
@@ -57,8 +57,8 @@ fn eval_expression(
 }
 
 // pub struct Assignment {
-//     pub varlist: VecDeque<Box<expressions::Expression>>,
-//     pub explist: VecDeque<Box<expressions::Expression>>,
+//     pub varlist: VecDeque<Box<dyn expressions::Expression>>,
+//     pub explist: VecDeque<Box<dyn expressions::Expression>>,
 // }
 impl interpreter::Eval for variables::Assignment {
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {

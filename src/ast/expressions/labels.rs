@@ -4,7 +4,7 @@ use crate::ast::stack;
 use crate::interpreter;
 
 #[derive(Debug)]
-pub struct Label(pub Box<expressions::Expression>);
+pub struct Label(pub Box<dyn expressions::Expression>);
 impl interpreter::Eval for Label {}
 impl expressions::Expression for Label {}
 
@@ -16,7 +16,7 @@ impl Label {
 }
 
 #[derive(Debug)]
-pub struct Goto(pub Box<expressions::Expression>);
+pub struct Goto(pub Box<dyn expressions::Expression>);
 impl interpreter::Eval for Goto {}
 impl expressions::Expression for Goto {}
 

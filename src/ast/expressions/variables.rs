@@ -66,8 +66,8 @@ impl ::std::fmt::Debug for Id {
 
 #[derive(Debug)]
 pub struct Assignment {
-    pub varlist: VecDeque<Box<expressions::Expression>>,
-    pub explist: VecDeque<Box<expressions::Expression>>,
+    pub varlist: VecDeque<Box<dyn expressions::Expression>>,
+    pub explist: VecDeque<Box<dyn expressions::Expression>>,
 }
 impl expressions::Expression for Assignment {}
 

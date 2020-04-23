@@ -7,7 +7,7 @@ use crate::ast::stack;
 pub enum Statement {
     Break,
     Ellipsis,
-    Return(Option<Box<expressions::Expression>>),
+    Return(Option<Box<dyn expressions::Expression>>),
 }
 impl expressions::Expression for Statement {}
 

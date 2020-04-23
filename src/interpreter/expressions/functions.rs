@@ -6,9 +6,9 @@ use crate::utils;
 
 impl interpreter::Eval for function::Closure {
     // pub struct Closure {
-    //     pub params: VecDeque<Box<expressions::Expression>>,
+    //     pub params: VecDeque<Box<dyn expressions::Expression>>,
     //     pub varargs: bool,
-    //     pub body: Rc<Box<expressions::Expression>>,
+    //     pub body: Rc<Box<dyn expressions::Expression>>,
     // }
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let parameters: Vec<String> = self
@@ -37,7 +37,7 @@ impl interpreter::Eval for function::Closure {
 }
 
 fn eval_args(
-    args: &VecDeque<Box<expressions::Expression>>,
+    args: &VecDeque<Box<dyn expressions::Expression>>,
     call_env: &mut utils::Shared<environment::Environment>,
 ) -> VecDeque<types::Type> {
     let mut result = VecDeque::new();
@@ -53,10 +53,10 @@ fn eval_args(
 }
 
 fn call_function(
-    this: &expressions::Expression,
+    this: &dyn expressions::Expression,
     call_object: Option<types::Type>,
     function: types::Type,
-    args: &VecDeque<Box<expressions::Expression>>,
+    args: &VecDeque<Box<dyn expressions::Expression>>,
     call_env: &mut utils::Shared<environment::Environment>,
 ) -> types::Type {
     match_type!(&function,
@@ -93,9 +93,9 @@ fn call_function(
 
 impl interpreter::Eval for function::Funcall {
     // pub struct Funcall {
-    //     pub object: Box<expressions::Expression>,
-    //     pub args: VecDeque<Box<expressions::Expression>>,
-    //     pub method: Option<Box<expressions::Expression>>,
+    //     pub object: Box<dyn expressions::Expression>,
+    //     pub args: VecDeque<Box<dyn expressions::Expression>>,
+    //     pub method: Option<Box<dyn expressions::Expression>>,
     // }
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let call_object = self.object.eval(env);

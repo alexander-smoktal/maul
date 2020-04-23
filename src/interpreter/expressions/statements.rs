@@ -6,7 +6,7 @@ impl interpreter::Eval for statements::Statement {
     // pub enum Statement {
     //     Break,
     //     Ellipsis,
-    //     Return(Option<Box<expressions::Expression>>),
+    //     Return(Option<Box<dyn expressions::Expression>>),
     // }
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         match &self {

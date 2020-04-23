@@ -30,8 +30,8 @@ macro_rules! make_op_table {
 #[derive(Debug)]
 pub struct Binop(
     pub Keyword,
-    pub Box<expressions::Expression>,
-    pub Box<expressions::Expression>,
+    pub Box<dyn expressions::Expression>,
+    pub Box<dyn expressions::Expression>,
 );
 impl expressions::Expression for Binop {}
 
@@ -129,7 +129,7 @@ impl Binop {
 
 // unop ::= ‘-’ | not | ‘#’ | ‘~’
 #[derive(Debug)]
-pub struct Unop(pub Keyword, pub Box<expressions::Expression>);
+pub struct Unop(pub Keyword, pub Box<dyn expressions::Expression>);
 impl expressions::Expression for Unop {}
 
 impl Unop {

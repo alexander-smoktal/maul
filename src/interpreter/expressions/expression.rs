@@ -4,7 +4,7 @@ use crate::interpreter::{self, environment, types};
 use crate::utils;
 
 impl interpreter::Eval for expression::Expressions {
-    // struct Expressions(VecDeque<Box<expressions::Expression>>);
+    // struct Expressions(VecDeque<Box<dyn expressions::Expression>>);
     fn eval(&self, env: &mut utils::Shared<environment::Environment>) -> types::Type {
         let mut result = types::Type::Nil;
 

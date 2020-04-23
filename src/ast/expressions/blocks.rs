@@ -7,8 +7,8 @@ use crate::interpreter;
 
 #[derive(Debug)]
 pub struct Block {
-    pub statements: VecDeque<Box<expressions::Expression>>,
-    pub retstat: Option<Box<expressions::Expression>>,
+    pub statements: VecDeque<Box<dyn expressions::Expression>>,
+    pub retstat: Option<Box<dyn expressions::Expression>>,
 }
 impl expressions::Expression for Block {}
 
@@ -24,7 +24,7 @@ impl Block {
 }
 
 #[derive(Debug)]
-pub struct DoBlock(pub Box<expressions::Expression>);
+pub struct DoBlock(pub Box<dyn expressions::Expression>);
 impl expressions::Expression for DoBlock {}
 
 impl DoBlock {
@@ -37,8 +37,8 @@ impl DoBlock {
 
 #[derive(Debug)]
 pub struct WhileBlock {
-    pub condition: Box<expressions::Expression>,
-    pub block: Box<expressions::Expression>,
+    pub condition: Box<dyn expressions::Expression>,
+    pub block: Box<dyn expressions::Expression>,
 }
 impl expressions::Expression for WhileBlock {}
 
@@ -53,8 +53,8 @@ impl WhileBlock {
 
 #[derive(Debug)]
 pub struct RepeatBlock {
-    pub block: Box<expressions::Expression>,
-    pub condition: Box<expressions::Expression>,
+    pub block: Box<dyn expressions::Expression>,
+    pub condition: Box<dyn expressions::Expression>,
 }
 impl expressions::Expression for RepeatBlock {}
 
@@ -70,8 +70,8 @@ impl RepeatBlock {
 // TODO: Remove publicity
 #[derive(Debug)]
 pub struct IfCondition {
-    pub condition: Box<expressions::Expression>,
-    pub block: Box<expressions::Expression>,
+    pub condition: Box<dyn expressions::Expression>,
+    pub block: Box<dyn expressions::Expression>,
 }
 impl expressions::Expression for IfCondition {}
 
@@ -87,8 +87,8 @@ impl IfCondition {
 
 #[derive(Debug)]
 pub struct IfBlock {
-    pub conditions: VecDeque<Box<expressions::Expression>>,
-    pub else_block: Option<Box<expressions::Expression>>,
+    pub conditions: VecDeque<Box<dyn expressions::Expression>>,
+    pub else_block: Option<Box<dyn expressions::Expression>>,
 }
 impl expressions::Expression for IfBlock {}
 
@@ -111,11 +111,11 @@ impl IfBlock {
 
 #[derive(Debug)]
 pub struct NumericalForBlock {
-    pub var_name: Box<expressions::Expression>,
-    pub init_value: Box<expressions::Expression>,
-    pub limit: Box<expressions::Expression>,
-    pub step: Option<Box<expressions::Expression>>,
-    pub block: Box<expressions::Expression>,
+    pub var_name: Box<dyn expressions::Expression>,
+    pub init_value: Box<dyn expressions::Expression>,
+    pub limit: Box<dyn expressions::Expression>,
+    pub step: Option<Box<dyn expressions::Expression>>,
+    pub block: Box<dyn expressions::Expression>,
 }
 impl expressions::Expression for NumericalForBlock {}
 
@@ -138,9 +138,9 @@ impl NumericalForBlock {
 
 #[derive(Debug)]
 pub struct GenericForBlock {
-    pub namelist: VecDeque<Box<expressions::Expression>>,
-    pub explist: VecDeque<Box<expressions::Expression>>,
-    pub block: Box<expressions::Expression>,
+    pub namelist: VecDeque<Box<dyn expressions::Expression>>,
+    pub explist: VecDeque<Box<dyn expressions::Expression>>,
+    pub block: Box<dyn expressions::Expression>,
 }
 impl interpreter::Eval for GenericForBlock {}
 impl expressions::Expression for GenericForBlock {}
@@ -160,7 +160,7 @@ impl GenericForBlock {
 }
 
 #[derive(Debug)]
-pub struct Local(pub Box<expressions::Expression>);
+pub struct Local(pub Box<dyn expressions::Expression>);
 impl expressions::Expression for Local {}
 
 impl Local {

@@ -49,7 +49,7 @@ impl interpreter::Eval for operators::Unop {
 }
 
 fn eval_ariphmetic(
-    exp: &interpreter::Eval,
+    exp: &dyn interpreter::Eval,
     op: &Keyword,
     left: types::Type,
     right: types::Type,
@@ -97,7 +97,7 @@ fn eval_ariphmetic(
 }
 
 fn eval_equivalence(
-    exp: &interpreter::Eval,
+    exp: &dyn interpreter::Eval,
     op: &Keyword,
     left: types::Type,
     right: types::Type,
@@ -157,7 +157,7 @@ fn eval_equivalence(
 }
 
 fn eval_bitwise(
-    exp: &interpreter::Eval,
+    exp: &dyn interpreter::Eval,
     op: &Keyword,
     left: types::Type,
     right: types::Type,
@@ -207,7 +207,7 @@ fn eval_boolean(
 }
 
 fn eval_concat(
-    exp: &interpreter::Eval,
+    exp: &dyn interpreter::Eval,
     _op: &Keyword,
     left: types::Type,
     right: types::Type,

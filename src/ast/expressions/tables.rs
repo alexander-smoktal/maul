@@ -10,8 +10,8 @@ use crate::ast::rules;
 use crate::ast::stack;
 
 pub struct Indexing {
-    pub object: Box<expressions::Expression>,
-    pub index: Box<expressions::Expression>,
+    pub object: Box<dyn expressions::Expression>,
+    pub index: Box<dyn expressions::Expression>,
     /// We need interior mutability to update cache
     pub cache: RefCell<cache::Cache>
 }
@@ -58,8 +58,8 @@ impl Indexing {
 
 #[derive(Debug)]
 pub struct TableField {
-    pub key: Option<Box<expressions::Expression>>,
-    pub value: Box<expressions::Expression>,
+    pub key: Option<Box<dyn expressions::Expression>>,
+    pub value: Box<dyn expressions::Expression>,
 }
 impl expressions::Expression for TableField {}
 
@@ -124,7 +124,7 @@ impl TableField {
 }
 
 #[derive(Debug)]
-pub struct Table(pub VecDeque<Box<expressions::Expression>>);
+pub struct Table(pub VecDeque<Box<dyn expressions::Expression>>);
 impl expressions::Expression for Table {}
 
 impl Table {
